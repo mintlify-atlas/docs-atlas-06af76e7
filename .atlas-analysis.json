@@ -1,0 +1,130 @@
+{
+  "projectType": "saas",
+  "projectName": "STRIDE GPT",
+  "projectDescription": "An AI-powered threat modeling tool that leverages LLMs to generate threat models based on the STRIDE methodology.",
+  "theme": "aspen",
+  "primaryColor": "#7B3FF2",
+  "lightColor": "#A78BFA",
+  "darkColor": "#5B21B6",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Installation",
+            "pages": [
+              "installation/local",
+              "installation/docker",
+              "installation/configuration"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/threat-modeling",
+              "features/attack-trees",
+              "features/mitigations",
+              "features/dread-scoring",
+              "features/test-cases",
+              "features/multi-modal",
+              "features/github-analysis"
+            ]
+          },
+          {
+            "group": "AI Applications",
+            "pages": [
+              "ai-applications/overview",
+              "ai-applications/generative-ai",
+              "ai-applications/agentic-ai",
+              "ai-applications/owasp-integration"
+            ]
+          },
+          {
+            "group": "Model Providers",
+            "pages": [
+              "providers/overview",
+              "providers/openai",
+              "providers/anthropic",
+              "providers/google",
+              "providers/mistral",
+              "providers/groq",
+              "providers/ollama",
+              "providers/lm-studio"
+            ]
+          },
+          {
+            "group": "Enterprise",
+            "pages": [
+              "enterprise/operationalization",
+              "enterprise/customization",
+              "enterprise/deployment"
+            ]
+          },
+          {
+            "group": "Security",
+            "pages": [
+              "security/best-practices",
+              "security/api-keys",
+              "security/data-privacy"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Resources",
+        "groups": [
+          {
+            "group": "Reference",
+            "pages": [
+              "reference/stride-methodology",
+              "reference/dread-framework",
+              "reference/owasp-llm-top-10",
+              "reference/owasp-asi-top-10"
+            ]
+          },
+          {
+            "group": "Community",
+            "pages": [
+              "community/contributing",
+              "community/changelog",
+              "community/support"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "AI-powered threat modeling using STRIDE methodology",
+    "Attack tree generation and visualization",
+    "DREAD risk scoring for threat assessment",
+    "Specialized support for GenAI and Agentic AI applications",
+    "Multi-modal analysis with architecture diagrams",
+    "GitHub repository analysis",
+    "Multiple LLM provider support (OpenAI, Anthropic, Google, Mistral, Groq)",
+    "Local model hosting via Ollama and LM Studio",
+    "OWASP LLM Top 10 and ASI Top 10 integration",
+    "Automated mitigation suggestions",
+    "Gherkin test case generation",
+    "Downloadable outputs in Markdown format"
+  ],
+  "publicApiSurface": [
+    "Streamlit web interface",
+    "get_threat_model() - Generate STRIDE threat models",
+    "get_attack_tree() - Generate attack trees",
+    "get_mitigations() - Generate mitigation suggestions",
+    "get_dread_assessment() - Perform DREAD risk scoring",
+    "get_test_cases() - Generate Gherkin test cases",
+    "get_image_analysis() - Analyze architecture diagrams",
+    "GitHub repository analysis via GitHub API",
+    "Multiple LLM provider integrations (OpenAI, Anthropic, Google AI, Mistral, Groq, Ollama, LM Studio)"
+  ]
+}
