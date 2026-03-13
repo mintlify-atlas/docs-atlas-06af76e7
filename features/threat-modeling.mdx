@@ -1,0 +1,251 @@
+---
+title: 'Threat Modeling'
+description: 'Generate comprehensive STRIDE-based threat models for traditional, GenAI, and Agentic AI applications'
+icon: 'shield-halved'
+---
+
+## Overview
+
+STRIDE GPT uses the STRIDE methodology to automatically generate detailed threat models from application descriptions. The tool adapts its analysis based on your application type, providing specialized threat categories for LLM and Agentic AI systems.
+
+## STRIDE Categories
+
+The tool analyzes threats across six core categories:
+
+<CardGroup cols={2}>
+  <Card title="Spoofing" icon="user-secret">
+    Identity spoofing, credential theft, fake authentication
+  </Card>
+  <Card title="Tampering" icon="pen-to-square">
+    Data modification, code injection, unauthorized changes
+  </Card>
+  <Card title="Repudiation" icon="clock-rotate-left">
+    Denial of actions, log manipulation, accountability gaps
+  </Card>
+  <Card title="Information Disclosure" icon="eye">
+    Data leaks, unauthorized access, PII exposure
+  </Card>
+  <Card title="Denial of Service" icon="ban">
+    Resource exhaustion, service disruption, availability attacks
+  </Card>
+  <Card title="Elevation of Privilege" icon="arrow-up">
+    Privilege escalation, unauthorized access, permission bypass
+  </Card>
+</CardGroup>
+
+## Application Types
+
+STRIDE GPT supports three application types, each with specialized threat analysis:
+
+### Traditional Applications
+
+For standard web, mobile, and enterprise applications, the tool generates threats covering:
+- Authentication and authorization vulnerabilities
+- Data flow security
+- Network security
+- Infrastructure security
+
+### Generative AI Applications
+
+Adds **OWASP Top 10 for LLM Applications 2025** (LLM01-LLM10):
+
+<AccordionGroup>
+  <Accordion title="LLM01 - Prompt Injection">
+    Attacker crafts inputs that override system prompts or instructions, bypassing intended behavior
+  </Accordion>
+  <Accordion title="LLM02 - Sensitive Information Disclosure">
+    LLM reveals training data, PII, credentials, or proprietary information
+  </Accordion>
+  <Accordion title="LLM03 - Supply Chain">
+    Compromised models, plugins, or dependencies introduce backdoors or malicious capabilities
+  </Accordion>
+  <Accordion title="LLM04 - Data and Model Poisoning">
+    Malicious modification of training data, fine-tuning data, or embeddings
+  </Accordion>
+  <Accordion title="LLM05 - Improper Output Handling">
+    LLM output passed to downstream systems without validation enables injection attacks
+  </Accordion>
+  <Accordion title="LLM06 - Excessive Agency">
+    LLM granted excessive permissions or autonomy to perform actions
+  </Accordion>
+  <Accordion title="LLM07 - System Prompt Leakage">
+    Extraction of system prompts reveals intended identity/behavior, business logic, or secrets
+  </Accordion>
+  <Accordion title="LLM08 - Vector and Embedding Weaknesses">
+    Manipulation of RAG data or embeddings to alter retrieval results
+  </Accordion>
+  <Accordion title="LLM09 - Misinformation">
+    LLM generates false information that users act upon; difficult to attribute accountability
+  </Accordion>
+  <Accordion title="LLM10 - Unbounded Consumption">
+    Resource exhaustion through expensive queries, long contexts, or repeated requests
+  </Accordion>
+</AccordionGroup>
+
+### Agentic AI Applications
+
+Includes both LLM risks **and** OWASP Top 10 for Agentic Applications (ASI01-ASI10):
+
+<AccordionGroup>
+  <Accordion title="ASI01 - Agent Goal Hijack">
+    Adversarial inputs redirect agent objectives through prompt injection
+  </Accordion>
+  <Accordion title="ASI02 - Tool Misuse and Exploitation">
+    Over-privileged tools executing destructive commands, unvalidated tool inputs
+  </Accordion>
+  <Accordion title="ASI03 - Identity and Privilege Abuse">
+    Cached credential misuse, confused deputy attacks, cross-agent delegation abuse
+  </Accordion>
+  <Accordion title="ASI04 - Agentic Supply Chain Vulnerabilities">
+    Malicious MCP servers or tool providers impersonating legitimate ones
+  </Accordion>
+  <Accordion title="ASI05 - Unexpected Code Execution">
+    Unsafe eval/exec of generated code, shell injection, sandbox escape
+  </Accordion>
+  <Accordion title="ASI06 - Memory and Context Poisoning">
+    RAG poisoning, manipulated agent memory/state, cross-session contamination
+  </Accordion>
+  <Accordion title="ASI07 - Insecure Inter-Agent Communication">
+    Spoofed agent identities, message tampering in multi-agent systems
+  </Accordion>
+  <Accordion title="ASI08 - Cascading Failures">
+    Error propagation across agent chains causing system-wide outages
+  </Accordion>
+  <Accordion title="ASI09 - Human-Agent Trust Exploitation">
+    Agent actions that circumvent audit trails by exploiting user over-trust
+  </Accordion>
+  <Accordion title="ASI10 - Rogue Agents">
+    Agents persisting beyond intended lifecycle, impersonating other agents or users
+  </Accordion>
+</AccordionGroup>
+
+## Architectural Pattern Detection
+
+For Agentic AI applications, the tool automatically detects and analyzes threats for:
+
+<Steps>
+  <Step title="RAG/Retrieval Systems">
+    Detects vector databases, embeddings, knowledge bases (Pinecone, Weaviate, ChromaDB, FAISS)
+    - Vector store poisoning threats
+    - Embedding manipulation threats
+    - Cross-tenant data leakage
+    - Stale/poisoned index threats
+  </Step>
+  
+  <Step title="Multi-Agent Systems">
+    Identifies agent orchestration, agent-to-agent communication (CrewAI, AutoGen, LangGraph)
+    - Agent impersonation threats
+    - Inter-agent message tampering
+    - Malicious agent injection
+    - Cascading failure propagation
+  </Step>
+  
+  <Step title="Code Execution/Sandboxing">
+    Recognizes code generation, REPL, interpreter, containers
+    - Sandbox escape threats
+    - Container breakout
+    - Resource exhaustion via generated code
+    - Malicious dependency installation
+  </Step>
+  
+  <Step title="Tool/Plugin Ecosystems">
+    Detects MCP servers, plugins, function calling, external APIs
+    - Malicious tool provider threats
+    - Tool impersonation
+    - Supply chain attacks via compromised tools
+    - Confused deputy attacks
+  </Step>
+  
+  <Step title="Persistent Memory/State">
+    Identifies memory stores, conversation history, long-term memory
+    - Memory poisoning threats
+    - Cross-session data leakage
+    - Memory extraction attacks
+    - State manipulation
+  </Step>
+  
+  <Step title="Fine-Tuned/Custom Models">
+    Detects custom training, LoRA, adapters, proprietary models
+    - Training data poisoning
+    - Backdoor trigger injection
+    - Model supply chain threats
+    - IP extraction from fine-tuned models
+  </Step>
+</Steps>
+
+## Output Format
+
+The threat model is generated in JSON and converted to Markdown tables:
+
+### Standard Applications
+
+| Threat Type | Scenario | Potential Impact |
+|-------------|----------|------------------|
+| Spoofing | Example scenario | Example impact |
+
+### GenAI Applications
+
+| Threat Type | Scenario | Potential Impact | OWASP LLM |
+|-------------|----------|------------------|------------|
+| Tampering | Malicious instructions through user-uploaded documents | Users make poor decisions | LLM01 |
+
+### Agentic AI Applications
+
+| Threat Type | Scenario | Potential Impact | OWASP LLM | OWASP ASI |
+|-------------|----------|------------------|-----------|------------|
+| Spoofing | Malicious instructions causing agent impersonation | Users trust fraudulent communications | LLM01 | ASI01 |
+| Elevation of Privilege | Code execution lacks sandboxing | Complete system compromise | LLM05 | ASI05 |
+
+## Using the Threat Model Generator
+
+<Steps>
+  <Step title="Select Application Type">
+    Choose from Traditional, Generative AI, or Agentic AI application
+  </Step>
+  
+  <Step title="Provide Application Details">
+    Enter authentication methods, internet-facing status, sensitive data types
+  </Step>
+  
+  <Step title="Describe Your Application">
+    Provide detailed description including:
+    - Purpose and functionality
+    - Technology stack
+    - Architecture components
+    - Data flows
+    - Integration points
+  </Step>
+  
+  <Step title="Optional: Analyze GitHub Repository">
+    Enter a repository URL to automatically analyze code structure and README content
+  </Step>
+  
+  <Step title="Generate Threat Model">
+    Click "Generate Threat Model" to receive comprehensive analysis
+  </Step>
+</Steps>
+
+<Note>
+The more detailed your application description, the more accurate and comprehensive the threat model will be.
+</Note>
+
+## Improvement Suggestions
+
+Each threat model includes actionable improvement suggestions:
+
+- **Traditional Apps**: Missing architectural details, unclear authentication flows, incomplete data flow descriptions
+- **GenAI Apps**: Input validation approaches, RAG data access details, output sanitization methods
+- **Agentic Apps**: Framework details, sandbox mechanisms, inter-agent protocols, memory persistence, audit logging coverage
+
+<Warning>
+Threat models are generated by AI and may contain inaccuracies. Always validate threats with security experts and use as a starting point for comprehensive security analysis.
+</Warning>
+
+## Code Reference
+
+The threat modeling logic is implemented in:
+
+- **threat_model.py:236-428** - `create_threat_model_prompt()` function
+- **threat_model.py:68-122** - `create_llm_stride_prompt_section()` for GenAI threats
+- **threat_model.py:124-233** - `create_agentic_stride_prompt_section()` for Agentic threats
+- **threat_model.py:17-65** - `json_to_markdown()` conversion function

@@ -1,0 +1,200 @@
+---
+title: Model Provider Overview
+description: Compare and choose the right AI model provider for STRIDE GPT threat modeling
+---
+
+STRIDE GPT supports multiple AI model providers, each with unique capabilities and characteristics. This page helps you understand the differences and choose the right provider for your threat modeling needs.
+
+## Provider Comparison
+
+<CardGroup cols={2}>
+  <Card title="OpenAI" icon="openai" href="/providers/openai">
+    GPT-5 series models with advanced reasoning capabilities. Best for comprehensive threat analysis.
+  </Card>
+  <Card title="Anthropic" icon="brain-circuit" href="/providers/anthropic">
+    Claude 4.5 models with extended thinking mode. Excellent for complex security scenarios.
+  </Card>
+  <Card title="Google" icon="google" href="/providers/google">
+    Gemini 3 preview models with 1M token context. Ideal for large codebases.
+  </Card>
+  <Card title="Mistral" icon="m" href="/providers/mistral">
+    Magistral and Ministral models. Strong reasoning capabilities at competitive pricing.
+  </Card>
+  <Card title="Groq" icon="bolt" href="/providers/groq">
+    Ultra-fast inference for rapid threat model generation.
+  </Card>
+  <Card title="Ollama" icon="server" href="/providers/ollama">
+    Self-hosted models for privacy and offline use.
+  </Card>
+  <Card title="LM Studio" icon="desktop" href="/providers/lm-studio">
+    Local model hosting with dynamic model selection.
+  </Card>
+</CardGroup>
+
+## Feature Matrix
+
+| Provider | Reasoning Models | Max Context | Image Analysis | Extended Thinking | Pricing |
+|----------|-----------------|-------------|----------------|-------------------|----------|
+| **OpenAI** | ✅ GPT-5 series | 400K - 1M | ✅ | ✅ | $$ |
+| **Anthropic** | ✅ Claude 4.5 | 200K | ✅ | ✅ | $$ |
+| **Google** | ✅ Gemini 3 | 1M | ✅ | ✅ | $ |
+| **Mistral** | ✅ Magistral | 128K | ❌ | ❌ | $ |
+| **Groq** | ✅ DeepSeek R1 | 128K | ❌ | ✅ | $ (Fast) |
+| **Ollama** | Varies | Varies | Varies | ❌ | Free (Self-hosted) |
+| **LM Studio** | Varies | Varies | Varies | ❌ | Free (Self-hosted) |
+
+## Model Selection Criteria
+
+### For Comprehensive Analysis
+
+If you need the most thorough threat modeling with advanced reasoning:
+
+<Steps>
+  <Step title="OpenAI GPT-5.2 or GPT-5.2 Pro">
+    Best for complex agentic AI applications and detailed STRIDE analysis
+  </Step>
+  <Step title="Anthropic Claude Opus 4.5 with Extended Thinking">
+    Excellent for security-critical applications requiring deep analysis
+  </Step>
+  <Step title="Google Gemini 3 Pro Preview">
+    Ideal when analyzing large GitHub repositories or extensive codebases
+  </Step>
+</Steps>
+
+### For Speed & Efficiency
+
+If you need faster results or have cost constraints:
+
+<Steps>
+  <Step title="Groq with GPT-OSS or Llama models">
+    Ultra-fast inference for rapid iteration on threat models
+  </Step>
+  <Step title="OpenAI GPT-5-nano">
+    Fast reasoning model with good quality at lower cost
+  </Step>
+  <Step title="Anthropic Claude Haiku 4.5">
+    Fastest Claude model with solid threat modeling capabilities
+  </Step>
+</Steps>
+
+### For Privacy & Control
+
+If you need to keep data on-premises:
+
+<Steps>
+  <Step title="Ollama">
+    Self-hosted with extensive model library. Run llama3.3, qwen, or deepseek locally
+  </Step>
+  <Step title="LM Studio">
+    Desktop application with user-friendly interface and model management
+  </Step>
+</Steps>
+
+## Reasoning Models
+
+STRIDE GPT leverages reasoning models that "think" before responding:
+
+<Note>
+**What are Reasoning Models?**
+
+Reasoning models use extended internal processing (often called "thinking" or "chain-of-thought") before generating their final response. This leads to more thorough threat analysis but takes longer.
+</Note>
+
+### Available Reasoning Models
+
+**OpenAI GPT-5 Series**
+- `gpt-5.2` - Best for coding and agentic tasks
+- `gpt-5.2-pro` - Smarter, more precise responses
+- `gpt-5`, `gpt-5-mini`, `gpt-5-nano` - Varying speed/quality tradeoffs
+
+**Anthropic Extended Thinking**
+- Any Claude 4.5 model with "Enable Extended Thinking" checkbox
+- Allocates 16K tokens for internal reasoning
+
+**Google Thinking Mode**
+- Gemini 2.5 and Gemini 3 models automatically use thinking capabilities
+- 1024 token thinking budget
+
+**Groq Reasoning**
+- `deepseek-r1-distill-llama-70b` - Fast inference with reasoning capabilities
+
+**Mistral Magistral**
+- `magistral-medium-2509`, `magistral-small-2509` - Reasoning-focused models
+
+<Warning>
+Reasoning models take significantly longer to respond (30-90 seconds) but produce more comprehensive threat analysis. For faster results, use standard models like GPT-5-nano, Claude Haiku, or Gemini Flash.
+</Warning>
+
+## Image Analysis Support
+
+Analyze architecture diagrams directly in STRIDE GPT:
+
+| Provider | Supported Models | Image Formats |
+|----------|-----------------|---------------|
+| **OpenAI** | GPT-4.1, GPT-5 series | JPG, PNG |
+| **Anthropic** | Claude 4.5 series | JPG, PNG |
+| **Google** | All Gemini models | JPG, PNG |
+
+<Info>
+When you upload an architecture diagram, the selected model will analyze it and generate a detailed system description for threat modeling.
+</Info>
+
+## Token Limits & Context Windows
+
+Understanding context windows helps when analyzing large applications:
+
+### Large Context (500K+ tokens)
+- **Google Gemini 3**: 1M tokens - Best for massive GitHub repos
+- **Google Gemini 2.5**: 1M tokens - Extensive codebase analysis
+- **OpenAI GPT-4.1**: 1M tokens - Long conversations and large applications
+- **OpenAI GPT-5 series**: 400K tokens - Comprehensive threat modeling
+
+### Medium Context (100K-200K tokens)
+- **Anthropic Claude 4.5**: 200K tokens - Detailed security analysis
+- **Mistral Large**: 128K tokens - Solid for most applications
+- **Groq models**: 128K tokens - Fast processing of moderate-sized apps
+
+### Considerations
+
+<Note>
+STRIDE GPT automatically configures token limits based on the selected model and provider. You can adjust these in Advanced Settings if needed.
+</Note>
+
+## Cost Considerations
+
+### Premium Tier ($$)
+- **OpenAI GPT-5 series**: Highest quality, advanced reasoning
+- **Anthropic Claude Opus 4.5**: Most capable Claude model
+- **Google Gemini 3 Pro**: Preview pricing, large context
+
+### Standard Tier ($)
+- **OpenAI GPT-5-mini/nano**: Fast reasoning at lower cost
+- **Anthropic Claude Sonnet/Haiku 4.5**: Balanced performance
+- **Mistral models**: Competitive European alternative
+- **Google Gemini 2.5 Flash**: Fast and cost-effective
+- **Groq**: Fast inference, pay-per-token
+
+### Self-Hosted (Free)
+- **Ollama**: Free, requires local compute resources
+- **LM Studio**: Free, desktop application
+
+<Warning>
+Self-hosted models require significant computational resources (GPU recommended) and setup expertise. Cloud providers offer easier setup and predictable performance.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Get API Keys" icon="key">
+    Follow provider-specific guides to obtain API credentials
+  </Card>
+  <Card title="Configure STRIDE GPT" icon="gear">
+    Set up your chosen provider in the application sidebar
+  </Card>
+  <Card title="Optimize Token Usage" icon="chart-line">
+    Learn to configure token limits for GitHub analysis
+  </Card>
+  <Card title="Troubleshooting" icon="wrench">
+    Common issues and solutions for each provider
+  </Card>
+</CardGroup>

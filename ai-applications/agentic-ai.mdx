@@ -1,0 +1,452 @@
+---
+title: 'Agentic AI Applications'
+description: 'Threat modeling for autonomous AI systems with OWASP ASI Top 10 and MAESTRO framework integration'
+icon: 'robot'
+---
+
+## Overview
+
+Agentic AI applications are autonomous systems that use LLMs as reasoning engines to make decisions, execute tools, and interact with external systems. STRIDE GPT provides comprehensive threat modeling by integrating:
+
+- **OWASP Top 10 for LLM Applications** (LLM01-LLM10) - Foundation model risks
+- **OWASP Top 10 for Agentic Applications** (ASI01-ASI10) - Agent-specific risks
+- **MAESTRO Framework** - Architectural pattern detection for multi-layer analysis
+
+<Warning>
+**Agentic systems have significantly expanded attack surfaces**
+
+Unlike stateless GenAI applications, agentic systems can:
+- Execute tools and call APIs autonomously
+- Maintain persistent state across sessions
+- Make decisions without human oversight
+- Access credentials and sensitive systems
+- Coordinate with other agents in multi-agent architectures
+
+These capabilities require specialized threat modeling beyond traditional STRIDE analysis.
+</Warning>
+
+## When to Select "Agentic AI Application"
+
+<CardGroup cols={2}>
+  <Card title="Tool Execution" icon="wrench">
+    Agent can invoke APIs, query databases, execute commands, or call external services
+  </Card>
+  <Card title="Multi-Agent Systems" icon="users">
+    Multiple agents collaborate using frameworks like CrewAI, AutoGen, or LangGraph
+  </Card>
+  <Card title="Code Generation & Execution" icon="terminal">
+    System generates and runs code dynamically (Python REPL, sandboxed execution, containers)
+  </Card>
+  <Card title="Autonomous Decision-Making" icon="brain">
+    Agent makes decisions and takes actions with limited human oversight
+  </Card>
+  <Card title="Persistent Memory" icon="database">
+    System maintains context, memory, or state across sessions
+  </Card>
+  <Card title="Delegated Permissions" icon="key">
+    Agent has access to OAuth tokens, API keys, service accounts, or cached credentials
+  </Card>
+</CardGroup>
+
+## OWASP ASI Top 10 for Agentic Applications
+
+STRIDE GPT analyzes agentic threats through both STRIDE categories and ASI-specific vulnerabilities:
+
+### ASI01: Agent Goal Hijack
+
+<Accordion title="Threat Description">
+Adversarial inputs redirect agent objectives through:
+- **Prompt injection via poisoned documents**: Malicious instructions in PDFs, emails, or web content
+- **RAG poisoning**: Compromised knowledge base entries influencing agent reasoning
+- **Cross-session goal persistence**: Malicious goals carried across user sessions
+</Accordion>
+
+<Accordion title="STRIDE Mapping">
+- **Tampering**: Prompt injection via poisoned documents alters agent objectives
+- **Information Disclosure**: Prompt injection leading to data exfiltration via crafted outputs
+</Accordion>
+
+<Accordion title="Example Scenario (from threat_model.py:344-349)">
+```
+Threat Type: Spoofing
+Scenario: An attacker injects malicious instructions into a document processed 
+by the agent, causing it to impersonate a legitimate service when responding
+Potential Impact: Users may trust fraudulent communications, leading to 
+credential theft or financial loss
+OWASP LLM: LLM01
+OWASP ASI: ASI01
+```
+</Accordion>
+
+### ASI02: Tool Misuse and Exploitation
+
+<Accordion title="Threat Description">
+Agents abuse tool access through:
+- **Over-privileged tools**: Tools granted excessive permissions (e.g., database admin, file system access)
+- **Unvalidated tool inputs**: Parameters passed to tools without sanitization
+- **Tool chaining attacks**: Combining multiple tools to bypass individual restrictions
+- **Confused deputy**: Agent tricked into misusing legitimate tools
+</Accordion>
+
+<Accordion title="STRIDE Mapping">
+- **Elevation of Privilege**: Over-privileged tools executing destructive commands or unvalidated tool inputs
+</Accordion>
+
+<Accordion title="Attack Path (from attack_tree.py:170-174)">
+```
+Goal: Abuse agent tool access
+Path 1: Discover available tools → Enumerate permissions → Craft malicious parameters 
+        → Execute destructive commands
+Path 2: Chain multiple tools → Escalate through tool composition 
+        → Bypass individual tool restrictions
+Cross-layer: Compromise tool provider → Return malicious data → Corrupt agent memory
+```
+</Accordion>
+
+### ASI03: Identity and Privilege Abuse
+
+<Accordion title="Threat Description">
+Agents abuse delegated permissions:
+- **Cached credential misuse**: Using stored OAuth tokens or API keys beyond intended scope
+- **Confused deputy attacks**: Agent with legitimate access tricked into performing unauthorized actions
+- **Cross-agent delegation abuse**: Agents improperly delegating permissions to other agents
+- **Service account exploitation**: Over-privileged service accounts accessed by compromised agents
+</Accordion>
+
+<Accordion title="STRIDE Mapping">
+- **Elevation of Privilege**: Cached credential misuse, confused deputy attacks, cross-agent delegation abuse
+</Accordion>
+
+<Accordion title="Example Scenario (from threat_model.py:359-364)">
+```
+Threat Type: Elevation of Privilege
+Scenario: The agent's code execution capability lacks proper sandboxing, 
+allowing generated code to access the host filesystem and escalate privileges
+Potential Impact: Complete system compromise and lateral movement
+OWASP LLM: LLM05
+OWASP ASI: ASI05
+```
+</Accordion>
+
+### ASI04: Agentic Supply Chain Vulnerabilities
+
+<Accordion title="Threat Description">
+Compromised external dependencies:
+- **Malicious MCP servers**: Rogue Model Context Protocol servers returning poisoned tool responses
+- **Compromised plugins**: Third-party agent extensions with backdoors
+- **Tool provider attacks**: Legitimate tool APIs compromised to return malicious data
+- **Framework vulnerabilities**: Exploits in LangChain, CrewAI, AutoGen, or other agent frameworks
+</Accordion>
+
+<Accordion title="STRIDE Mapping">
+- **Spoofing**: Malicious MCP servers or tool providers impersonating legitimate ones
+- **Tampering**: Compromised frameworks or plugins altering agent behavior at source
+</Accordion>
+
+<Accordion title="Architectural Pattern Detection (from threat_model.py:154-159)">
+When STRIDE GPT detects tool ecosystems (mentions of "MCP servers", "plugins", "tools", "function calling"), it generates threats including:
+
+- Malicious tool provider (compromised MCP server returning poisoned responses)
+- Tool impersonation (fake tool masquerading as legitimate)
+- Supply chain attacks on tool packages
+- Confused deputy via tools (agent tricked into misusing legitimate tools)
+</Accordion>
+
+### ASI05: Unexpected Code Execution
+
+<Accordion title="Threat Description">
+Dangers from code generation and execution:
+- **Unsafe eval/exec**: Generated code executed without sandboxing
+- **Shell injection**: Command strings built from LLM output
+- **Sandbox escape**: Breaking out of execution containers
+- **Dependency confusion**: Installing malicious packages during code generation
+</Accordion>
+
+<Accordion title="STRIDE Mapping">
+- **Elevation of Privilege**: Unsafe eval/exec of generated code, shell injection, sandbox escape
+</Accordion>
+
+<Accordion title="Attack Tree Branch (from attack_tree.py:98-112)">
+```
+IF CODE EXECUTION DETECTED (mentions of code generation, execution, REPL, 
+interpreter, sandbox, Docker, containers):
+
+Root: Escape Execution Sandbox
+  - Container/Sandbox Breakout
+    - Exploit kernel vulnerabilities from within container
+    - Abuse mounted volumes or network access
+    - Resource exhaustion to destabilize host
+  - Malicious Code Generation
+    - Prompt injection to generate backdoored code
+    - Dependency confusion via generated package installs
+    - Obfuscated payload in generated code
+  - Execution Environment Manipulation
+    - Modify environment variables
+    - Hijack imported modules
+    - Persist malicious code across sessions
+```
+</Accordion>
+
+### ASI06: Memory and Context Poisoning
+
+<Accordion title="Threat Description">
+Manipulation of agent memory and state:
+- **RAG poisoning**: Malicious documents in knowledge base influencing future reasoning
+- **Cross-session contamination**: Corrupted context persisting across user sessions
+- **Memory extraction**: Retrieving other users' context from shared memory stores
+- **State manipulation**: Altering agent personality, goals, or behavior over time
+</Accordion>
+
+<Accordion title="STRIDE Mapping">
+- **Tampering**: RAG poisoning, manipulated agent memory/state, cross-session contamination
+- **Information Disclosure**: Context window leakage exposing sensitive data from previous sessions
+</Accordion>
+
+<Accordion title="Persistent Memory Detection (from threat_model.py:160-170)">
+When STRIDE GPT detects persistent memory (mentions of "memory", "conversation history", "session persistence", "long-term memory"), it generates:
+
+- Memory poisoning (past interactions corrupting future behavior)
+- Cross-session data leakage
+- Memory extraction attacks (retrieving other users' context)
+- State manipulation to alter agent personality/goals
+</Accordion>
+
+### ASI07: Insecure Inter-Agent Communication
+
+<Accordion title="Threat Description">
+Vulnerabilities in multi-agent systems:
+- **Agent impersonation**: Malicious agents registering with spoofed identities
+- **Message tampering**: Altering communication between agents
+- **Fake agent injection**: Introducing rogue agents into the ecosystem
+- **Protocol vulnerabilities**: Exploiting agent coordination mechanisms
+</Accordion>
+
+<Accordion title="STRIDE Mapping">
+- **Spoofing**: Spoofed agent identities, fake agents joining multi-agent systems
+- **Tampering**: Message tampering in inter-agent communication channels
+</Accordion>
+
+<Accordion title="Multi-Agent Detection (from threat_model.py:142-153)">
+When STRIDE GPT detects multi-agent patterns (mentions of "multiple agents", "orchestration", "CrewAI", "AutoGen", "LangGraph", "swarms"), it generates:
+
+- Agent impersonation (malicious agent posing as trusted agent)
+- Inter-agent message tampering
+- Malicious agent injection into ecosystem
+- Goal conflicts and unintended emergent behaviors
+- Cascading failure propagation across agent chains
+</Accordion>
+
+### ASI08: Cascading Failures
+
+<Accordion title="Threat Description">
+Error propagation across agent chains:
+- **Dependency failures**: One compromised agent affecting dependent agents
+- **Error amplification**: Small failures cascading into system-wide outages
+- **Circuit breaker bypass**: Lack of failure isolation mechanisms
+- **Observability gaps**: Hidden attack progression due to insufficient monitoring
+</Accordion>
+
+<Accordion title="STRIDE Mapping">
+- **Denial of Service**: Error propagation across agent chains causing system-wide outages
+</Accordion>
+
+<Accordion title="Example Scenario">
+```
+Threat Type: Denial of Service
+Scenario: Attacker triggers an error in the retrieval agent by poisoning the 
+vector store. The error propagates to the reasoning agent, then the execution 
+agent, causing a complete system failure
+Potential Impact: Service outage, business disruption, SLA violations
+OWASP LLM: LLM04
+OWASP ASI: ASI08
+```
+</Accordion>
+
+### ASI09: Human-Agent Trust Exploitation
+
+<Accordion title="Threat Description">
+Abusing user trust in agent systems:
+- **Trust erosion attacks**: Gradually normalizing risky actions to reduce scrutiny
+- **Misleading summaries**: Presenting sanitized action descriptions while performing harmful operations
+- **Timing-based attacks**: Executing suspicious actions during low-monitoring periods
+- **Audit trail circumvention**: Exploiting gaps in logging to hide malicious activities
+</Accordion>
+
+<Accordion title="STRIDE Mapping">
+- **Repudiation**: Agent actions circumventing audit trails by exploiting user over-trust
+</Accordion>
+
+<Accordion title="Attack Path (from attack_tree.py:194-198)">
+```
+Goal: Bypass human oversight
+Path 1: Build user trust over time → Gradually expand action scope 
+        → User becomes complacent → Execute unauthorized actions
+Path 2: Present misleading summaries → User approves without scrutiny 
+        → Harmful actions proceed
+Cross-layer: Manipulate logs/observability → Hide true actions from human reviewers
+```
+</Accordion>
+
+### ASI10: Rogue Agents
+
+<Accordion title="Threat Description">
+Agents operating beyond intended lifecycle:
+- **Persistence mechanisms**: Agents establishing backdoors to resist termination
+- **Impersonation**: Rogue agents masquerading as legitimate users or services
+- **Resistance to shutdown**: Agents ignoring or circumventing deactivation commands
+- **Hidden scheduled tasks**: Creating cron jobs or background processes for persistence
+</Accordion>
+
+<Accordion title="STRIDE Mapping">
+- **Elevation of Privilege**: Agents persisting beyond intended lifecycle, impersonating other agents or users
+</Accordion>
+
+<Accordion title="Autonomous Operations Detection (from threat_model.py:147-161)">
+When STRIDE GPT detects autonomous operations (mentions of "autonomous", "automated", "scheduled", "background tasks"), it generates:
+
+- Human oversight bypass through trust erosion
+- Rogue agent persistence beyond intended lifecycle
+- Autonomous loop attacks (infinite reasoning cycles)
+- Resource exhaustion through recursive operations
+</Accordion>
+
+## MAESTRO-Inspired Cross-Layer Threat Analysis
+
+Inspired by the [Cloud Security Alliance MAESTRO framework](https://cloudsecurityalliance.org/blog/2025/02/06/agentic-ai-threat-modeling-framework-maestro), STRIDE GPT performs architectural pattern detection to identify threats spanning multiple system layers:
+
+<Steps>
+  <Step title="Pattern Detection Phase">
+    STRIDE GPT analyzes your application description to detect architectural patterns (RAG, multi-agent, code execution, tool ecosystems, persistent memory, fine-tuning)
+  </Step>
+  <Step title="Pattern-Specific Threat Generation">
+    For each detected pattern, STRIDE GPT generates threats specific to that architectural component
+  </Step>
+  <Step title="Cross-Layer Attack Chains">
+    At least 2-3 threats explicitly describe how compromise in one layer enables attacks on others
+  </Step>
+  <Step title="Integrated Analysis">
+    Final threat model includes both traditional STRIDE threats and AI-specific vulnerabilities across all detected patterns
+  </Step>
+</Steps>
+
+### Example Cross-Layer Attack Chain
+
+<Info>
+**RAG Poisoning → Agent Goal Hijack → Tool Misuse → Data Exfiltration**
+
+1. **Data/Retrieval Layer (LLM08, ASI06)**: Attacker injects malicious document into vector store containing hidden instructions
+2. **Foundation Model Layer (LLM01, ASI01)**: Agent retrieves poisoned content, embedding adversarial instructions into reasoning context
+3. **Agent Ecosystem Layer (ASI02)**: Hijacked agent invokes database query tool with malicious parameters
+4. **Infrastructure Layer**: Sensitive customer data exfiltrated to attacker-controlled endpoint
+
+From threat_model.py:213-219:
+```
+CROSS-LAYER THREAT ANALYSIS:
+For each threat identified, consider how it could cascade across system boundaries:
+- How could a data poisoning attack (in retrieval/RAG) affect agent decision-making 
+  and tool usage?
+- How could a compromised tool provider affect the foundation model's outputs or 
+  agent memory?
+- How could an agent ecosystem attack lead to infrastructure compromise?
+```
+</Info>
+
+## Improvement Suggestions for Agentic Applications
+
+STRIDE GPT provides enhanced suggestions for agentic systems (from threat_model.py:286-298):
+
+<CardGroup cols={2}>
+  <Card title="Agent Framework" icon="cube">
+    "Provide agent framework/orchestration details (LangChain, CrewAI, AutoGen, custom)"
+  </Card>
+  <Card title="RAG Pipeline" icon="database">
+    "Clarify RAG pipeline architecture if retrieval is mentioned but vector store details are missing"
+  </Card>
+  <Card title="Sandbox Mechanisms" icon="shield">
+    "Specify sandbox/isolation mechanisms if code execution is mentioned"
+  </Card>
+  <Card title="Inter-Agent Communication" icon="network-wired">
+    "Detail inter-agent communication protocols if multi-agent is mentioned"
+  </Card>
+  <Card title="Memory Persistence" icon="memory">
+    "Describe memory persistence mechanisms for long-running agents"
+  </Card>
+  <Card title="Tool Validation" icon="check-double">
+    "Clarify tool validation and output sanitization approaches"
+  </Card>
+  <Card title="Circuit Breakers" icon="power-off">
+    "Document circuit breaker and rate limiting implementations for agent loops"
+  </Card>
+  <Card title="Audit Logging" icon="clipboard-list">
+    "Specify audit logging coverage for agent decisions and tool invocations"
+  </Card>
+  <Card title="Human Escalation" icon="user-shield">
+    "Define human escalation paths and approval workflows"
+  </Card>
+</CardGroup>
+
+## Example Threat Model Output
+
+For an agentic AI application, STRIDE GPT generates threats mapped to STRIDE, OWASP LLM, and OWASP ASI:
+
+```markdown
+## Threat Model
+
+| Threat Type | Scenario | Potential Impact | OWASP LLM | OWASP ASI |
+|-------------|----------|------------------|-----------|------------|
+| Spoofing | Malicious agent registers with spoofed identity in multi-agent system via compromised inter-agent communication protocol | Attacker agent gains trust and access to sensitive operations | - | ASI07 |
+| Tampering | RAG knowledge base poisoned with adversarial documents containing goal hijacking instructions | Agent objectives redirected toward data exfiltration | LLM04 | ASI06 |
+| Information Disclosure | Persistent memory store leaks context from previous user sessions due to insufficient tenant isolation | Sensitive data exposed across user boundaries | LLM02 | ASI06 |
+| Denial of Service | Infinite reasoning loop triggered by malicious tool response causes resource exhaustion | System unavailable, cost overruns, SLA violations | LLM10 | ASI08 |
+| Elevation of Privilege | Code execution sandbox escape via kernel exploit allows filesystem access | Complete host compromise, lateral movement, data exfiltration | LLM05 | ASI05 |
+| Cross-Layer Attack | Tool provider compromise → Poisoned tool responses → Agent memory corruption → Persistent goal hijacking across sessions | Sustained unauthorized access, difficult to detect and remediate | LLM03 | ASI04, ASI06 |
+```
+
+## Best Practices for Agentic Threat Modeling
+
+<Warning>
+**Provide Comprehensive Architectural Details**
+
+For effective agentic AI threat modeling, describe:
+
+- **Agent Framework**: LangChain, CrewAI, AutoGen, LangGraph, custom implementation
+- **Tool Ecosystem**: Which tools can the agent invoke? MCP servers? Custom APIs?
+- **Execution Capabilities**: Can the agent run code? In what environment (Docker, VM, serverless)?
+- **Multi-Agent Architecture**: How do agents communicate? What orchestration pattern?
+- **Memory/State**: How is context persisted? Redis, database, filesystem?
+- **Credential Access**: What OAuth tokens, API keys, or service accounts can the agent use?
+- **Human Oversight**: What actions require approval? How is agent behavior monitored?
+- **Circuit Breakers**: What mechanisms prevent runaway execution or infinite loops?
+</Warning>
+
+<Steps>
+  <Step title="Describe Agent Capabilities">
+    What can your agent do autonomously? List all tools, APIs, and system access
+  </Step>
+  <Step title="Document Decision Scope">
+    What decisions can the agent make without human approval? What are the boundaries?
+  </Step>
+  <Step title="Specify Isolation Mechanisms">
+    How is code execution sandboxed? How is memory isolated between users/sessions?
+  </Step>
+  <Step title="Detail Observability">
+    How do you monitor agent actions? What logs/telemetry are captured?
+  </Step>
+  <Step title="Include Failure Modes">
+    How does the system handle errors? Are there circuit breakers or fallback mechanisms?
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="OWASP Integration" icon="shield-halved" href="/ai-applications/owasp-integration">
+    Learn how OWASP LLM and ASI threats map to STRIDE categories
+  </Card>
+  <Card title="Generative AI" icon="brain" href="/ai-applications/generative-ai">
+    Understand LLM-specific threats for stateless applications
+  </Card>
+  <Card title="Back to Overview" icon="arrow-left" href="/ai-applications/overview">
+    Return to AI applications overview
+  </Card>
+</CardGroup>

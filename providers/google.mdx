@@ -1,0 +1,554 @@
+---
+title: Google AI Integration
+description: Configure Google Gemini models with massive context windows for STRIDE GPT
+---
+
+Google AI provides Gemini models with up to 1 million token context windows, making them ideal for analyzing large GitHub repositories and complex applications in STRIDE GPT.
+
+## Supported Models
+
+### Gemini 3 Series (Preview)
+
+<CardGroup cols={2}>
+  <Card title="Gemini 3 Pro Preview" icon="sparkles">
+    **Most capable preview model**
+    
+    - Model: `gemini-3-pro-preview`
+    - Context: 200K default, **1M max**
+    - Thinking: Built-in (1024 token budget)
+    - Use case: Comprehensive analysis
+  </Card>
+  
+  <Card title="Gemini 3 Flash Preview" icon="bolt">
+    **Fast preview model**
+    
+    - Model: `gemini-3-flash-preview`
+    - Context: 200K default, **1M max**
+    - Thinking: Built-in (1024 token budget)
+    - Use case: Rapid iteration
+  </Card>
+</CardGroup>
+
+### Gemini 2.5 Series (Stable)
+
+<CardGroup cols={3}>
+  <Card title="Gemini 2.5 Pro" icon="crown">
+    **Premium capability**
+    
+    - Model: `gemini-2.5-pro`
+    - Context: 200K default, **1M max**
+    - Thinking: Built-in
+    - Use case: Critical systems
+  </Card>
+  
+  <Card title="Gemini 2.5 Flash" icon="gauge-high">
+    **Balanced performance**
+    
+    - Model: `gemini-2.5-flash`
+    - Context: 200K default, **1M max**
+    - Thinking: Built-in
+    - Use case: Standard analysis
+  </Card>
+  
+  <Card title="Gemini 2.5 Flash Lite" icon="feather">
+    **Lightweight option**
+    
+    - Model: `gemini-2.5-flash-lite`
+    - Context: 200K default, **1M max**
+    - Thinking: Built-in
+    - Use case: Simple apps
+  </Card>
+</CardGroup>
+
+<Info>
+**Preview vs. Stable**: Gemini 3 models are preview releases with cutting-edge capabilities but may have less stable behavior. Gemini 2.5 models are production-ready with proven reliability.
+</Info>
+
+## Massive Context Windows
+
+Google's standout feature is the **1 million token context window**:
+
+<Note>
+**What Can You Fit in 1M Tokens?**
+
+- ~750,000 words of text
+- ~3,000 pages of documentation
+- Entire medium-sized codebases (100K+ lines)
+- Complete GitHub repositories with full file analysis
+- Extended conversation history across multiple threat models
+
+**Practical Impact**:
+- Analyze massive repositories without truncation
+- Include full application context in one request
+- Maintain long conversation history for iterative refinement
+- Process extensive documentation and specifications
+</Note>
+
+### Token Limits by Model
+
+| Model | Default | Maximum | Recommended Use |
+|-------|---------|---------|----------------|
+| Gemini 3 Pro Preview | 200,000 | 1,000,000 | Large enterprise applications |
+| Gemini 3 Flash Preview | 200,000 | 1,000,000 | Fast analysis of big codebases |
+| Gemini 2.5 Pro | 200,000 | 1,000,000 | Production critical systems |
+| Gemini 2.5 Flash | 200,000 | 1,000,000 | Standard threat modeling |
+| Gemini 2.5 Flash Lite | 200,000 | 1,000,000 | Simple applications |
+
+## Built-in Thinking Mode
+
+Gemini 2.5 and 3 models include automatic thinking capabilities:
+
+<Tabs>
+  <Tab title="How It Works">
+    Gemini models automatically use internal reasoning:
+    
+    1. **Analysis Phase**: Model examines application structure
+    2. **Thinking Phase**: 1024 tokens allocated for internal reasoning
+    3. **Synthesis Phase**: Generates comprehensive threat model
+    
+    This happens transparently without manual configuration.
+  </Tab>
+  
+  <Tab title="Thinking Budget">
+    ```python
+    # Automatically configured for Gemini 2.5/3
+    config = google_types.GenerateContentConfig(
+        thinking_config=google_types.ThinkingConfig(
+            thinking_budget=1024
+        )
+    )
+    ```
+  </Tab>
+  
+  <Tab title="Visibility">
+    STRIDE GPT captures thinking content:
+    
+    - Stored in session state
+    - Available for debugging
+    - Shows reasoning process
+    - Helps understand model decisions
+  </Tab>
+</Tabs>
+
+<Info>
+Unlike Anthropic's optional extended thinking, Gemini's thinking mode is always active and optimized for the model's architecture.
+</Info>
+
+## Setup
+
+<Steps>
+  <Step title="Generate API Key">
+    1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
+    2. Sign in with your Google account
+    3. Click **"Get API Key"** or **"Create API Key"**
+    4. Copy the generated key
+    
+    <Warning>
+    Keep your API key confidential. Do not commit to version control.
+    </Warning>
+  </Step>
+  
+  <Step title="Configure in STRIDE GPT">
+    In the application sidebar:
+    
+    1. Select **"Google AI API"** from model provider dropdown
+    2. Paste API key in the password field
+    3. Choose your preferred Gemini model
+  </Step>
+  
+  <Step title="Optional: Environment Variable">
+    Set as environment variable:
+    
+    ```bash
+    export GOOGLE_API_KEY="AIza..."
+    ```
+    
+    Or in `.env` file:
+    ```
+    GOOGLE_API_KEY=AIza...
+    ```
+  </Step>
+</Steps>
+
+## Image Analysis
+
+All Gemini models support multimodal vision capabilities:
+
+<Steps>
+  <Step title="Upload Diagram">
+    Use STRIDE GPT's file uploader for JPG or PNG architecture diagrams.
+  </Step>
+  
+  <Step title="Automatic Analysis">
+    Gemini processes:
+    - System architecture and components
+    - Data flow diagrams
+    - Network topology
+    - Security boundaries
+    - Technology stack indicators
+  </Step>
+  
+  <Step title="Integration">
+    Analysis is automatically incorporated into threat modeling context.
+  </Step>
+</Steps>
+
+<Note>
+Gemini excels at understanding technical diagrams with annotations, cloud architecture diagrams (AWS, Azure, GCP), and multi-tier application architectures.
+</Note>
+
+## Safety Settings
+
+STRIDE GPT configures safety settings to allow security content:
+
+```python
+safety_settings = [
+    SafetySetting(
+        category=HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+        threshold=HarmBlockThreshold.BLOCK_NONE
+    ),
+    SafetySetting(
+        category=HarmCategory.HARM_CATEGORY_HARASSMENT,
+        threshold=HarmBlockThreshold.BLOCK_NONE
+    ),
+    # ... other categories
+]
+```
+
+<Info>
+**Why This Matters**: Threat modeling content involves discussing attack scenarios, vulnerabilities, and exploits. These safety settings prevent Gemini from refusing to analyze security threats.
+</Info>
+
+## Model Selection Guide
+
+### Gemini 3 Pro Preview
+
+**Best for**: Cutting-edge capabilities
+
+<Card>
+  **Strengths**:
+  - Latest model architecture
+  - Enhanced reasoning capabilities
+  - Best for agentic AI threat modeling
+  - Strong OWASP LLM/ASI coverage
+  
+  **Considerations**:
+  - Preview status (may have bugs)
+  - Behavior may change without notice
+  - Slower than Flash variants
+  
+  **Use cases**:
+  - Experimental agentic applications
+  - Cutting-edge AI architectures
+  - Research and development
+  - Complex multi-agent systems
+</Card>
+
+### Gemini 3 Flash Preview
+
+**Best for**: Fast analysis with new features
+
+<Card>
+  **Strengths**:
+  - Faster than Pro
+  - Latest model capabilities
+  - Good quality-to-speed ratio
+  - Cost-effective
+  
+  **Considerations**:
+  - Preview stability
+  - Less depth than Pro
+  
+  **Use cases**:
+  - Rapid prototyping
+  - Iterative threat model refinement
+  - Development phase analysis
+  - Budget-conscious projects
+</Card>
+
+### Gemini 2.5 Pro
+
+**Best for**: Production reliability
+
+<Card>
+  **Strengths**:
+  - Stable, proven performance
+  - Comprehensive threat analysis
+  - Reliable JSON output
+  - Strong for traditional apps
+  
+  **Considerations**:
+  - Higher cost than Flash
+  - Older architecture than Gemini 3
+  
+  **Use cases**:
+  - Production applications
+  - Financial services
+  - Healthcare systems
+  - Enterprise deployments
+</Card>
+
+### Gemini 2.5 Flash (Recommended)
+
+**Best for**: Most use cases
+
+<Card>
+  **Strengths**:
+  - Best balance of speed, cost, quality
+  - Production-ready stability
+  - Fast response times (15-30s)
+  - Suitable for 90% of threat models
+  
+  **Considerations**:
+  - Less depth than Pro models
+  - Sufficient for most scenarios
+  
+  **Use cases**:
+  - Standard web applications
+  - SaaS platforms
+  - Mobile backends
+  - API services
+  - GenAI applications
+</Card>
+
+### Gemini 2.5 Flash Lite
+
+**Best for**: Simple applications
+
+<Card>
+  **Strengths**:
+  - Fastest Gemini model
+  - Most cost-effective
+  - Good for basic threat identification
+  
+  **Considerations**:
+  - Limited depth
+  - May miss complex threats
+  - Not ideal for AI applications
+  
+  **Use cases**:
+  - Internal tools
+  - Simple CRUD applications
+  - Prototypes
+  - Low-risk systems
+</Card>
+
+## GitHub Repository Analysis
+
+Gemini's massive context window shines for GitHub analysis:
+
+### Configuration
+
+<Steps>
+  <Step title="Increase Token Limit">
+    In STRIDE GPT Advanced Settings:
+    - Adjust slider to **1,000,000** tokens
+    - Gemini can handle full repository analysis
+  </Step>
+  
+  <Step title="Provide GitHub URL">
+    Enter repository URL in main interface:
+    ```
+    https://github.com/owner/repository
+    ```
+  </Step>
+  
+  <Step title="Comprehensive Analysis">
+    Gemini will analyze:
+    - README and documentation
+    - All source code files (up to token limit)
+    - Configuration files
+    - Dependencies and imports
+    - File relationships
+  </Step>
+</Steps>
+
+<Note>
+**Example**: A 50,000 line codebase (~200K tokens) can be analyzed completely without truncation, providing comprehensive threat coverage.
+</Note>
+
+## Performance Characteristics
+
+### Response Times
+
+| Model | Threat Model | Attack Tree | Mitigations | DREAD |
+|-------|-------------|-------------|-------------|-------|
+| Gemini 3 Pro Preview | 45-60s | 35-50s | 25-40s | 25-35s |
+| Gemini 3 Flash Preview | 20-35s | 15-25s | 12-20s | 12-18s |
+| Gemini 2.5 Pro | 40-55s | 30-45s | 22-35s | 22-30s |
+| Gemini 2.5 Flash | 15-30s | 12-22s | 10-18s | 10-15s |
+| Gemini 2.5 Flash Lite | 10-20s | 8-15s | 8-12s | 8-12s |
+
+<Info>
+Gemini models are generally faster than GPT-5 reasoning models and comparable to Claude standard mode.
+</Info>
+
+## Best Practices
+
+### Leveraging Large Context
+
+<Tabs>
+  <Tab title="For Large Repos">
+    1. **Set high token limit**: Use 500K-1M in Advanced Settings
+    2. **Include full context**: Don't truncate README or main files
+    3. **Let Gemini analyze everything**: The model can handle it
+    4. **Review token usage**: Check estimated tokens in analysis summary
+  </Tab>
+  
+  <Tab title="For Iterative Analysis">
+    1. **Maintain conversation history**: Gemini remembers previous context
+    2. **Reference earlier analysis**: "Based on the previous threat model..."
+    3. **Incremental refinement**: Add details and regenerate
+    4. **Context accumulation**: Each iteration adds to understanding
+  </Tab>
+  
+  <Tab title="For Cost Optimization">
+    1. **Start with Flash Lite**: Quick initial assessment
+    2. **Upgrade to Flash**: For standard thoroughness
+    3. **Use Pro only when needed**: Critical systems or complex AI apps
+    4. **Use Gemini 2.5**: More stable pricing than preview models
+  </Tab>
+</Tabs>
+
+### Input Optimization
+
+<Steps>
+  <Step title="Structured Descriptions">
+    Organize large inputs with clear headings:
+    ```markdown
+    # Architecture Overview
+    [High-level description]
+    
+    # Components
+    ## Frontend
+    [Details]
+    
+    ## Backend
+    [Details]
+    
+    ## Database
+    [Details]
+    ```
+  </Step>
+  
+  <Step title="Leverage Context">
+    Include comprehensive details:
+    - Full technology stack
+    - All integration points
+    - Complete data flows
+    - Entire authentication logic
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+<Accordion title="API Key Authentication Failed">
+  **Symptom**: "Invalid API key" or authentication error
+  
+  **Solutions**:
+  - Verify key format starts with `AIza`
+  - Check key hasn't been restricted in Google Cloud Console
+  - Ensure Gemini API is enabled for your project
+  - Try generating a new key
+</Accordion>
+
+<Accordion title="Safety Filter Blocking">
+  **Symptom**: Response blocked due to safety filters
+  
+  **Explanation**: Despite BLOCK_NONE settings, some extreme scenarios may be blocked
+  
+  **Solutions**:
+  - Rephrase threat scenarios less aggressively
+  - Avoid explicit attack tool names
+  - Focus on defensive perspective
+  - Try a different model (2.5 vs 3)
+</Accordion>
+
+<Accordion title="Slow Response with Large Context">
+  **Symptom**: Longer than expected response times
+  
+  **Explanation**: Even with 1M context, very large inputs take time to process
+  
+  **Solutions**:
+  - Use Flash variants for speed
+  - Consider splitting extremely large repositories
+  - Reduce token limit if full analysis not needed
+  - Try during off-peak hours
+</Accordion>
+
+<Accordion title="JSON Parsing Errors">
+  **Symptom**: "Failed to parse JSON response"
+  
+  **Solutions**:
+  - STRIDE GPT automatically cleans markdown code blocks
+  - Retry the request (usually succeeds)
+  - Try Gemini 2.5 instead of 3 (more stable formatting)
+  - Report consistent issues for debugging
+</Accordion>
+
+<Accordion title="Missing OWASP Mappings">
+  **Symptom**: Threat model lacks OWASP LLM/ASI codes
+  
+  **Solutions**:
+  - Explicitly specify application type (Agentic AI, GenAI)
+  - Mention LLM/agent components in description
+  - Provide details about AI architecture
+  - Try Gemini 3 Pro for better OWASP coverage
+</Accordion>
+
+## Comparing Gemini to Other Providers
+
+### vs. OpenAI GPT-5
+
+<Tabs>
+  <Tab title="Gemini Advantages">
+    - ✅ **5-10x larger context window** (1M vs 400K)
+    - ✅ Faster response times than GPT-5 reasoning models
+    - ✅ More cost-effective per token
+    - ✅ Built-in thinking mode (no extra config)
+    - ✅ Better for massive GitHub repositories
+  </Tab>
+  
+  <Tab title="GPT-5 Advantages">
+    - ✅ Better at complex agentic architectures
+    - ✅ More consistent OWASP ASI threat detection
+    - ✅ Superior code-level threat analysis
+    - ✅ More reliable JSON formatting
+    - ✅ Better for cutting-edge AI applications
+  </Tab>
+</Tabs>
+
+### vs. Anthropic Claude
+
+<Tabs>
+  <Tab title="Gemini Advantages">
+    - ✅ **5x larger context window** (1M vs 200K)
+    - ✅ Faster response times
+    - ✅ Lower cost per request
+    - ✅ Better for large-scale analysis
+  </Tab>
+  
+  <Tab title="Claude Advantages">
+    - ✅ Deeper security reasoning (Extended Thinking)
+    - ✅ Better at nuanced threat scenarios
+    - ✅ More thorough STRIDE coverage
+    - ✅ Superior for security-critical systems
+  </Tab>
+</Tabs>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Provider Comparison" icon="scale-balanced" href="/providers/overview">
+    See full feature matrix for all providers
+  </Card>
+  <Card title="OpenAI Integration" icon="openai" href="/providers/openai">
+    Explore GPT-5 reasoning models
+  </Card>
+  <Card title="Anthropic Claude" icon="brain-circuit" href="/providers/anthropic">
+    Try extended thinking mode
+  </Card>
+  <Card title="Large Repository Analysis" icon="book" href="/features/github-analysis">
+    Optimize for massive codebases
+  </Card>
+</CardGroup>

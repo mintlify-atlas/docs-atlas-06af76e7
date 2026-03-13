@@ -1,0 +1,596 @@
+---
+title: Configuration
+description: Configure API keys, endpoints, and security settings for STRIDE GPT
+---
+
+STRIDE GPT requires configuration of API keys for LLM providers and optional endpoint configuration for local model hosting. This guide covers all environment variables and security best practices.
+
+## Environment Variables
+
+STRIDE GPT uses a `.env` file to manage configuration securely. All environment variables are optional, but you must configure at least one LLM provider to use the application.
+
+### API Keys
+
+STRIDE GPT supports multiple LLM providers. Configure the providers you plan to use:
+
+<CodeGroup>
+  ```bash OpenAI
+  OPENAI_API_KEY=your_openai_api_key_here
+  ```
+
+  ```bash Anthropic
+  ANTHROPIC_API_KEY=your_anthropic_api_key_here
+  ```
+
+  ```bash Google AI
+  GOOGLE_API_KEY=your_google_api_key_here
+  ```
+
+  ```bash Mistral AI
+  MISTRAL_API_KEY=your_mistral_api_key_here
+  ```
+
+  ```bash Groq
+  GROQ_API_KEY=your_groq_api_key_here
+  ```
+
+  ```bash GitHub
+  GITHUB_API_KEY=your_github_api_key_here
+  ```
+</CodeGroup>
+
+### LLM Provider Details
+
+#### OpenAI
+
+**Models Supported:**
+- GPT-5 series: `gpt-5.2`, `gpt-5.2-pro`, `gpt-5`, `gpt-5-mini`, `gpt-5-nano`
+- GPT-4 series: `gpt-4.1`
+- Reasoning models: Support extended reasoning with higher token limits
+
+**Get API Key:** [OpenAI Platform](https://platform.openai.com/api-keys)
+
+**Features:**
+- Multi-modal support (image analysis)
+- Advanced reasoning capabilities
+- Structured JSON output
+- Token counting with tiktoken
+
+#### Anthropic
+
+**Models Supported:**
+- Claude 4.5: `claude-sonnet-4-5`, `claude-haiku-4-5`, `claude-opus-4-5`
+- Extended Thinking mode for enhanced reasoning
+- Token limits: 32k standard, 48k with thinking mode
+
+**Get API Key:** [Anthropic Console](https://console.anthropic.com/)
+
+**Features:**
+- Extended Thinking mode toggle in UI
+- Multi-modal support
+- High-quality threat analysis
+- DREAD assessment support
+
+#### Google AI
+
+**Models Supported:**
+- Gemini 3: `gemini-3-pro-preview`, `gemini-3-flash-preview`
+- Gemini 2.5: `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-2.5-flash-lite`
+- Extended thinking mode support
+
+**Get API Key:** [Google AI Studio](https://makersuite.google.com/app/apikey)
+
+**Features:**
+- Fast inference with Flash models
+- Multi-modal capabilities
+- Large context windows
+
+<Warning>
+  Gemini models may not consistently generate JSON output. You may need to retry requests. Attack trees cannot be generated using Google AI models due to safety restrictions.
+</Warning>
+
+#### Mistral AI
+
+**Models Supported:**
+- Mistral Large 3
+- Medium 3.1
+- Small 3.2
+- Ministral 3 (8B/14B)
+- Magistral 1.2 (reasoning models)
+
+**Get API Key:** [Mistral AI Platform](https://console.mistral.ai/)
+
+**Features:**
+- Multiple model sizes for cost/performance trade-offs
+- Reasoning model support
+- Structured output
+
+#### Groq
+
+**Models Supported:**
+- OpenAI GPT-OSS (120B, 20B)
+- Llama 3.3 70B and 3.1 8B
+- DeepSeek R1
+- Moonshot Kimi K2
+- Qwen3 32B
+
+**Get API Key:** [Groq Console](https://console.groq.com/)
+
+**Features:**
+- Fast inference speeds
+- Open-source model hosting
+- Cost-effective threat modeling
+
+#### GitHub
+
+**Purpose:** Repository analysis for automated threat modeling
+
+**Get API Key:** [GitHub Personal Access Tokens](https://github.com/settings/tokens)
+
+**Required Permissions:**
+- `repo` (for private repositories)
+- `public_repo` (for public repositories only)
+
+**Features:**
+- Analyze README files
+- Process repository structure
+- Support for GitHub Enterprise
+- Generate threat models from codebase context
+
+<Info>
+  GitHub Enterprise support: STRIDE GPT automatically detects GitHub Enterprise URLs and configures the appropriate API endpoint.
+</Info>
+
+### Local Model Endpoints
+
+For organizations with data privacy requirements, configure local model hosting:
+
+<CodeGroup>
+  ```bash Ollama
+  OLLAMA_ENDPOINT=http://localhost:11434
+  ```
+
+  ```bash LM Studio Server
+  LM_STUDIO_ENDPOINT=http://localhost:1234
+  ```
+</CodeGroup>
+
+#### Ollama Configuration
+
+**Default Endpoint:** `http://localhost:11434`
+
+**Setup:**
+1. Install [Ollama](https://ollama.ai/)
+2. Pull a model: `ollama pull llama3`
+3. Start Ollama service
+4. Select Ollama in STRIDE GPT model provider dropdown
+
+**Features:**
+- Automatic model discovery
+- Local data processing
+- No external API calls
+- OpenAI-compatible API
+
+**Limitations:**
+- Local compute requirements
+- Model performance depends on hardware
+- Some features may be limited
+
+#### LM Studio Server Configuration
+
+**Default Endpoint:** `http://localhost:1234`
+
+**Setup:**
+1. Install [LM Studio](https://lmstudio.ai/)
+2. Load a model in LM Studio
+3. Start the local server
+4. Select LM Studio Server in STRIDE GPT
+
+**Features:**
+- OpenAI-compatible API
+- Dynamic model discovery
+- GUI for model management
+- Local processing
+
+<Note>
+  Local model hosting is only available when running STRIDE GPT locally or via Docker. It is not supported on Streamlit Community Cloud.
+</Note>
+
+## Configuration Methods
+
+STRIDE GPT supports multiple ways to configure API keys:
+
+### Method 1: Environment File (Recommended)
+
+Create a `.env` file in the application directory:
+
+<Steps>
+  <Step title="Copy Example File">
+    ```bash
+    cp .env.example .env
+    ```
+  </Step>
+
+  <Step title="Edit Configuration">
+    Open `.env` and add your API keys:
+
+    ```bash
+    # .env
+    GITHUB_API_KEY=ghp_xxxxxxxxxxxxxxxxxxxx
+    OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxx
+    ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxxxxxxx
+    GOOGLE_API_KEY=AIzaxxxxxxxxxxxxxxxxxxxxxxxxx
+    MISTRAL_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxx
+    GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxxxx
+    OLLAMA_ENDPOINT=http://localhost:11434
+    LM_STUDIO_ENDPOINT=http://localhost:1234
+    ```
+  </Step>
+
+  <Step title="Verify Permissions">
+    Ensure the `.env` file is readable but not world-accessible:
+
+    ```bash
+    chmod 600 .env
+    ```
+  </Step>
+</Steps>
+
+**Advantages:**
+- Keys auto-loaded on application start
+- Pre-fills API key fields in UI
+- Secure file-based storage
+- Easy to update without code changes
+
+### Method 2: UI Input
+
+Enter API keys directly in the Streamlit sidebar:
+
+1. Start the application
+2. Navigate to the sidebar
+3. Expand the model provider section
+4. Enter your API key in the text input field
+
+**Advantages:**
+- No file configuration needed
+- Keys stored in browser session only
+- Useful for testing different keys
+- Automatic session cleanup
+
+**Limitations:**
+- Keys not persisted between sessions
+- Must re-enter after restart
+- Less convenient for regular use
+
+### Method 3: Docker Environment Variables
+
+For Docker deployments, pass environment variables:
+
+<CodeGroup>
+  ```bash Using --env-file
+  docker run -p 8501:8501 --env-file .env mrwadams/stridegpt
+  ```
+
+  ```bash Using -e flags
+  docker run -p 8501:8501 \
+    -e OPENAI_API_KEY=sk-proj-xxxx \
+    -e ANTHROPIC_API_KEY=sk-ant-xxxx \
+    mrwadams/stridegpt
+  ```
+
+  ```bash Docker Compose
+  # docker-compose.yml
+  services:
+    stride-gpt:
+      image: mrwadams/stridegpt:latest
+      env_file:
+        - .env
+  ```
+</CodeGroup>
+
+## Security Best Practices
+
+STRIDE GPT is designed for local, single-user deployment. Follow these security practices to protect your API keys and data.
+
+### API Key Protection
+
+<Warning>
+  Your API keys are sensitive credentials that can incur charges on your account. Protect them carefully.
+</Warning>
+
+**DO:**
+- ✅ Enter API keys through the UI (browser session only)
+- ✅ Use `.env` file on personal machines
+- ✅ Set spending limits in LLM provider dashboards
+- ✅ Regularly review API usage and costs
+- ✅ Clear session when using shared computers
+- ✅ Use restrictive file permissions: `chmod 600 .env`
+- ✅ Rotate API keys periodically
+- ✅ Use separate API keys for different projects
+
+**DON'T:**
+- ❌ Commit `.env` files to version control (already in `.gitignore`)
+- ❌ Share screenshots with API keys visible
+- ❌ Run STRIDE GPT on untrusted systems
+- ❌ Share API keys with others
+- ❌ Ignore unexpected API charges
+- ❌ Use production API keys for testing
+- ❌ Store keys in plain text outside `.env`
+
+### Data Privacy Considerations
+
+When generating threat models, STRIDE GPT sends data to your chosen LLM provider:
+
+**Data Transmitted:**
+- Application details (type, authentication, architecture)
+- System architecture descriptions
+- Uploaded diagrams and images
+- Generated threat models and mitigations
+- GitHub repository content (if using repository analysis)
+
+**Privacy Implications:**
+- LLM providers (OpenAI, Anthropic, Google, etc.) may log data
+- Data handling subject to provider privacy policies
+- Data may be used for model training (check provider terms)
+
+**Best Practices:**
+- Use generic/fictional system details for demonstrations
+- Review LLM provider data retention policies
+- For sensitive systems, consider:
+  - Using local models (Ollama, LM Studio)
+  - Using providers with strict privacy guarantees
+  - Sanitizing system descriptions before input
+  - Anonymizing architecture diagrams
+
+<Info>
+  STRIDE GPT does not store or persist any data locally. All threat models are generated in-memory and can be downloaded manually. No application details are saved between sessions.
+</Info>
+
+### Provider Privacy Policies
+
+**Review privacy policies before using:**
+- [OpenAI Privacy Policy](https://openai.com/privacy/)
+- [Anthropic Privacy Policy](https://www.anthropic.com/privacy)
+- [Google AI Privacy](https://policies.google.com/privacy)
+- [Mistral AI Privacy](https://mistral.ai/terms/#privacy-policy)
+
+**Consider data residency:**
+- Where are models hosted?
+- What data retention periods apply?
+- Is data used for training?
+- Can you opt out of data logging?
+
+### Team and Organization Deployments
+
+STRIDE GPT is designed for single-user deployment. Multi-user deployments require additional security:
+
+<Warning>
+  Default STRIDE GPT deployment has NO authentication or authorization. Do not expose it publicly without additional security layers.
+</Warning>
+
+**Requirements for Multi-User Deployment:**
+
+1. **Authentication and Authorization**
+   - Implement user authentication
+   - Add role-based access control
+   - Use SSO/SAML for enterprise integration
+
+2. **Secrets Management**
+   - Use Docker Swarm secrets
+   - Use Kubernetes secrets
+   - Use cloud secret managers (AWS Secrets Manager, Azure Key Vault, GCP Secret Manager)
+   - Never store API keys in environment variables in shared deployments
+
+3. **Network Security**
+   - Deploy behind VPN or internal network
+   - Use reverse proxy with HTTPS (nginx, Traefik)
+   - Implement rate limiting
+   - Enable XSRF protection (enabled by default in Docker)
+
+4. **Access Controls**
+   - Implement appropriate access controls for generated threat models
+   - Consider data classification of inputs and outputs
+   - Audit logging for API usage
+
+5. **Compliance**
+   - Review data residency requirements
+   - Consider compliance frameworks (SOC 2, ISO 27001)
+   - Implement data retention policies
+   - Document security controls
+
+**Production Secrets Management Example:**
+
+<CodeGroup>
+  ```yaml Docker Swarm
+  # Create secrets
+  echo "sk-proj-xxxx" | docker secret create openai_key -
+  
+  # Reference in docker-compose.yml
+  services:
+    stride-gpt:
+      secrets:
+        - openai_key
+  secrets:
+    openai_key:
+      external: true
+  ```
+
+  ```yaml Kubernetes
+  # Create secret
+  kubectl create secret generic stride-gpt-keys \
+    --from-literal=openai-key=sk-proj-xxxx
+  
+  # Reference in deployment
+  env:
+    - name: OPENAI_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: stride-gpt-keys
+          key: openai-key
+  ```
+
+  ```bash AWS Secrets Manager
+  # Store secret
+  aws secretsmanager create-secret \
+    --name stride-gpt/openai-key \
+    --secret-string sk-proj-xxxx
+  
+  # Retrieve in application startup
+  aws secretsmanager get-secret-value \
+    --secret-id stride-gpt/openai-key \
+    --query SecretString --output text
+  ```
+</CodeGroup>
+
+### Dependency Security
+
+STRIDE GPT maintains dependencies and monitors for vulnerabilities:
+
+**Automated Security Scanning:**
+- Bandit (Python security linting)
+- CodeQL (vulnerability detection)
+- pip-audit (dependency scanning)
+- Safety (package vulnerabilities)
+- Gitleaks (secret detection)
+- Trivy (Docker image scanning)
+- Dependabot (automated updates)
+
+**Manual Security Checks:**
+
+Run pip-audit locally to check for vulnerabilities:
+
+```bash
+pip install pip-audit
+pip-audit -r requirements.txt
+```
+
+**Security Updates:**
+
+The following dependencies are pinned for security:
+
+```txt
+tornado>=6.4.2       # CVE mitigation
+requests>=2.32.2     # CVE mitigation
+urllib3>=2.2.2       # CVE mitigation
+anyio>=4.4.0         # CVE mitigation
+zipp>=3.19.1         # CVE mitigation
+h11>=0.16.0          # CVE mitigation
+```
+
+**Stay Updated:**
+- Monitor [GitHub Security Advisories](https://github.com/mrwadams/stride-gpt/security/advisories)
+- Review Dependabot PRs
+- Update dependencies regularly: `pip install -r requirements.txt --upgrade`
+
+### Reporting Security Issues
+
+Found a security issue? Report it responsibly:
+
+**DO:**
+- ✅ Create a security advisory via [GitHub private vulnerability reporting](https://github.com/mrwadams/stride-gpt/security/advisories/new)
+- ✅ Include detailed reproduction steps
+- ✅ Allow 48 hours for acknowledgment
+- ✅ Give maintainers time to fix before public disclosure
+
+**DON'T:**
+- ❌ Post security issues publicly in GitHub Issues
+- ❌ Disclose vulnerabilities on social media
+- ❌ Exploit vulnerabilities for testing
+
+**Response SLA:**
+- Acknowledgment within 48 hours
+- Fixes prioritized and released quickly
+- Security advisories published after fix
+
+## Configuration Validation
+
+Verify your configuration is correct:
+
+<Steps>
+  <Step title="Check Environment Variables">
+    Verify `.env` file is loaded:
+
+    ```bash
+    # Local installation
+    cat .env
+    
+    # Docker
+    docker exec <container_id> env | grep API_KEY
+    ```
+  </Step>
+
+  <Step title="Test API Connection">
+    Start the application and:
+    1. Select a model provider
+    2. Verify API key is pre-filled (if using `.env`)
+    3. Select a model from the dropdown
+    4. Generate a simple test threat model
+  </Step>
+
+  <Step title="Monitor API Usage">
+    Check your LLM provider dashboard for API activity to confirm successful connection.
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+### API Keys Not Loading
+
+**Check file location:**
+```bash
+ls -la .env  # Should be in same directory as main.py
+```
+
+**Verify file contents:**
+```bash
+cat .env | grep API_KEY
+```
+
+**Restart application:**
+```bash
+# Local
+streamlit run main.py
+
+# Docker
+docker-compose restart
+```
+
+### Invalid API Key Errors
+
+- Verify key format matches provider requirements
+- Check for extra whitespace or quotes
+- Ensure key has required permissions
+- Verify key hasn't been revoked
+- Check spending limits on provider dashboard
+
+### Local Model Connection Issues
+
+**Ollama:**
+```bash
+# Check Ollama is running
+curl http://localhost:11434/api/tags
+
+# Verify models available
+ollama list
+```
+
+**LM Studio Server:**
+```bash
+# Check server is running
+curl http://localhost:1234/v1/models
+```
+
+### Environment Variable Precedence
+
+1. UI input (highest priority)
+2. `.env` file
+3. System environment variables
+4. Default values (lowest priority)
+
+## Next Steps
+
+- Explore [local installation](/installation/local) for development
+- Learn about [Docker deployment](/installation/docker) options
+- Review the [security documentation](https://github.com/mrwadams/stride-gpt/blob/main/SECURITY.md)
+- Set spending limits on your LLM provider dashboards
+- Generate your first threat model

@@ -1,0 +1,562 @@
+---
+title: Groq Integration
+description: Configure Groq for ultra-fast inference with STRIDE GPT threat modeling
+---
+
+Groq provides ultra-fast inference through custom LPU (Language Processing Unit) hardware, enabling rapid threat model generation with STRIDE GPT.
+
+## Supported Models
+
+### OpenAI GPT-OSS (Open Source)
+
+<CardGroup cols={2}>
+  <Card title="GPT-OSS 120B" icon="code">
+    **Largest open-source model**
+    
+    - Model: `openai/gpt-oss-120b`
+    - Context: 64K default, 128K max
+    - Parameters: 120 billion
+    - Use case: Comprehensive analysis
+  </Card>
+  
+  <Card title="GPT-OSS 20B" icon="bolt">
+    **Faster open-source option**
+    
+    - Model: `openai/gpt-oss-20b`
+    - Context: 64K default, 128K max
+    - Parameters: 20 billion
+    - Use case: Rapid threat modeling
+  </Card>
+</CardGroup>
+
+### Meta Llama
+
+<CardGroup cols={2}>
+  <Card title="Llama 3.3 70B Versatile" icon="llama">
+    **Best tool use and reasoning**
+    
+    - Model: `llama-3.3-70b-versatile`
+    - Context: 64K default, 128K max
+    - Parameters: 70 billion
+    - Use case: Agentic AI analysis
+  </Card>
+  
+  <Card title="Llama 3.1 8B Instant" icon="gauge-high">
+    **Fastest Llama model**
+    
+    - Model: `llama-3.1-8b-instant`
+    - Context: 64K default, 131K max
+    - Parameters: 8 billion
+    - Use case: Ultra-fast iteration
+  </Card>
+</CardGroup>
+
+### Reasoning Models
+
+<Card title="DeepSeek R1 Distill Llama 70B" icon="brain">
+  **Reasoning-focused model**
+  
+  - Model: `deepseek-r1-distill-llama-70b`
+  - Context: 64K default, 128K max
+  - Reasoning: Extended thinking capabilities
+  - Use case: Complex security scenarios
+  - Performance: Internal reasoning visible in output
+</Card>
+
+### Specialized Models
+
+<CardGroup cols={2}>
+  <Card title="Kimi K2 Instruct" icon="globe">
+    **Multilingual support**
+    
+    - Model: `moonshotai/kimi-k2-instruct`
+    - Context: 64K default, 128K max
+    - Languages: Excellent Chinese support
+    - Use case: International threat modeling
+  </Card>
+  
+  <Card title="Qwen3 32B" icon="star">
+    **Balanced performance**
+    
+    - Model: `qwen/qwen3-32b`
+    - Context: 64K default, 128K max
+    - Parameters: 32 billion
+    - Use case: General threat analysis
+  </Card>
+</CardGroup>
+
+<Info>
+**Groq's Speed Advantage**: Groq's LPU technology can deliver 10-100x faster inference than traditional GPU-based inference, enabling near-instant threat model generation.
+</Info>
+
+## Setup
+
+<Steps>
+  <Step title="Get API Key">
+    1. Visit the [Groq Console](https://console.groq.com/keys)
+    2. Sign in or create an account
+    3. Navigate to **API Keys** section
+    4. Click **Create API Key**
+    5. Copy the generated key (starts with `gsk_`)
+    
+    <Warning>
+    Keep your Groq API key secure. It provides access to fast inference resources.
+    </Warning>
+  </Step>
+  
+  <Step title="Configure in STRIDE GPT">
+    In the STRIDE GPT sidebar:
+    
+    1. Select **"Groq API"** from model provider dropdown
+    2. Paste your API key in the password field
+    3. Choose your preferred model
+  </Step>
+  
+  <Step title="Environment Variable (Optional)">
+    Set as environment variable:
+    
+    ```bash
+    export GROQ_API_KEY="gsk_..."
+    ```
+    
+    Or in `.env` file:
+    ```
+    GROQ_API_KEY=gsk_...
+    ```
+  </Step>
+</Steps>
+
+## Ultra-Fast Inference
+
+Groq's LPU technology provides exceptional speed:
+
+<Note>
+**Language Processing Units (LPUs)**
+
+Groq's custom silicon is specifically designed for LLM inference:
+
+- **Deterministic execution**: Consistent, predictable latency
+- **No batching delays**: Instant single-request processing
+- **High throughput**: Thousands of tokens per second
+- **Low latency**: Sub-second time-to-first-token
+
+**Real-World Impact**:
+- Threat models in 5-15 seconds (vs 30-90s elsewhere)
+- Rapid iteration and refinement
+- Interactive threat modeling workflow
+- Cost-effective at scale
+</Note>
+
+### Expected Response Times
+
+| Model | Threat Model | Attack Tree | Mitigations | DREAD |
+|-------|-------------|-------------|-------------|-------|
+| GPT-OSS 120B | 12-20s | 10-15s | 8-12s | 8-10s |
+| GPT-OSS 20B | 5-10s | 5-8s | 4-7s | 4-6s |
+| Llama 3.3 70B | 10-15s | 8-12s | 6-10s | 6-9s |
+| Llama 3.1 8B | 3-7s | 3-6s | 3-5s | 3-4s |
+| DeepSeek R1 | 15-25s | 12-18s | 10-15s | 10-12s |
+| Kimi K2 | 8-12s | 6-10s | 5-8s | 5-7s |
+| Qwen3 32B | 8-12s | 6-10s | 5-8s | 5-7s |
+
+<Info>
+These times are 3-10x faster than equivalent models on other platforms, thanks to Groq's LPU technology.
+</Info>
+
+## Reasoning Model Support
+
+DeepSeek R1 provides reasoning capabilities similar to GPT-5:
+
+### How It Works
+
+<Steps>
+  <Step title="Internal Reasoning">
+    DeepSeek R1 performs extended thinking before responding:
+    ```
+    <think>
+    [Internal reasoning process]
+    - Analyzing STRIDE categories
+    - Considering attack vectors
+    - Mapping to OWASP frameworks
+    </think>
+    ```
+  </Step>
+  
+  <Step title="Response Extraction">
+    STRIDE GPT automatically:
+    - Detects `<think>` tags in output
+    - Extracts reasoning content
+    - Displays in expandable UI element
+    - Parses final response separately
+  </Step>
+  
+  <Step title="Visible Reasoning">
+    Users can view the model's thought process:
+    - Click "View model's reasoning process"
+    - See step-by-step analysis
+    - Understand threat identification logic
+  </Step>
+</Steps>
+
+<Note>
+Unlike OpenAI's GPT-5 or Anthropic's Extended Thinking, DeepSeek R1's reasoning is embedded in the output rather than being a separate API parameter.
+</Note>
+
+## Token Limits
+
+| Model | Default Context | Maximum Context |
+|-------|----------------|----------------|
+| GPT-OSS 120B | 64,000 | 128,000 |
+| GPT-OSS 20B | 64,000 | 128,000 |
+| Llama 3.3 70B | 64,000 | 128,000 |
+| Llama 3.1 8B | 64,000 | 131,072 |
+| DeepSeek R1 | 64,000 | 128,000 |
+| Kimi K2 | 64,000 | 128,000 |
+| Qwen3 32B | 64,000 | 128,000 |
+
+<Warning>
+Groq's context windows (128K) are smaller than Google Gemini (1M) or OpenAI GPT-4.1 (1M). For massive GitHub repositories, consider using a provider with larger context windows.
+</Warning>
+
+## Model Selection Guide
+
+### Llama 3.3 70B Versatile (Recommended)
+
+**Best for**: Most use cases
+
+<Card>
+  **Strengths**:
+  - Excellent tool use understanding
+  - Strong STRIDE threat identification
+  - Good for agentic AI applications
+  - Best balance of quality and speed
+  - Great at function calling concepts
+  
+  **Use cases**:
+  - Agentic AI applications
+  - Tool-based architectures
+  - MCP server integrations
+  - Multi-agent systems
+  - Standard threat modeling
+  
+  **Performance**: 10-15s for threat models
+</Card>
+
+### GPT-OSS 120B
+
+**Best for**: Comprehensive analysis
+
+<Card>
+  **Strengths**:
+  - Largest open-source model on Groq
+  - Most thorough threat coverage
+  - Good OWASP mapping
+  - Detailed scenario descriptions
+  
+  **Use cases**:
+  - Security-critical applications
+  - Enterprise systems
+  - Complex architectures
+  - When quality matters most
+  
+  **Performance**: 12-20s for threat models
+</Card>
+
+### Llama 3.1 8B Instant
+
+**Best for**: Maximum speed
+
+<Card>
+  **Strengths**:
+  - Fastest model available
+  - Good for basic threat identification
+  - Excellent for iteration
+  - Most cost-effective
+  
+  **Use cases**:
+  - Rapid prototyping
+  - Quick security reviews
+  - Development phase
+  - Time-sensitive analysis
+  
+  **Performance**: 3-7s for threat models
+</Card>
+
+### DeepSeek R1 Distill Llama 70B
+
+**Best for**: Complex reasoning
+
+<Card>
+  **Strengths**:
+  - Reasoning capabilities (like GPT-5)
+  - Visible thought process
+  - Good for complex attack chains
+  - Strong at multi-step scenarios
+  
+  **Considerations**:
+  - Slower than other Groq models (still fast!)
+  - Reasoning adds tokens to output
+  - May be overkill for simple apps
+  
+  **Use cases**:
+  - Complex agentic architectures
+  - Multi-agent systems
+  - Novel AI applications
+  - Security-critical scenarios
+  
+  **Performance**: 15-25s for threat models
+</Card>
+
+### Kimi K2 Instruct
+
+**Best for**: Multilingual applications
+
+<Card>
+  **Strengths**:
+  - Excellent Chinese language support
+  - Good for international teams
+  - Solid threat analysis
+  - Cultural context awareness
+  
+  **Use cases**:
+  - Chinese applications
+  - Multilingual platforms
+  - International deployments
+  - APAC region focus
+  
+  **Performance**: 8-12s for threat models
+</Card>
+
+## Image Analysis
+
+<Warning>
+Groq models **do not support image analysis** for architecture diagrams. For diagram analysis, use OpenAI, Anthropic, or Google providers.
+</Warning>
+
+## Best Practices
+
+### Leveraging Speed for Iteration
+
+<Steps>
+  <Step title="Start Broad">
+    Generate initial threat model quickly:
+    - Use Llama 3.1 8B for 3-7s results
+    - Review high-level threats
+    - Identify areas needing more detail
+  </Step>
+  
+  <Step title="Refine Iteratively">
+    Drill down on specific areas:
+    - Add details to specific components
+    - Regenerate with Llama 3.3 70B
+    - Iterate rapidly (10-15s per cycle)
+  </Step>
+  
+  <Step title="Final Polish">
+    Use reasoning model for final analysis:
+    - Switch to DeepSeek R1 for complex scenarios
+    - Review reasoning process
+    - Validate threat coverage
+  </Step>
+</Steps>
+
+### Input Optimization
+
+<Tabs>
+  <Tab title="For Speed Models">
+    With Llama 3.1 8B, be concise:
+    ```markdown
+    # App: E-commerce Platform
+    
+    ## Components
+    - React frontend (public)
+    - Node.js API (auth: JWT)
+    - PostgreSQL (encrypted)
+    - Stripe payments
+    
+    ## Key Flows
+    - User registration → Email verification
+    - Login → JWT issued
+    - Checkout → Payment processing
+    ```
+  </Tab>
+  
+  <Tab title="For Reasoning Models">
+    With DeepSeek R1, provide complexity:
+    ```markdown
+    # App: Multi-Agent AI System
+    
+    ## Architecture
+    - Orchestrator agent (LangGraph)
+    - Research agent (RAG + web search)
+    - Code agent (sandbox execution)
+    - Review agent (validation)
+    
+    ## Concerns
+    - Agent-to-agent communication security
+    - Sandbox escape risks
+    - Prompt injection via research sources
+    - Tool misuse by agents
+    ```
+  </Tab>
+</Tabs>
+
+### Cost Optimization
+
+<Note>
+Groq offers competitive pricing, with speed enabling cost-effective iteration. The faster inference means less time waiting and more productive threat modeling sessions.
+</Note>
+
+**Development Workflow**:
+1. **Draft**: Llama 3.1 8B (fastest, cheapest)
+2. **Refine**: Llama 3.3 70B (balanced)
+3. **Finalize**: DeepSeek R1 or GPT-OSS 120B (thorough)
+
+## Troubleshooting
+
+<Accordion title="API Key Invalid">
+  **Symptom**: Authentication failure
+  
+  **Solutions**:
+  - Verify key format starts with `gsk_`
+  - Check key status in Groq Console
+  - Ensure key hasn't been revoked
+  - Try regenerating the key
+</Accordion>
+
+<Accordion title="Rate Limit Exceeded">
+  **Symptom**: "Rate limit reached"
+  
+  **Solutions**:
+  - Groq has generous free tier but limits exist
+  - Wait for rate limit reset (typically 1 minute)
+  - Upgrade to paid tier for higher limits
+  - Space out requests
+</Accordion>
+
+<Accordion title="Reasoning Tags in Output">
+  **Symptom**: `<think>` tags visible in threat model
+  
+  **Explanation**: Normal for DeepSeek R1 - STRIDE GPT extracts these
+  
+  **Solutions**:
+  - STRIDE GPT automatically handles this
+  - Reasoning shown in expandable section
+  - If not working, report as bug
+</Accordion>
+
+<Accordion title="Quality Lower Than Expected">
+  **Symptom**: Threat model seems incomplete
+  
+  **Solutions**:
+  - Upgrade from Llama 8B to 70B
+  - Try GPT-OSS 120B for more depth
+  - Use DeepSeek R1 for complex scenarios
+  - Provide more detailed application description
+</Accordion>
+
+<Accordion title="JSON Parsing Failures">
+  **Symptom**: "Failed to parse JSON response"
+  
+  **Solutions**:
+  - STRIDE GPT has special handling for Groq responses
+  - Retry the request
+  - Try a different model
+  - Report persistent issues
+</Accordion>
+
+## Comparing Groq to Other Providers
+
+### vs. OpenAI GPT-5
+
+<Tabs>
+  <Tab title="Groq Advantages">
+    - ✅ **10-20x faster inference**
+    - ✅ More affordable pricing
+    - ✅ Open-source model options
+    - ✅ Near-instant iteration
+    - ✅ Predictable latency
+  </Tab>
+  
+  <Tab title="GPT-5 Advantages">
+    - ✅ Better at complex agentic architectures
+    - ✅ Larger context windows (400K-1M)
+    - ✅ More sophisticated reasoning
+    - ✅ Image analysis support
+    - ✅ Better OWASP ASI coverage
+  </Tab>
+</Tabs>
+
+### vs. Google Gemini
+
+<Tabs>
+  <Tab title="Groq Advantages">
+    - ✅ **Significantly faster** (3-10x)
+    - ✅ Better for rapid iteration
+    - ✅ Llama 3.3 excellent at tool use
+    - ✅ Open-source transparency
+  </Tab>
+  
+  <Tab title="Gemini Advantages">
+    - ✅ Massive 1M token context
+    - ✅ Better for large repositories
+    - ✅ Image analysis support
+    - ✅ Thinking mode built-in
+  </Tab>
+</Tabs>
+
+### vs. Anthropic Claude
+
+<Tabs>
+  <Tab title="Groq Advantages">
+    - ✅ **Much faster** (5-10x)
+    - ✅ More affordable
+    - ✅ Great for quick security reviews
+    - ✅ Interactive workflow
+  </Tab>
+  
+  <Tab title="Claude Advantages">
+    - ✅ Extended thinking mode
+    - ✅ Deeper security analysis
+    - ✅ Better nuanced understanding
+    - ✅ Larger context (200K)
+    - ✅ Image analysis support
+  </Tab>
+</Tabs>
+
+## When to Use Groq
+
+<Card>
+  **Choose Groq When**:
+  
+  - ✅ Speed is paramount (deadlines, demos)
+  - ✅ Iterative workflow (refine multiple times)
+  - ✅ Development phase (rapid prototyping)
+  - ✅ Cost-sensitive projects
+  - ✅ Real-time threat modeling in meetings
+  - ✅ Teaching/learning security analysis
+  
+  **Choose Other Providers When**:
+  
+  - Analyzing massive GitHub repositories (use Gemini 1M context)
+  - Security-critical systems (use GPT-5 or Claude Extended Thinking)
+  - Need architecture diagram analysis (use OpenAI/Anthropic/Google)
+  - Complex agentic AI with deep reasoning (use GPT-5.2-pro)
+</Card>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Provider Comparison" icon="scale-balanced" href="/providers/overview">
+    See full comparison of all providers
+  </Card>
+  <Card title="DeepSeek Reasoning" icon="brain" href="/providers/overview">
+    Learn about reasoning models
+  </Card>
+  <Card title="Ollama" icon="server" href="/providers/ollama">
+    Try self-hosted Llama models
+  </Card>
+  <Card title="Optimization Guide" icon="bolt" href="/security/api-keys">
+    Maximize Groq's speed advantage
+  </Card>
+</CardGroup>

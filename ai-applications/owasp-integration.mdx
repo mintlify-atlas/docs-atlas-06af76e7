@@ -1,0 +1,517 @@
+---
+title: 'OWASP Integration'
+description: 'How OWASP LLM Top 10 and ASI Top 10 map to STRIDE threat categories'
+icon: 'shield-halved'
+---
+
+## Overview
+
+STRIDE GPT integrates two OWASP frameworks for AI security into the traditional STRIDE threat modeling methodology:
+
+- **OWASP Top 10 for LLM Applications (2025)**: LLM01-LLM10
+- **OWASP Top 10 for Agentic Applications**: ASI01-ASI10
+
+This integration provides comprehensive threat coverage by mapping AI-specific vulnerabilities to established STRIDE categories (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege).
+
+<Info>
+**Why This Matters**
+
+Traditional STRIDE methodology was designed before the emergence of generative AI and agentic systems. By mapping OWASP AI risks to STRIDE categories, STRIDE GPT enables security teams to:
+
+- Use familiar threat modeling frameworks for AI applications
+- Ensure comprehensive coverage of both traditional and AI-specific threats
+- Generate actionable threat models that integrate with existing security processes
+- Track threats using industry-standard OWASP vulnerability codes
+</Info>
+
+## STRIDE Category Mapping
+
+Each OWASP threat maps to one or more STRIDE categories based on the attack mechanism and impact:
+
+### Spoofing Identity
+
+<Accordion title="Definition">
+Attacks where an entity pretends to be something or someone else.
+</Accordion>
+
+<Accordion title="Traditional Examples">
+- User impersonation via stolen credentials
+- Man-in-the-middle attacks
+- Session hijacking
+</Accordion>
+
+<Accordion title="LLM-Specific Threats">
+**LLM01 (Prompt Injection)**
+- Attacker crafts inputs that override system prompts
+- LLM impersonates other entities or users
+- Model behavior manipulated to bypass intended identity constraints
+
+**LLM07 (System Prompt Leakage)**
+- Extraction of system prompts reveals intended identity/behavior
+- Enables more targeted spoofing attacks
+</Accordion>
+
+<Accordion title="Agentic-Specific Threats">
+**ASI07 (Insecure Inter-Agent Communication)**
+- Spoofed agent identities in multi-agent systems
+- Fake agents joining agent ecosystem
+- Replay attacks with captured agent messages
+
+**ASI04 (Agentic Supply Chain)**
+- Malicious MCP servers or tool providers impersonating legitimate ones
+- Fake tool responses injected into agent context
+</Accordion>
+
+<Accordion title="Example from threat_model.py:175-179">
+```python
+SPOOFING (Traditional + Agentic):
+- Traditional: Identity spoofing, credential theft
+- ASI07 (Insecure Inter-Agent Communication): Spoofed agent identities, 
+  fake agents joining multi-agent systems
+- ASI04 (Agentic Supply Chain Vulnerabilities): Malicious MCP servers or tool 
+  providers impersonating legitimate ones
+- Fake tool responses injected into agent context
+```
+</Accordion>
+
+### Tampering with Data
+
+<Accordion title="Definition">
+Malicious modification of data or code.
+</Accordion>
+
+<Accordion title="Traditional Examples">
+- Database record modification
+- Code injection
+- Configuration file tampering
+</Accordion>
+
+<Accordion title="LLM-Specific Threats">
+**LLM01 (Prompt Injection)**
+- Direct or indirect injection manipulating LLM behavior or outputs
+- Hidden instructions in processed content
+
+**LLM04 (Data and Model Poisoning)**
+- Malicious modification of training data
+- Fine-tuning data corruption
+- Embedding manipulation in RAG systems
+
+**LLM08 (Vector and Embedding Weaknesses)**
+- Manipulation of RAG data to alter retrieval results
+- Adversarial embeddings designed to cluster with target queries
+</Accordion>
+
+<Accordion title="Agentic-Specific Threats">
+**ASI06 (Memory and Context Poisoning)**
+- RAG poisoning affecting agent reasoning
+- Manipulated agent memory/state
+- Cross-session contamination
+
+**ASI01 (Agent Goal Hijack)**
+- Prompt injection via poisoned documents altering agent objectives
+- Goal persistence across sessions
+
+**ASI07 (Insecure Inter-Agent Communication)**
+- Message tampering in inter-agent communication channels
+- Protocol-level manipulation
+</Accordion>
+
+<Accordion title="Example from threat_model.py:181-186">
+```python
+TAMPERING (Traditional + Agentic):
+- Traditional: Data modification, code injection
+- ASI06: Context window leakage exposing sensitive data from previous sessions, 
+  cross-tenant data exposure
+- ASI01: Prompt injection attacks leading to data exfiltration via crafted outputs
+- Sensitive credentials or data exposed through agent tool call logs or 
+  persistent memory
+```
+</Accordion>
+
+### Repudiation
+
+<Accordion title="Definition">
+Ability to deny performing an action without others being able to prove otherwise.
+</Accordion>
+
+<Accordion title="Traditional Examples">
+- Denying transactions without audit logs
+- Log file deletion or manipulation
+- Lack of digital signatures
+</Accordion>
+
+<Accordion title="LLM-Specific Threats">
+**LLM09 (Misinformation)**
+- LLM generates false information that users act upon
+- Difficult to attribute accountability for AI-generated content
+- No audit trail for LLM decision-making process
+</Accordion>
+
+<Accordion title="Agentic-Specific Threats">
+**ASI09 (Human-Agent Trust Exploitation)**
+- Agent actions circumventing audit trails by exploiting user over-trust
+- Untraceable autonomous agent decisions due to insufficient logging
+- Gaps in agent decision audit logs making forensics impossible
+</Accordion>
+
+<Accordion title="Example from threat_model.py:188-191">
+```python
+REPUDIATION (Traditional + Agentic):
+- Traditional: Denial of actions, log manipulation
+- ASI09 (Human-Agent Trust Exploitation): Agent actions that circumvent audit 
+  trails by exploiting user over-trust
+- Untraceable autonomous agent decisions due to insufficient logging
+- Gaps in agent decision audit logs making forensics impossible
+```
+</Accordion>
+
+### Information Disclosure
+
+<Accordion title="Definition">
+Exposure of information to unauthorized individuals.
+</Accordion>
+
+<Accordion title="Traditional Examples">
+- Database dumps
+- Error messages revealing system details
+- Unencrypted data transmission
+</Accordion>
+
+<Accordion title="LLM-Specific Threats">
+**LLM02 (Sensitive Information Disclosure)**
+- LLM reveals training data, PII, credentials, or proprietary information
+- Memorization of sensitive examples
+
+**LLM07 (System Prompt Leakage)**
+- Exposure of confidential system instructions
+- Business logic or secrets embedded in prompts revealed
+
+**LLM08 (Vector and Embedding Weaknesses)**
+- Information leakage through embeddings
+- Cross-tenant RAG data exposure
+</Accordion>
+
+<Accordion title="Agentic-Specific Threats">
+**ASI06 (Memory and Context Poisoning)**
+- Context window leakage exposing sensitive data from previous sessions
+- Cross-tenant data exposure in shared memory stores
+
+**ASI01 (Agent Goal Hijack)**
+- Prompt injection leading to data exfiltration via crafted outputs
+- Sensitive credentials exposed through agent tool call logs or persistent memory
+</Accordion>
+
+<Accordion title="Example from threat_model.py:351-356">
+```python
+Example Threat:
+{
+  "Threat Type": "Information Disclosure",
+  "Scenario": "The LLM reveals fragments of its system prompt containing API keys 
+               when users craft specific queries about its configuration.",
+  "Potential Impact": "Exposure of credentials enables unauthorized access to 
+                       backend services.",
+  "OWASP_LLM": "LLM07",
+  "OWASP_ASI": null
+}
+```
+</Accordion>
+
+### Denial of Service
+
+<Accordion title="Definition">
+Making a system or resource unavailable to legitimate users.
+</Accordion>
+
+<Accordion title="Traditional Examples">
+- Network flooding
+- Resource exhaustion
+- Application crashes
+</Accordion>
+
+<Accordion title="LLM-Specific Threats">
+**LLM10 (Unbounded Consumption)**
+- Resource exhaustion through expensive queries
+- Long context windows causing cost amplification
+- Repeated requests exhausting API quotas
+
+**LLM04 (Data and Model Poisoning)**
+- Model performance degradation through poisoned training data
+- Corrupted embeddings reducing retrieval quality
+</Accordion>
+
+<Accordion title="Agentic-Specific Threats">
+**ASI08 (Cascading Failures)**
+- Error propagation across agent chains causing system-wide outages
+- Agent loop attacks with infinite reasoning cycles
+- Resource exhaustion through repeated expensive tool invocations
+- Runaway code execution
+</Accordion>
+
+<Accordion title="Example from threat_model.py:199-203">
+```python
+DENIAL OF SERVICE (Traditional + Agentic):
+- Traditional: Resource exhaustion, service disruption
+- ASI08 (Cascading Failures): Error propagation across agent chains causing 
+  system-wide outages
+- Agent loop attacks where malicious input causes infinite reasoning cycles
+- Resource exhaustion through repeated expensive tool invocations or runaway 
+  code execution
+```
+</Accordion>
+
+### Elevation of Privilege
+
+<Accordion title="Definition">
+Gaining unauthorized access to resources or capabilities.
+</Accordion>
+
+<Accordion title="Traditional Examples">
+- Privilege escalation exploits
+- Bypassing access controls
+- Exploiting misconfigurations
+</Accordion>
+
+<Accordion title="LLM-Specific Threats">
+**LLM05 (Improper Output Handling)**
+- LLM output passed to downstream systems without validation
+- Command injection, XSS, SQL injection via generated content
+- SSRF through LLM-generated URLs
+
+**LLM06 (Excessive Agency)**
+- LLM granted excessive permissions or autonomy
+- Over-broad tool access without least privilege
+
+**LLM03 (Supply Chain)**
+- Compromised models, plugins, or dependencies
+- Backdoors or malicious capabilities introduced through supply chain
+</Accordion>
+
+<Accordion title="Agentic-Specific Threats">
+**ASI02 (Tool Misuse and Exploitation)**
+- Over-privileged tools executing destructive commands
+- Unvalidated tool inputs leading to exploitation
+
+**ASI03 (Identity and Privilege Abuse)**
+- Cached credential misuse
+- Confused deputy attacks
+- Cross-agent delegation abuse
+
+**ASI05 (Unexpected Code Execution)**
+- Unsafe eval/exec of generated code
+- Shell injection
+- Sandbox escape
+
+**ASI10 (Rogue Agents)**
+- Agents persisting beyond intended lifecycle
+- Impersonating other agents or users
+- Resisting shutdown commands
+</Accordion>
+
+<Accordion title="Example from threat_model.py:357-364">
+```python
+Example Threat:
+{
+  "Threat Type": "Elevation of Privilege",
+  "Scenario": "The agent's code execution capability lacks proper sandboxing, 
+               allowing generated code to access the host filesystem and 
+               escalate privileges.",
+  "Potential Impact": "Complete system compromise and lateral movement.",
+  "OWASP_LLM": "LLM05",
+  "OWASP_ASI": "ASI05"
+}
+```
+</Accordion>
+
+## Threat Model Output Formats
+
+STRIDE GPT adapts its output format based on the detected OWASP frameworks:
+
+### Standard Applications (No AI)
+
+```markdown
+| Threat Type | Scenario | Potential Impact |
+|-------------|----------|------------------|
+| Spoofing | Session token theft via XSS | Unauthorized account access |
+```
+
+### Generative AI Applications (LLM01-LLM10)
+
+```markdown
+| Threat Type | Scenario | Potential Impact | OWASP LLM |
+|-------------|----------|------------------|------------|
+| Tampering | RAG poisoning via malicious document upload | Corrupted LLM responses | LLM04 |
+```
+
+### Agentic AI Applications (LLM01-LLM10 + ASI01-ASI10)
+
+```markdown
+| Threat Type | Scenario | Potential Impact | OWASP LLM | OWASP ASI |
+|-------------|----------|------------------|-----------|------------|
+| Elevation of Privilege | Tool misuse via over-privileged API access | Database compromise | LLM06 | ASI02 |
+```
+
+<Note>
+Threats may have **both** OWASP LLM and OWASP ASI codes if they apply to both foundation model and agentic layers. For example, prompt injection affecting agent goals would be marked as LLM01 (Prompt Injection) and ASI01 (Agent Goal Hijack).
+</Note>
+
+## Implementation in STRIDE GPT
+
+STRIDE GPT implements OWASP integration through specialized prompt engineering:
+
+<Steps>
+  <Step title="Application Type Detection">
+    User selects "Generative AI application" or "Agentic AI application" in the UI (main.py:1256-1269)
+  </Step>
+  <Step title="Framework Activation">
+    Based on selection, STRIDE GPT activates LLM-specific and/or agentic-specific threat analysis (threat_model.py:243-247)
+  </Step>
+  <Step title="Prompt Construction">
+    System prompt includes OWASP mappings for each STRIDE category (threat_model.py:68-232)
+  </Step>
+  <Step title="Architectural Pattern Detection">
+    For agentic applications, MAESTRO-inspired pattern detection analyzes the description (threat_model.py:131-232)
+  </Step>
+  <Step title="Threat Generation">
+    LLM generates threats with appropriate OWASP codes based on detected patterns
+  </Step>
+  <Step title="Output Formatting">
+    Threats displayed in table format with applicable OWASP LLM and/or OWASP ASI codes (threat_model.py:17-65)
+  </Step>
+</Steps>
+
+### Code Reference: Framework Selection Logic
+
+```python
+# From threat_model.py:243-247
+def create_threat_model_prompt(
+    app_type,
+    authentication,
+    internet_facing,
+    sensitive_data,
+    app_input,
+):
+    is_genai = app_type == "Generative AI application"
+    is_agentic = app_type == "Agentic AI application"
+    # Agentic apps also get LLM risks
+    include_llm_risks = is_genai or is_agentic
+```
+
+### Code Reference: STRIDE + OWASP Mapping
+
+```python
+# From threat_model.py:74-86
+LLM-SPECIFIC THREAT CATEGORIES (OWASP Top 10 for LLM Applications 2025):
+You MUST analyze threats from both traditional STRIDE categories AND the 
+following LLM-specific threat categories. Map each LLM threat to its 
+corresponding STRIDE category and include the OWASP_LLM code:
+
+SPOOFING (Traditional + LLM):
+- Traditional: Identity spoofing, credential theft
+- LLM01 (Prompt Injection): Attacker crafts inputs that override system prompts 
+  or instructions, making the LLM impersonate other entities or bypass intended 
+  behavior
+- LLM07 (System Prompt Leakage): Extraction of system prompts reveals intended 
+  identity/behavior, enabling more targeted spoofing
+```
+
+## Cross-Layer Threat Analysis
+
+STRIDE GPT generates threats that span multiple OWASP categories and STRIDE classifications:
+
+<Info>
+**Example Cross-Layer Threat**
+
+```json
+{
+  "Threat Type": "Tampering → Information Disclosure → Elevation of Privilege",
+  "Scenario": "Attacker poisons RAG knowledge base with malicious document (ASI06). 
+               Agent processes poisoned content, leading to goal hijacking (ASI01). 
+               Hijacked agent invokes over-privileged database tool (ASI02), 
+               exfiltrating sensitive customer data to attacker-controlled endpoint.",
+  "Potential Impact": "Complete data breach, regulatory violations, reputational damage",
+  "OWASP_LLM": "LLM04",
+  "OWASP_ASI": "ASI06, ASI01, ASI02"
+}
+```
+
+This threat demonstrates how:
+- **LLM04** (Data Poisoning) at the retrieval layer
+- Enables **ASI01** (Agent Goal Hijack) at the foundation model layer  
+- Leading to **ASI02** (Tool Misuse) at the agent ecosystem layer
+- Resulting in a critical **Information Disclosure** and **Elevation of Privilege** impact
+</Info>
+
+From threat_model.py:212-219:
+```python
+CROSS-LAYER THREAT ANALYSIS:
+For each threat identified, consider how it could cascade across system boundaries:
+- How could a data poisoning attack (in retrieval/RAG) affect agent decision-making 
+  and tool usage?
+- How could a compromised tool provider affect the foundation model's outputs or 
+  agent memory?
+- How could an agent ecosystem attack (multi-agent manipulation) lead to infrastructure 
+  compromise?
+- How could observability gaps hide attack progression across components?
+
+Include at least 2-3 threats that explicitly describe cross-component attack chains 
+where applicable.
+```
+
+## Best Practices for OWASP-Integrated Threat Modeling
+
+<Warning>
+**Understanding OWASP Codes**
+
+When reviewing generated threat models:
+
+- **LLM01-LLM10**: Foundation model vulnerabilities applicable to both GenAI and Agentic systems
+- **ASI01-ASI10**: Agent-specific vulnerabilities only applicable to autonomous systems
+- **Dual Codes**: Threats affecting both layers receive both LLM and ASI codes
+- **Null Values**: "-" or "null" indicates the threat doesn't apply to that framework
+</Warning>
+
+<Steps>
+  <Step title="Select Appropriate Application Type">
+    Use "Generative AI" for stateless LLM apps, "Agentic AI" for autonomous systems with tool access
+  </Step>
+  <Step title="Review All OWASP Mappings">
+    Check which OWASP codes apply to each threat for comprehensive understanding
+  </Step>
+  <Step title="Prioritize by STRIDE + OWASP">
+    Use both STRIDE category and OWASP severity to prioritize remediation
+  </Step>
+  <Step title="Map to Existing Controls">
+    Reference OWASP documentation to map threats to established security controls
+  </Step>
+  <Step title="Track Cross-Layer Threats">
+    Pay special attention to threats with multiple OWASP codes indicating cross-layer attacks
+  </Step>
+</Steps>
+
+## Additional Resources
+
+<CardGroup cols={2}>
+  <Card title="OWASP LLM Top 10" icon="link" href="https://owasp.org/www-project-top-10-for-large-language-model-applications/">
+    Official OWASP documentation for LLM application security
+  </Card>
+  <Card title="CSA MAESTRO Framework" icon="link" href="https://cloudsecurityalliance.org/blog/2025/02/06/agentic-ai-threat-modeling-framework-maestro">
+    Cloud Security Alliance's agentic AI threat modeling framework
+  </Card>
+  <Card title="Generative AI Deep Dive" icon="brain" href="/ai-applications/generative-ai">
+    Detailed coverage of LLM-specific threats and scenarios
+  </Card>
+  <Card title="Agentic AI Deep Dive" icon="robot" href="/ai-applications/agentic-ai">
+    Comprehensive guide to ASI threats and autonomous system vulnerabilities
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Try STRIDE GPT" icon="play">
+    Use STRIDE GPT to generate OWASP-integrated threat models for your AI applications
+  </Card>
+  <Card title="Back to Overview" icon="arrow-left" href="/ai-applications/overview">
+    Return to AI applications overview
+  </Card>
+</CardGroup>

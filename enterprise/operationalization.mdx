@@ -1,0 +1,390 @@
+---
+title: 'Operationalizing STRIDE GPT'
+description: 'Customize STRIDE GPT with organizational security controls, compliance requirements, and approved technology stacks for enterprise-scale threat modeling'
+icon: 'building'
+---
+
+## Overview
+
+STRIDE GPT is a Streamlit application that generates AI-powered threat models using Large Language Models. This guide shows you how to customize it for your organization to generate specific, actionable threat models that reference your security controls, compliance requirements, and approved technology stacks.
+
+<Note>
+**Key insight**: The quality of threat models depends on the context you provide. Generic inputs → generic threats. Organizational context → specific, actionable threats.
+</Note>
+
+## How STRIDE GPT Works
+
+STRIDE GPT processes user inputs through a multi-stage pipeline:
+
+1. **User Input** - Application description, architecture diagram, or GitHub repository
+2. **Prompt Builder** - Combines input with organizational context (`threat_model.py`, `mitigations.py`, etc.)
+3. **LLM Provider** - OpenAI, Anthropic, Google, Mistral, Groq, Ollama, or LM Studio
+4. **JSON Response** - Structured threat data with STRIDE categories
+5. **Markdown Converter** - Formatted output with downloadable reports
+
+<Info>
+**Customization Point**: Organizational context needs to be injected into the Prompt Builder to generate enterprise-specific threat models.
+</Info>
+
+## Three Approaches to Enterprise Deployment
+
+### Approach 1: Use As-Is (Quick Start)
+
+Manually add organizational context to each application description.
+
+**Example Input:**
+```
+Application: Customer portal web application
+
+Architecture: Three-tier web app on AWS
+- Frontend: React (hosted on CloudFront)
+- Backend: Python FastAPI (ECS Fargate)
+- Database: RDS PostgreSQL
+
+Organizational Context:
+- We use Okta SSO (all apps must use it)
+- Data classification: PII (Customer names, emails)
+- Compliance: SOC2 Type II required
+- Approved controls: WAF (AWS WAF), encryption at rest (RDS encryption)
+```
+
+<Card title="Pros & Cons" icon="scale-balanced">
+✅ No code changes required  
+✅ Works immediately  
+❌ Manual work for each threat model  
+❌ Inconsistent context across teams
+</Card>
+
+### Approach 2: Fork and Customize (Recommended)
+
+Modify the codebase to automatically inject organizational context into all threat models.
+
+<Steps>
+  <Step title="Fork the Repository">
+    Clone and create your organization's version:
+    ```bash
+    git clone https://github.com/mrwadams/stride-gpt.git my-org-stride-gpt
+    cd my-org-stride-gpt
+    ```
+  </Step>
+  
+  <Step title="Create Organizational Context">
+    Create `org_context.py` with your security standards:
+    - Approved security controls (authentication, encryption, network, monitoring)
+    - Technology stack (Python 3.12+, React, PostgreSQL, AWS)
+    - Compliance requirements (SOC2, GDPR, PCI-DSS, HIPAA)
+    - Data classification levels (Public, Internal, Confidential, Restricted)
+    - Standard architectures (CloudFront → ALB → ECS → RDS)
+  </Step>
+  
+  <Step title="Modify Threat Model Prompts">
+    Update `threat_model.py` (around line 33 in `create_threat_model_prompt`):
+    ```python
+    from org_context import get_org_context
+    
+    # Inject context into prompt
+    org_context = get_org_context()
+    prompt = f"{org_context}\n\n{base_prompt}"
+    ```
+    
+    Guide the LLM to:
+    - Reference approved security controls by name
+    - Suggest mitigations using your approved tech stack
+    - Consider your specific compliance requirements
+    - Apply your data classification levels
+    - Flag technologies not in your approved stack
+  </Step>
+  
+  <Step title="Update Other Modules">
+    Apply the same pattern to:
+    - **`mitigations.py`** - Ensure suggested mitigations use approved tech
+    - **`attack_tree.py`** - Incorporate known attack patterns
+    - **`dread.py`** - Apply organizational risk scoring criteria
+    - **`test_cases.py`** - Reference your testing standards
+  </Step>
+</Steps>
+
+<Card title="Pros & Cons" icon="scale-balanced">
+✅ Consistent context across all threat models  
+✅ One-time setup effort  
+✅ Full control over deployment  
+❌ Requires code modifications  
+❌ Ongoing maintenance to merge upstream updates
+</Card>
+
+### Approach 3: Wrapper Script
+
+Build an external script that prepends organizational context before sending to STRIDE GPT.
+
+<Card title="Pros & Cons" icon="scale-balanced">
+✅ No STRIDE GPT code changes  
+✅ Easier to update STRIDE GPT  
+❌ Less integrated experience  
+❌ Requires separate tooling
+</Card>
+
+## Before/After: Impact of Organizational Context
+
+### Without Organizational Context
+
+**Generated Threat:**
+```
+Threat Type: Information Disclosure
+Scenario: Sensitive data could be exposed if the database is compromised
+Potential Impact: Data breach exposing user information
+```
+
+**Generated Mitigation:**
+```
+- Implement database encryption
+- Use access controls
+- Enable audit logging
+```
+
+### With Organizational Context
+
+**Generated Threat:**
+```
+Threat Type: Information Disclosure
+Scenario: Customer PII (Confidential data classification) in RDS PostgreSQL 
+could be exposed if database encryption at rest is not enabled, violating 
+SOC2 CC6.6 requirements
+
+Potential Impact: Data breach exposing Confidential customer data, SOC2 
+compliance violation, potential GDPR Article 32 breach for EU customers
+```
+
+**Generated Mitigation:**
+```
+- Enable RDS encryption at rest using AWS KMS (approved control: Data-001)
+- Verify VPC isolation is configured per standard architecture 
+  (no direct internet access)
+- Implement database access logging to CloudWatch (approved monitoring: Monitor-001)
+- Ensure Okta SSO authentication is enforced for database admin access 
+  (approved control: Auth-001)
+```
+
+<Info>
+**Key improvements:**
+- ✅ Specific data classification referenced
+- ✅ Compliance frameworks cited (SOC2, GDPR)
+- ✅ Approved controls referenced by ID/name
+- ✅ Matches organizational architecture standards
+</Info>
+
+## Testing Your Customizations
+
+<Steps>
+  <Step title="Install Dependencies">
+    ```bash
+    pip install -r requirements.txt
+    ```
+  </Step>
+  
+  <Step title="Run Locally">
+    ```bash
+    streamlit run main.py
+    ```
+  </Step>
+  
+  <Step title="Validation Checklist">
+    1. Generate a threat model for a test application
+    2. Verify threats reference your security controls
+    3. Verify mitigations suggest your approved technologies
+    4. Check that compliance requirements are mentioned
+    5. Confirm data classification levels are applied correctly
+    6. Ensure JSON output is still valid (not broken by context injection)
+  </Step>
+</Steps>
+
+## Managing Token Limits
+
+Large organizational context can consume tokens. Follow these best practices:
+
+<CardGroup cols={2}>
+  <Card title="Monitor Context Size" icon="chart-line">
+    Keep organizational context under 10-20k tokens for optimal performance with modern LLMs
+  </Card>
+  
+  <Card title="Start Focused" icon="bullseye">
+    Include only your top 20 controls and 2-3 reference architectures initially
+  </Card>
+  
+  <Card title="Optimize Over Time" icon="arrows-rotate">
+    Add more detail based on actual usage patterns and feedback from security teams
+  </Card>
+  
+  <Card title="Conditional Loading" icon="code-branch">
+    Load different context based on application type (web, mobile, API, agentic AI)
+  </Card>
+</CardGroup>
+
+<Note>
+Modern LLMs support large context windows:
+- **GPT-5.2**: 272k input tokens (400k total)
+- **Claude Sonnet 4.5**: 200k tokens (1M with extended context)
+- **Gemini 3 Pro**: 1M tokens
+- **GPT-4o**: 128k tokens
+</Note>
+
+## GitHub Enterprise Support
+
+STRIDE GPT supports GitHub Enterprise repositories for automated threat modeling from your internal codebases.
+
+**Configuration:**
+1. Provide your GitHub Enterprise URL (e.g., `https://github.company.com`)
+2. Set `GITHUB_API_KEY` environment variable with your enterprise token
+3. The tool automatically detects and uses the correct API endpoint
+
+**Example:**
+```bash
+# .env file
+GITHUB_API_KEY=ghp_your_enterprise_token_here
+```
+
+When you provide a GitHub Enterprise repository URL, STRIDE GPT will:
+- Analyze README and key files
+- Extract architecture information
+- Generate comprehensive threat models
+- Apply your organizational context automatically
+
+## Maintenance and Updates
+
+### Keeping Up with Upstream Changes
+
+```bash
+# Add upstream remote (one time)
+git remote add upstream https://github.com/mrwadams/stride-gpt.git
+
+# Fetch latest changes
+git fetch upstream
+
+# View what changed
+git log HEAD..upstream/main --oneline
+
+# Merge updates (be careful - may conflict with your modifications)
+git merge upstream/main
+```
+
+<Warning>
+**When conflicts occur:**
+- Your `org_context.py` won't conflict (it's new)
+- Prompt modifications in `threat_model.py` will likely conflict
+- Manually resolve by preserving both upstream improvements and your org context injection
+</Warning>
+
+### Version Control Your Organizational Context
+
+Treat your `org_context.py` like critical configuration:
+- Include version numbers and last updated dates
+- Maintain a changelog of control additions/modifications
+- Review and update quarterly
+- Track who made changes and why
+
+### Regular Update Schedule
+
+**Quarterly:**
+- Review and update security controls
+- Add newly approved technologies
+- Update compliance requirements
+- Incorporate lessons learned from threat models
+
+**As Needed:**
+- After security incidents (add new threat patterns)
+- When new compliance requirements emerge
+- After technology stack changes
+- When new reference architectures are approved
+
+## Measuring Success
+
+| Metric | How to Measure |
+|--------|----------------|
+| **Threat model quality** | % of threats validated by security team as accurate |
+| **Time savings** | Time to generate model vs. manual process |
+| **Adoption** | Number of threat models generated per month |
+| **Coverage** | % of applications with threat models |
+| **Context effectiveness** | % of threats that reference org controls |
+
+## Frequently Asked Questions
+
+<AccordionGroup>
+  <Accordion title="Can I use this with local/private LLMs?">
+    Yes! STRIDE GPT supports **Ollama** and **LM Studio** for on-premises deployment. This is useful for organizations with strict data privacy requirements.
+    
+    Setup:
+    ```bash
+    # Install Ollama
+    curl https://ollama.ai/install.sh | sh
+    
+    # Pull a model
+    ollama pull llama3.1:70b
+    
+    # Set endpoint in .env
+    OLLAMA_ENDPOINT=http://localhost:11434
+    ```
+    
+    Select "Ollama" as the provider in the STRIDE GPT UI.
+  </Accordion>
+  
+  <Accordion title="How much context is too much?">
+    Modern LLM context windows (2026):
+    - **GPT-5.2**: 272k input tokens (400k total)
+    - **Claude Sonnet 4.5**: 200k tokens (1M with extended context)
+    - **Gemini 3 Pro**: 1M tokens
+    - **Local models** (Ollama/LM Studio): Typically 4-32k tokens
+    
+    For organizational context, aim for **10-20k tokens** (20-30 controls + 2-3 architectures). This leaves room for application descriptions and responses.
+  </Accordion>
+  
+  <Accordion title="Should I use RAG to store organizational docs?">
+    Probably not necessary. Modern LLMs have 100k-200k token context windows. For most organizations, your security controls, architectures, and compliance requirements fit comfortably in 5-10k tokens. Just include them directly in the prompt.
+    
+    RAG adds complexity without clear benefits for this use case.
+  </Accordion>
+  
+  <Accordion title="Will this work with reasoning models (OpenAI o1, o3, etc.)?">
+    Yes, STRIDE GPT supports reasoning models including:
+    - OpenAI o1, o3-mini, o4-mini, GPT-5.2 series
+    - Anthropic Claude 4.5 with Extended Thinking
+    - Google Gemini 3 with thinking mode
+    - DeepSeek R1 via Groq
+    - Mistral Magistral series
+    
+    They handle organizational context well. Note that reasoning models use more tokens, so monitor your context size.
+  </Accordion>
+  
+  <Accordion title="Can I automate threat model generation in CI/CD?">
+    STRIDE GPT is built as an interactive Streamlit app, not a CLI tool. However, you can extract the core functions from `threat_model.py`, `mitigations.py`, etc. to create an automated wrapper for CI/CD pipelines.
+    
+    This allows you to generate threat models automatically when code changes or during release processes.
+  </Accordion>
+  
+  <Accordion title="How do I handle multiple compliance frameworks?">
+    Include all applicable frameworks in your organizational context. You can conditionally load specific requirements based on the application's data classification or type:
+    
+    - **GDPR**: When handling EU customer data
+    - **PCI-DSS**: For payment processing
+    - **HIPAA**: For healthcare data
+    - **SOC2**: For SaaS platforms
+    - **FedRAMP**: For government systems
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Customization Guide" icon="wrench" href="/enterprise/customization">
+    Learn how to customize prompts, threat categories, and LLM providers
+  </Card>
+  
+  <Card title="Deployment Guide" icon="rocket" href="/enterprise/deployment">
+    Deploy STRIDE GPT with Docker, Kubernetes, or cloud platforms
+  </Card>
+</CardGroup>
+
+## Resources
+
+- [STRIDE GPT Repository](https://github.com/mrwadams/stride-gpt)
+- [GitHub Issues & Questions](https://github.com/mrwadams/stride-gpt/issues)
+- [Docker Image](https://hub.docker.com/repository/docker/mrwadams/stridegpt)
+- [OWASP STRIDE Methodology](https://owasp.org/www-community/Threat_Modeling_Process)

@@ -1,0 +1,395 @@
+---
+title: OpenAI Integration
+description: Configure OpenAI GPT models for STRIDE GPT threat modeling
+---
+
+OpenAI provides the GPT-5 series reasoning models, offering advanced threat analysis capabilities for STRIDE GPT. These models excel at complex security scenarios and agentic AI application analysis.
+
+## Supported Models
+
+STRIDE GPT supports the following OpenAI models:
+
+### GPT-5 Series (Reasoning Models)
+
+<CardGroup cols={2}>
+  <Card title="gpt-5.2" icon="brain">
+    **Best for**: Coding and agentic tasks
+    
+    - **Context**: 128K tokens (default), 400K max
+    - **Reasoning**: Advanced internal chain-of-thought
+    - **Use case**: Comprehensive agentic AI threat models
+  </Card>
+  
+  <Card title="gpt-5.2-pro" icon="sparkles">
+    **Best for**: Smarter, more precise responses
+    
+    - **Context**: 128K tokens (default), 400K max
+    - **Reasoning**: Enhanced precision and depth
+    - **Use case**: Security-critical applications
+  </Card>
+  
+  <Card title="gpt-5" icon="bolt">
+    **Best for**: Balanced reasoning performance
+    
+    - **Context**: 128K tokens (default), 400K max
+    - **Reasoning**: Standard GPT-5 capabilities
+    - **Use case**: General threat modeling
+  </Card>
+  
+  <Card title="gpt-5-mini" icon="gauge-high">
+    **Best for**: Fast and cost-efficient
+    
+    - **Context**: 64K tokens (default), 400K max
+    - **Reasoning**: Faster with good quality
+    - **Use case**: Rapid iteration and testing
+  </Card>
+  
+  <Card title="gpt-5-nano" icon="rocket">
+    **Best for**: Speed-optimized reasoning
+    
+    - **Context**: 64K tokens (default), 400K max
+    - **Reasoning**: Fastest GPT-5 variant
+    - **Use case**: Quick threat assessments
+  </Card>
+</CardGroup>
+
+### GPT-4 Series
+
+<Card title="gpt-4.1" icon="database">
+  **Best for**: Large context windows without reasoning
+  
+  - **Context**: 128K tokens (default), 1M max
+  - **Reasoning**: No extended reasoning
+  - **Use case**: Analyzing massive GitHub repositories
+</Card>
+
+<Info>
+All GPT-5 series models allocate up to 20,000 tokens for combined reasoning and output generation, ensuring thorough analysis without truncation.
+</Info>
+
+## Setup
+
+<Steps>
+  <Step title="Obtain API Key">
+    Navigate to the [OpenAI Platform](https://platform.openai.com/account/api-keys) and generate an API key.
+    
+    <Warning>
+    Keep your API key secure. Never commit it to version control or share it publicly.
+    </Warning>
+  </Step>
+  
+  <Step title="Configure in STRIDE GPT">
+    In the STRIDE GPT sidebar:
+    
+    1. Select **"OpenAI API"** from the model provider dropdown
+    2. Enter your API key in the password field
+    3. Choose your preferred model from the dropdown
+  </Step>
+  
+  <Step title="Optional: Environment Variable">
+    Alternatively, set the API key as an environment variable:
+    
+    ```bash
+    export OPENAI_API_KEY="sk-..."
+    ```
+    
+    Or add to `.env` file:
+    ```
+    OPENAI_API_KEY=sk-...
+    ```
+  </Step>
+</Steps>
+
+## Reasoning Capabilities
+
+GPT-5 models use extended internal reasoning before generating responses:
+
+<Note>
+**How GPT-5 Reasoning Works**
+
+1. **Analysis Phase**: The model internally analyzes the application description, considering multiple threat vectors
+2. **Reasoning Phase**: It explores various attack scenarios and maps them to STRIDE categories
+3. **Synthesis Phase**: The model generates a comprehensive threat model with detailed scenarios
+
+This process takes 30-90 seconds but produces significantly more thorough results than standard models.
+</Note>
+
+### Reasoning System Prompts
+
+STRIDE GPT uses specialized system prompts for GPT-5 models:
+
+```
+You are a cyber security expert with 20+ years of experience.
+
+Task: Generate a comprehensive STRIDE threat model
+
+Approach:
+1. Analyze application description and architecture
+2. For each STRIDE category, identify specific threats
+3. Consider LLM-specific risks (LLM01-LLM10) for GenAI apps
+4. Consider agentic risks (ASI01-ASI10) for agentic apps
+5. Provide detailed scenarios and impact analysis
+```
+
+## Architecture Diagram Analysis
+
+All GPT-5 and GPT-4.1 models support vision capabilities:
+
+<Steps>
+  <Step title="Upload Diagram">
+    In the STRIDE GPT interface, use the file uploader to select a JPG or PNG architecture diagram.
+  </Step>
+  
+  <Step title="Automatic Analysis">
+    The model will:
+    - Identify key components and their relationships
+    - Extract data flows and trust boundaries
+    - Note technologies, protocols, and security measures
+    - Generate a structured description for threat modeling
+  </Step>
+  
+  <Step title="Use in Threat Model">
+    The diagram analysis is automatically incorporated into the application description for comprehensive threat modeling.
+  </Step>
+</Steps>
+
+<Info>
+GPT-5 models excel at understanding complex architecture diagrams with multiple components, data flows, and security boundaries.
+</Info>
+
+## Token Management
+
+### Default Limits by Model
+
+| Model | Default Context | Maximum Context | Reasoning Budget |
+|-------|----------------|-----------------|------------------|
+| gpt-5.2 | 128,000 | 400,000 | 20,000 |
+| gpt-5.2-pro | 128,000 | 400,000 | 20,000 |
+| gpt-5 | 128,000 | 400,000 | 20,000 |
+| gpt-5-mini | 64,000 | 400,000 | 20,000 |
+| gpt-5-nano | 64,000 | 400,000 | 20,000 |
+| gpt-4.1 | 128,000 | 1,000,000 | 8,192 |
+
+### Adjusting Token Limits
+
+<Warning>
+When analyzing large GitHub repositories, monitor token usage to avoid exceeding context limits.
+</Warning>
+
+To adjust token limits:
+
+1. Open **Advanced Settings** in the sidebar
+2. Use the slider to set maximum token limit (4,000 - max for selected model)
+3. STRIDE GPT will automatically truncate repository analysis if approaching the limit
+
+### Token Estimation
+
+STRIDE GPT uses `tiktoken` for accurate token counting:
+
+```python
+import tiktoken
+
+enc = tiktoken.encoding_for_model("gpt-5.2")
+tokens = enc.encode(text)
+print(f"Token count: {len(tokens)}")
+```
+
+## Model Selection Guide
+
+### When to Use Each Model
+
+**gpt-5.2**: Your default choice
+- Complex agentic AI applications
+- Detailed STRIDE analysis needed
+- Code-heavy threat modeling
+- Multi-agent system analysis
+
+**gpt-5.2-pro**: For critical systems
+- Security-critical infrastructure
+- Compliance-driven threat modeling
+- Maximum depth and precision required
+- Budget allows for premium model
+
+**gpt-5-mini/nano**: For speed
+- Rapid prototyping of threat models
+- Iterative refinement workflow
+- Testing STRIDE GPT capabilities
+- Budget-conscious projects
+
+**gpt-4.1**: For massive context
+- Analyzing 100K+ line codebases
+- Extensive GitHub repository analysis
+- Long conversation history needed
+- Non-reasoning tasks
+
+<Tabs>
+  <Tab title="Agentic AI Apps">
+    **Recommended**: gpt-5.2 or gpt-5.2-pro
+    
+    These models excel at understanding:
+    - Multi-agent architectures
+    - Tool/MCP integrations
+    - RAG pipeline vulnerabilities
+    - Autonomous operation risks
+  </Tab>
+  
+  <Tab title="Generative AI Apps">
+    **Recommended**: gpt-5.2 or gpt-5-mini
+    
+    Strong performance on:
+    - Prompt injection analysis
+    - LLM-specific threats (OWASP LLM01-10)
+    - Output handling risks
+    - Training data exposure
+  </Tab>
+  
+  <Tab title="Traditional Apps">
+    **Recommended**: gpt-5-mini or gpt-4.1
+    
+    Good for:
+    - Standard STRIDE threat modeling
+    - Web application security
+    - API security analysis
+    - Infrastructure threats
+  </Tab>
+</Tabs>
+
+## Performance & Timing
+
+### Expected Response Times
+
+<Note>
+Reasoning models take significantly longer than standard models due to internal thinking processes.
+</Note>
+
+| Model | Threat Model | Attack Tree | Mitigations | DREAD |
+|-------|-------------|-------------|-------------|-------|
+| gpt-5.2 | 60-90s | 45-60s | 30-45s | 30-40s |
+| gpt-5.2-pro | 90-120s | 60-75s | 45-60s | 40-50s |
+| gpt-5-mini | 30-45s | 25-35s | 20-30s | 20-25s |
+| gpt-5-nano | 20-30s | 15-25s | 15-20s | 15-20s |
+| gpt-4.1 | 15-25s | 12-20s | 10-15s | 10-15s |
+
+### Why So Slow?
+
+<Info>
+**Rate Limits**: Free-tier API keys have strict rate limits. Upgrade to a paid account for faster responses.
+
+**Reasoning Process**: GPT-5 models spend most of their time in internal reasoning, analyzing threats from multiple angles before responding.
+</Info>
+
+## Best Practices
+
+### Prompt Engineering
+
+For optimal results with OpenAI models:
+
+<Steps>
+  <Step title="Provide Detailed Context">
+    Include:
+    - Application architecture details
+    - Technology stack specifics
+    - Authentication/authorization flows
+    - Data sensitivity levels
+    - Integration points
+  </Step>
+  
+  <Step title="Specify Application Type">
+    Correctly categorize as:
+    - Agentic AI application
+    - Generative AI application
+    - Traditional application type (Web, Mobile, API, etc.)
+  </Step>
+  
+  <Step title="Use GitHub Integration">
+    For code-based applications, provide the GitHub URL for automated analysis
+  </Step>
+</Steps>
+
+### Cost Optimization
+
+<Warning>
+GPT-5 models are more expensive than previous generations. Monitor usage in the OpenAI dashboard.
+</Warning>
+
+**Cost-Saving Tips**:
+
+1. **Start with gpt-5-nano**: Test your threat model with the fastest model first
+2. **Refine with gpt-5.2**: Use the comprehensive model for final analysis
+3. **Adjust token limits**: Reduce GitHub analysis token budget if not needed
+4. **Use iterative approach**: Generate initial model, then refine specific sections
+
+## Troubleshooting
+
+### Common Issues
+
+<Accordion title="API Key Invalid">
+  **Error**: "Invalid API key"
+  
+  **Solutions**:
+  - Verify key format starts with `sk-`
+  - Check key hasn't expired in OpenAI dashboard
+  - Ensure key has appropriate permissions
+  - Try regenerating the API key
+</Accordion>
+
+<Accordion title="Rate Limit Exceeded">
+  **Error**: "Rate limit reached"
+  
+  **Solutions**:
+  - Upgrade to paid API account (Tier 1+)
+  - Wait for rate limit window to reset (typically 1 minute)
+  - Reduce frequency of requests
+  - Use gpt-5-nano which has lower token consumption
+</Accordion>
+
+<Accordion title="Context Length Exceeded">
+  **Error**: "Maximum context length exceeded"
+  
+  **Solutions**:
+  - Reduce GitHub analysis token limit in Advanced Settings
+  - Simplify application description
+  - Switch to gpt-4.1 with 1M token context
+  - Remove unnecessary code files from analysis
+</Accordion>
+
+<Accordion title="Slow Response Times">
+  **Issue**: Model taking >2 minutes to respond
+  
+  **Explanations**:
+  - Normal for GPT-5.2-pro on complex applications
+  - Free-tier rate limiting causing delays
+  - Server-side queuing during high demand
+  
+  **Solutions**:
+  - Switch to gpt-5-mini or gpt-5-nano for faster results
+  - Upgrade to paid API account
+  - Retry during off-peak hours
+</Accordion>
+
+<Accordion title="Empty or Truncated Response">
+  **Error**: "Empty response from model"
+  
+  **Solutions**:
+  - Check OpenAI service status
+  - Verify model availability in your region
+  - Ensure sufficient API credits
+  - Try a different model (gpt-4.1)
+</Accordion>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Compare Providers" icon="scale-balanced" href="/providers/overview">
+    See how OpenAI compares to other model providers
+  </Card>
+  <Card title="Anthropic Claude" icon="brain-circuit" href="/providers/anthropic">
+    Explore Claude 4.5 with extended thinking mode
+  </Card>
+  <Card title="Google Gemini" icon="google" href="/providers/google">
+    Try Gemini 3 with 1M token context
+  </Card>
+  <Card title="Cost Optimization" icon="dollar-sign" href="/security/api-keys">
+    Learn to minimize API costs
+  </Card>
+</CardGroup>

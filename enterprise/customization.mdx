@@ -1,0 +1,634 @@
+---
+title: 'Customizing STRIDE GPT'
+description: 'Modify prompts, threat categories, and LLM providers to tailor STRIDE GPT for your organization'
+icon: 'sliders'
+---
+
+## Overview
+
+STRIDE GPT provides multiple customization points to tailor threat modeling for your organization's specific needs. This guide covers forking the repository, modifying prompt templates, customizing threat categories, and configuring LLM providers.
+
+## Architecture and Customization Points
+
+STRIDE GPT consists of five core modules, each representing a customization opportunity:
+
+<CardGroup cols={2}>
+  <Card title="threat_model.py" icon="shield-halved">
+    **Priority: ⭐⭐⭐**  
+    Generates STRIDE threat models. Customize to add organizational security controls and compliance requirements.
+  </Card>
+  
+  <Card title="mitigations.py" icon="hand-dots">
+    **Priority: ⭐⭐⭐**  
+    Suggests mitigations for threats. Customize to reference approved technology stacks and standard architectures.
+  </Card>
+  
+  <Card title="dread.py" icon="gauge-high">
+    **Priority: ⭐⭐**  
+    Performs DREAD risk scoring. Customize to apply organizational risk criteria and scoring thresholds.
+  </Card>
+  
+  <Card title="attack_tree.py" icon="sitemap">
+    **Priority: ⭐**  
+    Generates attack trees. Customize to incorporate known attack patterns from your environment.
+  </Card>
+</CardGroup>
+
+<Card title="test_cases.py" icon="vial">
+  **Priority: ⭐**  
+  Creates Gherkin test cases. Customize to reference testing standards and frameworks used by your QA teams.
+</Card>
+
+## Forking the Repository
+
+<Steps>
+  <Step title="Clone the Repository">
+    ```bash
+    git clone https://github.com/mrwadams/stride-gpt.git my-org-stride-gpt
+    cd my-org-stride-gpt
+    ```
+  </Step>
+  
+  <Step title="Create a New Branch">
+    ```bash
+    git checkout -b enterprise-customization
+    ```
+  </Step>
+  
+  <Step title="Set Up Development Environment">
+    ```bash
+    # Create virtual environment
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    
+    # Install dependencies
+    pip install -r requirements.txt
+    ```
+  </Step>
+  
+  <Step title="Configure Environment Variables">
+    ```bash
+    # Copy example file
+    cp .env.example .env
+    
+    # Edit .env with your API keys
+    nano .env
+    ```
+  </Step>
+</Steps>
+
+## Customizing Threat Model Prompts
+
+### Understanding the Prompt Structure
+
+The `create_threat_model_prompt()` function in `threat_model.py` (around line 33) constructs the prompt sent to LLMs:
+
+```python
+def create_threat_model_prompt(app_type, authentication, internet_facing, 
+                                 sensitive_data, pam, app_input, 
+                                 architectural_components, threat_model_image_analysis):
+    prompt = f"""
+    Act as a cyber security expert with more than 20 years of experience in threat modeling...
+    
+    Application Type: {app_type}
+    Authentication: {authentication}
+    Internet Facing: {internet_facing}
+    Sensitive Data: {sensitive_data}
+    
+    [IMPORTANT: ...instructions...]
+    """
+    return prompt
+```
+
+### Adding Organizational Context
+
+<Steps>
+  <Step title="Create org_context.py">
+    Create a new file `org_context.py` in the root directory:
+    
+    ```python
+    """Organizational security context for STRIDE GPT threat modeling."""
+    
+    def get_org_context(app_type=None):
+        """Returns organizational security context for threat modeling.
+        
+        Args:
+            app_type: Optional application type for conditional context loading
+        
+        Returns:
+            String containing organizational security standards
+        """
+        
+        base_context = """
+    ORGANIZATIONAL SECURITY STANDARDS:
+    
+    1. AUTHENTICATION & AUTHORIZATION:
+       - All applications must use Okta SSO with MFA (Control: AUTH-001)
+       - Service accounts require approval from Security team (Control: AUTH-002)
+       - Session timeout: 30 minutes for web apps, 24 hours for mobile
+    
+    2. DATA CLASSIFICATION:
+       - Public: Can be shared externally
+       - Internal: Employee access only
+       - Confidential: Need-to-know basis (customer PII, financial data)
+       - Restricted: Requires security approval (credentials, encryption keys)
+    
+    3. ENCRYPTION REQUIREMENTS:
+       - Data at rest: AES-256 encryption (AWS KMS, Azure Key Vault)
+       - Data in transit: TLS 1.3 minimum
+       - Database encryption mandatory for Confidential/Restricted data
+    
+    4. APPROVED TECHNOLOGY STACK:
+       - Languages: Python 3.12+, TypeScript 5+, Java 17+
+       - Frontend: React 18+, Vue 3+
+       - Backend: FastAPI, Node.js (Express), Spring Boot
+       - Databases: PostgreSQL 15+, MongoDB 7+
+       - Cloud: AWS only (Azure by exception)
+       - Container orchestration: Kubernetes 1.28+
+    
+    5. COMPLIANCE REQUIREMENTS:
+       - SOC2 Type II: All production systems
+       - GDPR: Applications handling EU customer data
+       - PCI-DSS: Payment processing systems only
+    
+    6. NETWORK SECURITY:
+       - All production apps behind AWS WAF (Control: NET-001)
+       - Private subnets for databases and backend services
+       - VPC peering for cross-account communication
+       - No direct internet access to databases
+    
+    7. MONITORING & LOGGING:
+       - CloudWatch for AWS infrastructure (Control: MONITOR-001)
+       - Application logs must include: timestamp, user ID, action, IP address
+       - Log retention: 90 days (365 days for audit logs)
+       - SIEM integration required for production apps
+        """
+        
+        # Conditional context for web applications
+        if app_type and "web" in app_type.lower():
+            base_context += """
+    
+    8. WEB APPLICATION STANDARDS:
+       - OWASP Top 10 mitigation required
+       - CSP headers enforced (Control: WEB-001)
+       - Rate limiting: 100 requests/minute per IP
+       - Input validation on all user inputs
+       - XSS protection via Content-Security-Policy
+        """
+        
+        # Conditional context for mobile applications  
+        if app_type and "mobile" in app_type.lower():
+            base_context += """
+    
+    8. MOBILE APPLICATION STANDARDS:
+       - Certificate pinning required (Control: MOBILE-001)
+       - Biometric authentication for sensitive operations
+       - No sensitive data in local storage (use iOS Keychain/Android Keystore)
+       - App Transport Security (ATS) enabled
+        """
+        
+        # Conditional context for agentic AI applications
+        if app_type and "agentic" in app_type.lower():
+            base_context += """
+    
+    8. AGENTIC AI APPLICATION STANDARDS:
+       - Agent actions require human approval for high-risk operations
+       - LLM input/output sanitization mandatory (Control: AI-001)
+       - Model hosting: OpenAI, Anthropic Claude (self-hosted by exception)
+       - No PII in LLM prompts (use sanitized/anonymized data)
+       - Circuit breakers for runaway agent loops
+       - Agent memory isolation (no cross-tenant data leakage)
+        """
+        
+        base_context += """
+    
+    REFERENCE ARCHITECTURE (Standard Web App):
+    CloudFront (CDN) → ALB (Load Balancer) → ECS Fargate (Application) → RDS PostgreSQL (Database)
+    
+    When generating threats and mitigations:
+    - Reference specific control IDs (e.g., AUTH-001, NET-001)
+    - Only suggest technologies from approved stack
+    - Apply data classification to impact assessment
+    - Cite relevant compliance requirements
+    - Flag any deviations from reference architecture
+        """
+        
+        return base_context
+    ```
+  </Step>
+  
+  <Step title="Modify threat_model.py">
+    Import and inject organizational context:
+    
+    ```python
+    # At the top of threat_model.py
+    from org_context import get_org_context
+    
+    def create_threat_model_prompt(app_type, authentication, internet_facing, 
+                                     sensitive_data, pam, app_input, 
+                                     architectural_components, threat_model_image_analysis):
+        
+        # Get organizational context
+        org_context = get_org_context(app_type)
+        
+        prompt = f"""
+        Act as a cyber security expert with more than 20 years of experience in threat modeling.
+        
+        {org_context}
+        
+        [REST OF ORIGINAL PROMPT...]
+        
+        IMPORTANT: When generating threats and mitigations, you MUST:
+        1. Reference organizational security controls by their IDs (e.g., AUTH-001, NET-001)
+        2. Only suggest mitigations using approved technologies from the tech stack
+        3. Apply data classification levels when assessing impact
+        4. Cite relevant compliance requirements (SOC2, GDPR, PCI-DSS)
+        5. Identify gaps where standard controls are not implemented
+        6. Flag any technologies not in the approved stack
+        """
+        
+        return prompt
+    ```
+  </Step>
+  
+  <Step title="Update Other Modules">
+    Apply the same pattern to `mitigations.py`, `dread.py`, `attack_tree.py`, and `test_cases.py`:
+    
+    ```python
+    # In mitigations.py
+    from org_context import get_org_context
+    
+    def create_mitigations_prompt(threats, app_type):
+        org_context = get_org_context(app_type)
+        prompt = f"""
+        {org_context}
+        
+        [ORIGINAL MITIGATION PROMPT...]
+        
+        Ensure all suggested mitigations:
+        - Use only approved technologies from the tech stack
+        - Reference organizational control IDs
+        - Are implementable within our reference architecture
+        """
+        return prompt
+    ```
+  </Step>
+</Steps>
+
+<Note>
+**Token Usage Tip**: If organizational context exceeds 10-20k tokens, use conditional loading based on `app_type` to load only relevant portions.
+</Note>
+
+## Customizing Threat Categories
+
+STRIDE GPT supports multiple threat modeling frameworks:
+
+### Standard STRIDE Categories
+
+- **Spoofing** - Impersonating users or systems
+- **Tampering** - Modifying data or code
+- **Repudiation** - Denying actions taken
+- **Information Disclosure** - Exposing sensitive information
+- **Denial of Service** - Disrupting availability
+- **Elevation of Privilege** - Gaining unauthorized access
+
+### OWASP LLM Top 10 (for GenAI Apps)
+
+When "Generative AI application" is selected:
+
+- LLM01: Prompt Injection
+- LLM02: Insecure Output Handling
+- LLM03: Training Data Poisoning
+- LLM04: Model Denial of Service
+- LLM05: Supply Chain Vulnerabilities
+- LLM06: Sensitive Information Disclosure
+- LLM07: Insecure Plugin Design
+- LLM08: Excessive Agency
+- LLM09: Overreliance
+- LLM10: Model Theft
+
+### OWASP Top 10 for Agentic AI (ASI)
+
+When "Agentic AI application" is selected:
+
+- ASI01: Agent Goal Hijacking
+- ASI02: Autonomous Action Misuse
+- ASI03: Agent Memory Poisoning
+- ASI04: Inter-Agent Manipulation
+- ASI05: Tool/MCP Vulnerabilities
+- ASI06: Inadequate Human Oversight
+- ASI07: Prompt Injection
+- ASI08: Agentic Data Leakage
+- ASI09: Model Manipulation
+- ASI10: Unbounded Consumption
+
+### Adding Custom Threat Categories
+
+To add custom threat categories for your organization:
+
+<Steps>
+  <Step title="Define Custom Categories">
+    In `org_context.py`, add custom threat categories:
+    
+    ```python
+    def get_custom_threat_categories():
+        return """
+    CUSTOM THREAT CATEGORIES (in addition to STRIDE):
+    
+    1. SUPPLY CHAIN ATTACKS:
+       - Malicious dependencies in package managers (npm, PyPI)
+       - Compromised CI/CD pipeline
+       - Third-party service compromise
+    
+    2. INSIDER THREATS:
+       - Malicious employees with privileged access
+       - Accidental data exfiltration by authorized users
+       - Social engineering targeting employees
+    
+    3. REGULATORY NON-COMPLIANCE:
+       - GDPR right to erasure violations
+       - SOC2 control failures
+       - Data residency violations (data stored outside approved regions)
+    
+    4. BUSINESS LOGIC FLAWS:
+       - Price manipulation in e-commerce flows
+       - Privilege escalation through workflow abuse
+       - Race conditions in financial transactions
+        """
+    ```
+  </Step>
+  
+  <Step title="Update Prompt to Include Custom Categories">
+    Modify `create_threat_model_prompt()` to include custom categories:
+    
+    ```python
+    def create_threat_model_prompt(app_type, ...):
+        org_context = get_org_context(app_type)
+        custom_categories = get_custom_threat_categories()
+        
+        prompt = f"""
+        {org_context}
+        
+        {custom_categories}
+        
+        Generate threats for both standard STRIDE categories AND custom 
+        organizational threat categories listed above.
+        """
+    ```
+  </Step>
+</Steps>
+
+## Configuring LLM Providers
+
+STRIDE GPT supports multiple LLM providers with different capabilities:
+
+### Supported Providers
+
+<CardGroup cols={2}>
+  <Card title="OpenAI" icon="openai">
+    **Models**: GPT-5.2, GPT-5, GPT-4.1, o3-mini, o4-mini  
+    **Best for**: General-purpose threat modeling, multi-modal analysis  
+    **API Key**: `OPENAI_API_KEY`
+  </Card>
+  
+  <Card title="Anthropic" icon="brain">
+    **Models**: Claude Sonnet 4.5, Claude Opus 4.5, Claude Haiku 4.5  
+    **Best for**: Detailed reasoning, extended thinking mode  
+    **API Key**: `ANTHROPIC_API_KEY`
+  </Card>
+  
+  <Card title="Google AI" icon="google">
+    **Models**: Gemini 3 Pro, Gemini 2.5 Pro, Gemini 2.5 Flash  
+    **Best for**: Large context windows (1M tokens), cost efficiency  
+    **API Key**: `GOOGLE_API_KEY`
+  </Card>
+  
+  <Card title="Mistral AI" icon="wind">
+    **Models**: Magistral 1.2, Mistral Large 3, Ministral 3  
+    **Best for**: European data sovereignty, competitive pricing  
+    **API Key**: `MISTRAL_API_KEY`
+  </Card>
+  
+  <Card title="Groq" icon="microchip">
+    **Models**: DeepSeek R1, Llama 3.3 70B, Qwen3 32B  
+    **Best for**: Ultra-fast inference, cost optimization  
+    **API Key**: `GROQ_API_KEY`
+  </Card>
+  
+  <Card title="Ollama" icon="server">
+    **Models**: Any Ollama-compatible model (Llama 3, Mistral, etc.)  
+    **Best for**: On-premises deployment, data privacy  
+    **Endpoint**: `OLLAMA_ENDPOINT=http://localhost:11434`
+  </Card>
+  
+  <Card title="LM Studio" icon="desktop">
+    **Models**: Any GGUF model (Llama, Mistral, etc.)  
+    **Best for**: Local development, offline threat modeling  
+    **Endpoint**: `LM_STUDIO_ENDPOINT=http://localhost:1234`
+  </Card>
+</CardGroup>
+
+### Provider Selection Strategy
+
+<Info>
+**For Production Enterprises:**
+- **Primary**: Claude Sonnet 4.5 (highest quality threat analysis)
+- **Cost-Optimized**: Gemini 2.5 Flash (fast, affordable, large context)
+- **Data Privacy**: Ollama with Llama 3.1 70B (on-premises)
+- **Reasoning**: GPT-5.2 or Claude Opus 4.5 with Extended Thinking
+</Info>
+
+### Setting Up Local LLM Providers
+
+<Tabs>
+  <Tab title="Ollama">
+    Install and configure Ollama for on-premises threat modeling:
+    
+    ```bash
+    # Install Ollama (Linux/macOS)
+    curl https://ollama.ai/install.sh | sh
+    
+    # Pull a model
+    ollama pull llama3.1:70b
+    
+    # Verify it's running
+    ollama list
+    
+    # Configure STRIDE GPT
+    echo "OLLAMA_ENDPOINT=http://localhost:11434" >> .env
+    ```
+    
+    **Recommended Models:**
+    - `llama3.1:70b` - Best quality (requires 40GB+ RAM)
+    - `llama3.1:8b` - Faster, lower resource usage (8GB RAM)
+    - `mistral:7b` - Good balance of speed and quality
+  </Tab>
+  
+  <Tab title="LM Studio">
+    Install and configure LM Studio for local development:
+    
+    1. Download [LM Studio](https://lmstudio.ai/)
+    2. Load a GGUF model (Llama 3.1, Mistral, etc.)
+    3. Start the local server (Server tab → Start Server)
+    4. Configure STRIDE GPT:
+    
+    ```bash
+    echo "LM_STUDIO_ENDPOINT=http://localhost:1234" >> .env
+    ```
+    
+    **Recommended Models:**
+    - `Meta-Llama-3.1-70B-Instruct-Q4_K_M.gguf`
+    - `Mistral-7B-Instruct-v0.2-Q5_K_M.gguf`
+    - `Qwen2.5-14B-Instruct-Q5_K_M.gguf`
+  </Tab>
+</Tabs>
+
+<Warning>
+**Local Model Limitations:**
+- Smaller models (7B-8B parameters) produce lower quality threat models
+- Limited context windows (4k-32k tokens vs 128k-1M for cloud models)
+- No vision capabilities for diagram analysis
+- Requires significant hardware resources (8GB+ RAM for 7B models)
+</Warning>
+
+## Testing Your Customizations
+
+<Steps>
+  <Step title="Run Unit Tests">
+    ```bash
+    # Install pytest
+    pip install pytest
+    
+    # Run tests
+    pytest test_cases.py -v
+    ```
+  </Step>
+  
+  <Step title="Test Threat Model Generation">
+    ```bash
+    streamlit run main.py
+    ```
+    
+    Generate a test threat model and verify:
+    - Organizational controls are referenced by ID
+    - Suggested mitigations use approved technologies
+    - Compliance requirements are cited
+    - Custom threat categories appear in output
+  </Step>
+  
+  <Step title="Compare Before/After">
+    Generate the same threat model with and without organizational context:
+    
+    ```bash
+    # Temporarily disable context injection
+    # Compare outputs to measure improvement
+    ```
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="JSON Output Breaks After Adding Context">
+    **Symptom**: Error parsing JSON response from LLM
+    
+    **Causes & Solutions:**
+    - Context too large → Reduce to top 20 controls
+    - Unescaped JSON characters → Review context for quotes, braces
+    - Model context limit exceeded → Use model with larger context window (Gemini 3, Claude Opus 4.5)
+    - Invalid JSON in org_context.py → Validate with `json.loads()`
+  </Accordion>
+  
+  <Accordion title="Prompts Too Long / Token Limit Errors">
+    **Symptom**: API errors about token limits
+    
+    **Solutions:**
+    1. Measure context size:
+       ```python
+       import tiktoken
+       enc = tiktoken.get_encoding("cl100k_base")
+       tokens = len(enc.encode(org_context))
+       print(f"Context size: {tokens} tokens")
+       ```
+    
+    2. If exceeds 10k tokens:
+       - Reduce to top 20 controls
+       - Remove verbose descriptions
+       - Use abbreviations
+       - Implement conditional loading by `app_type`
+  </Accordion>
+  
+  <Accordion title="Threats Still Too Generic">
+    **Symptom**: Organizational context doesn't affect outputs
+    
+    **Solutions:**
+    1. **Context placement**: Ensure it's before IMPORTANT instructions
+    2. **Context specificity**: Use "Okta SSO with MFA" not just "SSO"
+    3. **Prompt emphasis**: Add explicit instructions to reference context
+    4. **Model temperature**: Reduce to 0.3-0.5 for more deterministic output
+    5. **Model selection**: Use reasoning models (o3-mini, Claude Opus with thinking)
+  </Accordion>
+  
+  <Accordion title="Mitigations Don't Match Org Controls">
+    **Symptom**: Suggested mitigations ignore organizational standards
+    
+    **Cause**: Only updated `threat_model.py`, not `mitigations.py`
+    
+    **Solution**: Update `create_mitigations_prompt()` in `mitigations.py` to also inject organizational context (see Step 3 in "Modifying Threat Model Prompts")
+  </Accordion>
+</AccordionGroup>
+
+## Version Control Best Practices
+
+<Steps>
+  <Step title="Use Feature Branches">
+    ```bash
+    git checkout -b feature/custom-threat-categories
+    # Make changes
+    git commit -m "Add custom supply chain threat categories"
+    git push origin feature/custom-threat-categories
+    ```
+  </Step>
+  
+  <Step title="Document Customizations">
+    Create `CUSTOMIZATIONS.md` to track changes:
+    ```markdown
+    # STRIDE GPT Customizations for [Org Name]
+    
+    ## Modified Files
+    - `org_context.py` - Organizational security standards
+    - `threat_model.py` - Injected org context (line 35)
+    - `mitigations.py` - Injected org context (line 42)
+    
+    ## Custom Threat Categories
+    - Supply Chain Attacks
+    - Insider Threats
+    - Regulatory Non-Compliance
+    
+    ## Approved Tech Stack
+    - Python 3.12+, TypeScript 5+
+    - React 18+, FastAPI
+    - PostgreSQL 15+, MongoDB 7+
+    - AWS only (Azure by exception)
+    ```
+  </Step>
+  
+  <Step title="Tag Releases">
+    ```bash
+    git tag -a v1.0.0-org -m "Initial enterprise release with org customizations"
+    git push origin v1.0.0-org
+    ```
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Operationalization Guide" icon="building" href="/enterprise/operationalization">
+    Learn how to inject organizational context and measure success
+  </Card>
+  
+  <Card title="Deployment Guide" icon="rocket" href="/enterprise/deployment">
+    Deploy your customized STRIDE GPT with Docker or Kubernetes
+  </Card>
+</CardGroup>

@@ -1,0 +1,262 @@
+---
+title: Support
+description: Get help with STRIDE GPT and report issues
+---
+
+Need help with STRIDE GPT? Here's how to get support and connect with the community.
+
+## Getting Help
+
+### GitHub Issues
+
+The primary support channel for STRIDE GPT is through GitHub Issues:
+
+<Steps>
+  <Step title="Search existing issues">
+    Before opening a new issue, search the [existing issues](https://github.com/mrwadams/stride-gpt/issues) to see if your question or problem has already been addressed.
+  </Step>
+  
+  <Step title="Open a new issue">
+    If you can't find an answer, open a new issue with:
+    - Clear description of your problem
+    - Steps to reproduce (for bugs)
+    - Your environment (OS, Python version, deployment method)
+    - Relevant error messages or logs
+  </Step>
+  
+  <Step title="Engage with the community">
+    Project maintainers and community members will respond to help resolve your issue.
+  </Step>
+</Steps>
+
+<Note>
+For security vulnerabilities, **do not** use public GitHub issues. See the Security section below for proper reporting procedures.
+</Note>
+
+## Support Resources
+
+### Documentation
+
+Before reaching out for support, check these resources:
+
+- **[Installation Guide](/installation/local)** - Setup and configuration instructions
+- **[Usage Guide](/quickstart)** - How to use core features
+- **[Changelog](/community/changelog)** - Recent updates and new features
+- **[Contributing Guide](/community/contributing)** - Guidelines for contributors
+
+### Common Issues
+
+<Accordion title="API Key Issues">
+**Problem**: API keys not working or not being recognized
+
+**Solutions**:
+- Ensure API keys are correctly entered without extra spaces
+- Verify keys are valid in your LLM provider's dashboard
+- Check that you've set spending limits in your provider account
+- For environment variables, verify `.env` file is properly formatted
+- Restart the application after updating API keys
+</Accordion>
+
+<Accordion title="Model Not Available">
+**Problem**: Selected model returns errors or is unavailable
+
+**Solutions**:
+- Verify you have API access to the selected model
+- Some models require waitlist approval (e.g., GPT-5 series)
+- Check your API key has appropriate permissions
+- Try a different model to isolate the issue
+- Review model-specific limitations in the UI warnings
+</Accordion>
+
+<Accordion title="Local Models (Ollama/LM Studio)">
+**Problem**: Local models not connecting or not working
+
+**Solutions**:
+- Ensure Ollama or LM Studio Server is running
+- Verify the endpoint URL is correct (default: `http://localhost:11434` for Ollama, `http://localhost:1234` for LM Studio)
+- Check that models are downloaded in Ollama/LM Studio
+- Note: Local hosting not available on Streamlit Community Cloud
+- Try using model discovery feature to detect available models
+</Accordion>
+
+<Accordion title="Docker Deployment Issues">
+**Problem**: Docker container not starting or API keys not loading
+
+**Solutions**:
+- Ensure `.env` file exists and is properly formatted
+- Use `--env-file .env` flag when running Docker
+- Check Docker logs: `docker logs <container-id>`
+- Verify port 8501 is not already in use
+- Review the [security documentation](https://github.com/mrwadams/stride-gpt/blob/master/SECURITY.md) for Docker best practices
+</Accordion>
+
+<Accordion title="GitHub Repository Analysis Errors">
+**Problem**: Repository analysis failing or timing out
+
+**Solutions**:
+- Ensure GitHub API key (personal access token) is valid
+- Verify repository is public or your token has access to private repos
+- Check repository URL format is correct
+- For GitHub Enterprise, ensure URL includes full enterprise domain
+- Large repositories may take longer - be patient
+</Accordion>
+
+<Accordion title="Threat Model Output Disappears">
+**Problem**: Generated threat model disappears after download (Fixed in v0.15)
+
+**Solutions**:
+- Update to version 0.15 or later
+- This was a known bug that has been resolved
+- If still occurring, report as a new issue on GitHub
+</Accordion>
+
+## Security Support
+
+### Reporting Security Vulnerabilities
+
+<Note>
+STRIDE GPT takes security seriously. If you discover a security vulnerability, please report it responsibly.
+</Note>
+
+**Do NOT** open a public GitHub issue for security vulnerabilities.
+
+Instead:
+
+1. Use GitHub's [private vulnerability reporting](https://github.com/mrwadams/stride-gpt/security/advisories/new)
+2. Email project maintainers via GitHub Security tab
+3. Provide detailed information:
+   - Description of the vulnerability
+   - Steps to reproduce the issue
+   - Potential impact
+   - Suggested fix (if available)
+
+**Response Timeline**:
+- Acknowledgment within **48 hours**
+- Detailed response within **5 business days**
+- Security fixes prioritized and released quickly
+- Contributors recognized in security advisories (with permission)
+
+### Security Best Practices
+
+For security guidance, see:
+
+- [SECURITY.md](https://github.com/mrwadams/stride-gpt/blob/master/SECURITY.md) - Comprehensive security documentation
+- API key management best practices
+- Secure deployment guidelines
+- Data privacy considerations
+
+### Automated Security Scanning
+
+STRIDE GPT uses comprehensive automated security scanning:
+
+- **Bandit**: Python security issue detection
+- **CodeQL**: Vulnerability detection
+- **pip-audit**: Dependency scanning
+- **Safety**: Package vulnerability checking
+- **Gitleaks**: Secret detection
+- **Trivy**: Docker image scanning
+- **Dependabot**: Automated weekly dependency updates
+
+Security scan results are available in the [GitHub Security Tab](https://github.com/mrwadams/stride-gpt/security).
+
+## Feature Requests
+
+Have an idea for improving STRIDE GPT?
+
+### Submit a Feature Request
+
+1. Check the [public roadmap](https://github.com/mrwadams/stride-gpt/issues) to see if it's already planned
+2. Search existing issues to avoid duplicates
+3. Open a new issue with the "feature request" label
+4. Describe:
+   - The problem you're trying to solve
+   - Your proposed solution
+   - Alternative solutions considered
+   - How this benefits other users
+
+### Current Roadmap
+
+<Info>
+View the full roadmap and vote on features in [GitHub Issues](https://github.com/mrwadams/stride-gpt/issues).
+</Info>
+
+Upcoming features include:
+
+- Customizable and exportable reports (PDF, Word) with threat models, attack trees, and mitigations
+- Helper tool to guide users in creating effective application descriptions
+- Multi-language UI support
+
+## Community Guidelines
+
+When seeking support or engaging with the community:
+
+- **Be respectful** - Treat everyone with kindness and respect
+- **Be clear** - Provide detailed information about your issue
+- **Be patient** - Maintainers and contributors are often volunteers
+- **Be constructive** - Help others when you can
+- **Search first** - Check if your question has been answered before
+
+## Support the Project
+
+If you find STRIDE GPT useful, consider supporting the project:
+
+### Star the Repository
+
+⭐ [Star STRIDE GPT on GitHub](https://github.com/mrwadams/stride-gpt) to help more people discover the tool.
+
+### Buy Me a Coffee
+
+Support continued development and maintenance:
+
+<a href="https://buymeacoffee.com/mrwadams" target="_blank">
+  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style={{height: '60px', width: '217px'}} />
+</a>
+
+Your support helps:
+- Maintain and improve the codebase
+- Add new features and model integrations
+- Keep dependencies updated and secure
+- Provide community support
+- Create documentation and tutorials
+
+### Contribute
+
+Contribute code, documentation, or bug fixes! See the [Contributing Guide](/community/contributing) for details.
+
+## Additional Resources
+
+### External Resources
+
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+- [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
+- [OWASP Top 10 for Agentic Applications](https://owasp.org/www-project-top-10-for-agentic-applications/)
+- [Cloud Security Alliance MAESTRO Framework](https://cloudsecurityalliance.org/blog/2025/02/06/agentic-ai-threat-modeling-framework-maestro)
+- [STRIDE Threat Modeling](https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats)
+- [Streamlit Documentation](https://docs.streamlit.io/)
+- [Docker Security Best Practices](https://docs.docker.com/engine/security/)
+
+### Project Resources
+
+- [GitHub Repository](https://github.com/mrwadams/stride-gpt)
+- [Docker Hub](https://hub.docker.com/repository/docker/mrwadams/stridegpt/general)
+- [Streamlit Community Cloud](https://stridegpt.streamlit.app) (hosted version)
+- [Open Security Summit Talk](https://youtu.be/_eOcezCeM1M?si=88bjQ2M-_sCyIioi) (January 2024)
+
+## Contact
+
+For general questions, discussions, or feedback:
+
+- Open a [GitHub Issue](https://github.com/mrwadams/stride-gpt/issues)
+- Engage in existing issue discussions
+- Review and comment on pull requests
+
+For security vulnerabilities:
+
+- Use [private vulnerability reporting](https://github.com/mrwadams/stride-gpt/security/advisories/new)
+- Follow the responsible disclosure process
+
+---
+
+<Info>
+Thank you for using STRIDE GPT! Your feedback and support help make AI-powered threat modeling accessible to everyone.
+</Info>

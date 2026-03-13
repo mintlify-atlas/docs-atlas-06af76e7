@@ -1,0 +1,399 @@
+---
+title: 'Security Best Practices'
+description: 'Essential security practices for deploying and using STRIDE GPT safely'
+icon: 'shield-check'
+---
+
+## Overview
+
+STRIDE GPT is designed as a **single-user, local deployment tool** for threat modeling. By default, it does not include authentication or authorization mechanisms. Follow these best practices to ensure secure usage and deployment.
+
+<Warning>
+  STRIDE GPT is not intended for public, multi-user deployments without additional security controls. Always deploy behind authentication if hosting for teams or organizations.
+</Warning>
+
+## Deployment Security
+
+### Single-User Deployment (Default)
+
+STRIDE GPT is optimized for local, single-user use:
+
+- Run on your personal workstation or laptop
+- Access via `localhost:8501` only
+- API keys stored in browser session or `.env` file
+- No authentication required for local access
+
+<Info>
+  For the majority of users, running STRIDE GPT locally on your own machine is the recommended and most secure deployment method.
+</Info>
+
+### Network Security
+
+When deploying STRIDE GPT:
+
+**Local Deployment:**
+- Bind to `127.0.0.1` (localhost) instead of `0.0.0.0` for local-only access
+- Do not expose port 8501 to external networks
+- Use firewall rules to restrict access if needed
+
+**Team/Organization Deployment:**
+<Warning>
+  Team deployments require additional security controls not included by default.
+</Warning>
+
+- **Always** deploy behind authentication/authorization
+- Use HTTPS/TLS for all network traffic
+- Deploy behind VPN or within internal networks only
+- Consider using a reverse proxy (nginx, Caddy) with security headers:
+  - `Strict-Transport-Security`
+  - `X-Frame-Options: DENY`
+  - `X-Content-Type-Options: nosniff`
+  - `Content-Security-Policy`
+
+### Docker Security
+
+STRIDE GPT's Docker configuration includes built-in security hardening:
+
+**Implemented Security Features:**
+```yaml
+# Non-root user (UID 1000)
+USER appuser
+
+# Security options
+security_opt:
+  - no-new-privileges:true
+cap_drop:
+  - ALL
+cap_add:
+  - NET_BIND_SERVICE
+
+# Resource limits
+deploy:
+  resources:
+    limits:
+      cpus: '2.0'
+      memory: 2G
+```
+
+**Additional Best Practices:**
+
+<Accordion title="Container Image Security">
+  - Use the official image with pinned SHA256 digest (see `Dockerfile`)
+  - Scan images regularly with Trivy: `docker run aquasec/trivy image mrwadams/stridegpt:latest`
+  - Keep base images updated to receive security patches
+  - Review the Dockerfile for the exact base image: `python:3.12-slim@sha256:...`
+</Accordion>
+
+<Accordion title="Container Runtime Security">
+  - Run containers with read-only root filesystem where possible
+  - Use tmpfs for temporary data (already configured in `docker-compose.yml`)
+  - Enable Docker Content Trust: `export DOCKER_CONTENT_TRUST=1`
+  - Regularly update the Docker runtime and daemon
+</Accordion>
+
+### Access Control
+
+For production or team deployments:
+
+<Note>
+  Streamlit does not include built-in authentication. You must implement this separately.
+</Note>
+
+**Authentication Options:**
+- Use Streamlit Community Cloud with built-in authentication (for cloud deployments)
+- Implement OAuth2/OIDC with a reverse proxy (Nginx, Traefik, Caddy)
+- Deploy behind corporate SSO/SAML
+- Use VPN access with network-level authentication
+- Consider third-party auth solutions like Auth0, Okta
+
+**Authorization:**
+- Restrict access to authorized security team members only
+- Implement role-based access if deploying at scale
+- Log access and usage for audit purposes
+
+## Secure Development Practices
+
+### Dependency Management
+
+STRIDE GPT uses automated security scanning to maintain dependency security:
+
+<Info>
+  Security scans run automatically on every commit and weekly via GitHub Actions.
+</Info>
+
+**Automated Tools:**
+- **pip-audit**: Scans Python dependencies against OSV database
+- **Safety**: Checks dependencies using PyUp vulnerability database
+- **Dependabot**: Automated weekly dependency updates
+- **Dependency Review**: Blocks moderate+ severity vulnerabilities in PRs
+
+**Manual Dependency Checks:**
+
+Run security scans locally before deployment:
+
+```bash
+# Install security tools
+pip install pip-audit safety
+
+# Scan dependencies
+pip-audit --desc
+safety check --json
+
+# Check for outdated packages
+pip list --outdated
+```
+
+**Pinned Security Dependencies:**
+
+The `requirements.txt` includes security-pinned versions:
+```txt
+tornado>=6.4.2     # Pinned by Snyk
+requests>=2.32.2   # Pinned by Snyk
+urllib3>=2.2.2     # Pinned by Snyk
+anyio>=4.4.0       # Pinned by Snyk
+zipp>=3.19.1       # Pinned by Snyk
+h11>=0.16.0        # Pinned by Snyk
+```
+
+### Input Validation
+
+**Application-Level Validation:**
+- STRIDE GPT validates user inputs automatically
+- Review custom API endpoints if you extend the application
+- Be cautious with user-provided GitHub repository URLs
+
+**Custom Integrations:**
+- Always validate and sanitize inputs when adding custom features
+- Use parameterized queries if adding database functionality
+- Escape user input before rendering in UI
+
+### Code Review Security Checklist
+
+When reviewing pull requests:
+
+- [ ] No hardcoded API keys or secrets
+- [ ] Input validation present for user data
+- [ ] Dependencies updated to non-vulnerable versions
+- [ ] No SQL injection vectors (if database added)
+- [ ] Secure API key handling maintained
+- [ ] Docker configuration follows security best practices
+- [ ] No exposure of sensitive data in logs
+
+## Automated Security Scanning
+
+STRIDE GPT implements comprehensive CI/CD security scanning:
+
+### Security Workflow Tools
+
+Our GitHub Actions security workflow includes:
+
+<Accordion title="Python Code Analysis">
+  **Bandit** - Identifies common security issues:
+  - SQL injection patterns
+  - Hardcoded credentials
+  - Insecure cryptography
+  - Shell injection vulnerabilities
+  
+  **CodeQL** - Advanced semantic analysis:
+  - Deep code flow analysis
+  - Security vulnerability detection
+  - GitHub Security tab integration
+</Accordion>
+
+<Accordion title="Dependency Scanning">
+  **pip-audit** - OSV database scanning:
+  - Python package vulnerabilities
+  - Detailed CVE information
+  - JSON reports available as artifacts
+  
+  **Safety** - PyUp database scanning:
+  - Comprehensive vulnerability database
+  - Known malicious packages
+  - License compatibility checks
+  
+  **Dependabot** - Automated updates:
+  - Weekly dependency scans
+  - Automatic security patch PRs
+  - Version compatibility checks
+</Accordion>
+
+<Accordion title="Secret Detection">
+  **Gitleaks** - Credential scanning:
+  - Scans entire git history
+  - Detects API keys, tokens, passwords
+  - Prevents accidental commits
+  - Configurable pattern matching
+</Accordion>
+
+<Accordion title="Container Security">
+  **Trivy** - Docker image scanning:
+  - OS package vulnerabilities
+  - Python dependency vulnerabilities
+  - Misconfiguration detection
+  - SBOM generation
+</Accordion>
+
+### Viewing Security Results
+
+Security findings are available in multiple locations:
+
+**GitHub Security Tab:**
+- Code scanning alerts (Bandit, CodeQL)
+- Secret scanning alerts (Gitleaks)
+- Dependabot alerts
+- Security advisories
+
+**Pull Request Checks:**
+- All security scans run on every PR
+- Results visible in PR checks section
+- Blocks merge if critical issues found
+
+**Workflow Artifacts:**
+- Downloadable JSON reports (Bandit, pip-audit)
+- Detailed scan logs in Actions tab
+
+### Scan Schedule
+
+- **Push-based**: Every push to `master` and `develop`
+- **Pull Requests**: Every PR before merge
+- **Scheduled**: Weekly scans (Mondays at 9 AM UTC)
+- **Manual**: Can be triggered from Actions tab
+
+### Running Scans Locally
+
+Run the same security checks locally:
+
+```bash
+# Install security tools
+pip install bandit pip-audit safety
+
+# Run Bandit code analysis
+bandit -r . -f txt
+
+# Run dependency scans
+pip-audit --desc
+safety check
+
+# Scan with Trivy (requires Docker)
+docker run aquasec/trivy fs .
+```
+
+## Responsible Use Policy
+
+<Warning>
+  STRIDE GPT is designed for **defensive security purposes only**.
+</Warning>
+
+### Legitimate Use Cases
+
+- Threat modeling to improve application security
+- Security architecture design and review
+- Risk assessment and mitigation planning
+- Security training and education
+- Compliance documentation (SOC 2, ISO 27001)
+
+### Ethical Guidelines
+
+**DO:**
+- Use generated threat models to improve security
+- Share findings constructively with development teams
+- Follow coordinated disclosure for discovered vulnerabilities
+- Respect organizational policies and NDAs
+
+**DON'T:**
+- Use threat intelligence for malicious purposes
+- Attack systems without authorization
+- Share sensitive organizational details publicly
+- Violate applicable computer security laws
+
+## Known Security Considerations
+
+### LLM Provider Data Sharing
+
+<Warning>
+  Threat model inputs are sent to third-party LLM providers and may be logged.
+</Warning>
+
+See [Data Privacy](/security/data-privacy) for detailed information on:
+- What data is sent to LLM providers
+- Provider data retention policies
+- Local model alternatives
+- Data sanitization strategies
+
+### Streamlit Session State
+
+- Session data stored in browser memory
+- Not persisted to disk by default
+- Clear sensitive information when finished
+- Close browser sessions after use on shared computers
+
+### AI-Generated Threat Models
+
+<Note>
+  Generated threat models are AI-generated and should be reviewed by security professionals.
+</Note>
+
+- Use as a starting point, not complete security analysis
+- Validate threats against your specific architecture
+- Supplement with manual threat modeling
+- Cross-reference with OWASP, NIST, and industry frameworks
+
+### Rate Limiting
+
+If exposing publicly (not recommended):
+- Implement rate limiting at reverse proxy level
+- Monitor API usage to prevent abuse
+- Set spending limits in LLM provider dashboards
+- Track unusual access patterns
+
+### Output Sensitivity
+
+<Warning>
+  Generated threat models contain security-sensitive information.
+</Warning>
+
+- Handle downloaded reports with appropriate confidentiality
+- Store threat model outputs securely (encrypted storage)
+- Apply appropriate classification labels
+- Follow organizational data handling policies
+- Sanitize before sharing outside security teams
+
+## Security Updates
+
+STRIDE GPT releases security updates as patch versions:
+
+- Watch the repository for security advisories
+- Subscribe to release notifications
+- Keep installations up to date
+- Review release notes for security fixes
+
+**Supported Versions:**
+
+| Version | Supported |
+|---------|----------|
+| latest (master) | ✅ |
+| develop | ⚠️ Development only |
+| < latest | ❌ |
+
+<Info>
+  Always use the latest version from the master branch for production deployments.
+</Info>
+
+## Additional Resources
+
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+- [STRIDE Threat Modeling](https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats)
+- [Streamlit Security](https://docs.streamlit.io/)
+- [Docker Security Best Practices](https://docs.docker.com/engine/security/)
+- [CIS Docker Benchmark](https://www.cisecurity.org/benchmark/docker)
+
+## Related Documentation
+
+<CardGroup cols={2}>
+  <Card title="API Key Security" icon="key" href="/security/api-keys">
+    Protect your API keys and manage spending limits
+  </Card>
+  <Card title="Data Privacy" icon="lock" href="/security/data-privacy">
+    Understand data flows and privacy considerations
+  </Card>
+</CardGroup>

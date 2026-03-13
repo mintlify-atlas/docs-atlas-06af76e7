@@ -1,0 +1,233 @@
+---
+title: Contributing
+description: Learn how to contribute to STRIDE GPT and help improve AI-powered threat modeling
+---
+
+We welcome contributions from the community! STRIDE GPT is an open-source project, and your contributions help make threat modeling more accessible to everyone.
+
+## How to Contribute
+
+<Steps>
+  <Step title="Check existing issues">
+    Before starting work, check the [GitHub Issues](https://github.com/mrwadams/stride-gpt/issues) to see if someone else is already working on something similar.
+  </Step>
+  
+  <Step title="Open an issue for major changes">
+    For significant changes, please open an issue first to discuss what you would like to change. This helps ensure your contribution aligns with the project's direction.
+  </Step>
+  
+  <Step title="Fork and create a branch">
+    Fork the repository and create a new branch for your changes:
+    ```bash
+    git clone https://github.com/yourusername/stride-gpt.git
+    cd stride-gpt
+    git checkout -b feature/your-feature-name
+    ```
+  </Step>
+  
+  <Step title="Make your changes">
+    Implement your changes following the existing code style and structure. Test thoroughly to ensure everything works as expected.
+  </Step>
+  
+  <Step title="Submit a pull request">
+    Push your changes to your fork and submit a pull request to the main repository. Provide a clear description of what your changes do and why they're needed.
+  </Step>
+</Steps>
+
+## Contribution Guidelines
+
+### Code Quality
+
+<Info>
+STRIDE GPT uses automated security scanning on every commit, including Bandit for Python security issues, CodeQL for vulnerability detection, and pip-audit for dependency vulnerabilities.
+</Info>
+
+When contributing code:
+
+- Follow the existing code style and patterns
+- Write clear, descriptive commit messages
+- Test your changes locally before submitting
+- Ensure your code passes security scans
+- Update documentation if needed
+
+### Security Considerations
+
+<Note>
+Never commit API keys or sensitive credentials to version control. Use `.env` files for local development (already in `.gitignore`).
+</Note>
+
+When reviewing or submitting code:
+
+- Pay special attention to API key handling
+- Review changes that affect authentication or data processing
+- Validate user inputs appropriately
+- Be mindful of data sent to third-party LLM providers
+
+### Pull Request Process
+
+1. **Update documentation** - If your PR adds new features, update the relevant documentation
+2. **Pass all checks** - Ensure all automated security scans and tests pass
+3. **Respond to feedback** - Address any review comments promptly
+4. **Keep PRs focused** - One feature or fix per PR makes review easier
+
+## Areas for Contribution
+
+Here are some ways you can contribute:
+
+<Accordion title="Feature Development">
+- Implement items from the [public roadmap](https://github.com/mrwadams/stride-gpt/issues)
+- Add support for new LLM providers
+- Enhance UI/UX components
+- Improve threat model generation prompts
+</Accordion>
+
+<Accordion title="Bug Fixes">
+- Fix reported issues in GitHub Issues
+- Improve error handling
+- Resolve compatibility issues with different LLM providers
+- Address edge cases in threat model generation
+</Accordion>
+
+<Accordion title="Documentation">
+- Improve installation and setup guides
+- Add usage examples and tutorials
+- Translate documentation to other languages
+- Create video tutorials or demonstrations
+</Accordion>
+
+<Accordion title="Security">
+- Report security vulnerabilities responsibly
+- Improve security scanning and hardening
+- Enhance API key management practices
+- Review code for security implications
+</Accordion>
+
+<Accordion title="Testing">
+- Add test cases for new features
+- Improve test coverage
+- Test with different LLM providers and models
+- Verify functionality across different deployment methods
+</Accordion>
+
+## Development Setup
+
+### Local Development
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/mrwadams/stride-gpt.git
+   cd stride-gpt
+   ```
+
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your API keys
+   ```
+
+4. Run the application:
+   ```bash
+   streamlit run main.py
+   ```
+
+### Security Testing
+
+Run security scans locally before submitting:
+
+```bash
+# Install security tools
+pip install bandit pip-audit
+
+# Run Bandit for Python security issues
+bandit -r . -f txt
+
+# Run pip-audit for dependency vulnerabilities
+pip-audit --desc
+```
+
+## Code Review Process
+
+All contributions go through a code review process:
+
+1. **Automated checks** - Security scans and tests run automatically
+2. **Maintainer review** - Project maintainers review code quality and alignment
+3. **Community feedback** - Other contributors may provide additional feedback
+4. **Merge** - Once approved, your contribution will be merged
+
+<Note>
+The maintainers will respond to pull requests as quickly as possible, but please allow reasonable time for review, especially for larger contributions.
+</Note>
+
+## Reporting Issues
+
+Found a bug or have a feature request?
+
+### Bug Reports
+
+When reporting bugs, please include:
+
+- Clear description of the issue
+- Steps to reproduce the problem
+- Expected vs. actual behavior
+- Your environment (OS, Python version, deployment method)
+- Relevant error messages or logs
+
+### Feature Requests
+
+For feature requests, describe:
+
+- The problem you're trying to solve
+- Your proposed solution
+- Alternative solutions you've considered
+- How this benefits other users
+
+### Security Vulnerabilities
+
+<Note>
+**Do not** open public GitHub issues for security vulnerabilities. Instead, use GitHub's [private vulnerability reporting](https://github.com/mrwadams/stride-gpt/security/advisories/new) to report responsibly.
+</Note>
+
+See the [Support](/community/support) page for more details on security reporting.
+
+## Community Guidelines
+
+- **Be respectful** - Treat all community members with respect
+- **Be constructive** - Provide helpful feedback and suggestions
+- **Be patient** - Maintainers and contributors are often volunteers
+- **Be collaborative** - Work together to improve the project
+
+## Recognition
+
+Contributors who submit valuable improvements will be recognized in:
+
+- GitHub contributor list
+- Release notes (for significant contributions)
+- Security advisories (for responsibly disclosed vulnerabilities, with permission)
+
+## License
+
+By contributing to STRIDE GPT, you agree that your contributions will be licensed under the [MIT License](https://choosealicense.com/licenses/mit/).
+
+The MIT License is a permissive open-source license that allows:
+
+- Commercial use
+- Modification
+- Distribution
+- Private use
+
+With the condition that the license and copyright notice are included with the software.
+
+## Questions?
+
+If you have questions about contributing:
+
+- Check existing [GitHub Issues](https://github.com/mrwadams/stride-gpt/issues)
+- Open a new issue for discussion
+- Review the [documentation](/introduction)
+
+Thank you for helping make STRIDE GPT better!

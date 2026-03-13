@@ -1,0 +1,486 @@
+---
+title: Anthropic Claude Integration
+description: Configure Anthropic Claude 4.5 models with extended thinking for STRIDE GPT
+---
+
+Anthropic provides Claude 4.5 models with optional extended thinking mode, offering deep security analysis and comprehensive threat modeling capabilities for STRIDE GPT.
+
+## Supported Models
+
+<CardGroup cols={3}>
+  <Card title="Claude Sonnet 4.5" icon="balance-scale">
+    **Best balance of performance and efficiency**
+    
+    - Model: `claude-sonnet-4-5-20250929`
+    - Context: 64K default, 200K max
+    - Speed: Balanced
+    - Use case: Standard threat modeling
+  </Card>
+  
+  <Card title="Claude Haiku 4.5" icon="gauge-high">
+    **Fastest and most cost-effective**
+    
+    - Model: `claude-haiku-4-5-20251001`
+    - Context: 64K default, 200K max
+    - Speed: Fast
+    - Use case: Rapid iteration
+  </Card>
+  
+  <Card title="Claude Opus 4.5" icon="crown">
+    **Most capable Claude model**
+    
+    - Model: `claude-opus-4-5-20251101`
+    - Context: 64K default, 200K max
+    - Speed: Slower, highest quality
+    - Use case: Critical systems
+  </Card>
+</CardGroup>
+
+<Info>
+**Model Naming**: The date suffix (YYYYMMDD) indicates the model snapshot version. These are the latest Claude 4.5 models as of the respective dates.
+</Info>
+
+## Extended Thinking Mode
+
+Claude's unique extended thinking mode provides enhanced reasoning for complex security analysis:
+
+<Note>
+**What is Extended Thinking?**
+
+Extended thinking allocates additional tokens (16,000) for Claude to internally reason through the problem before responding. This enables:
+
+- Deeper threat analysis across STRIDE categories
+- Multi-step attack chain reasoning
+- Cross-layer vulnerability identification
+- More comprehensive OWASP LLM/ASI coverage
+
+**Trade-offs**:
+- ✅ More thorough and accurate threat models
+- ✅ Better understanding of complex agentic architectures
+- ❌ Longer response times (60-120 seconds)
+- ❌ Higher token consumption and cost
+</Note>
+
+### Enabling Extended Thinking
+
+In the STRIDE GPT sidebar:
+
+1. Select **Anthropic API** as model provider
+2. Choose any Claude 4.5 model
+3. Check the **"Enable Extended Thinking"** checkbox
+
+### When to Use Extended Thinking
+
+<Tabs>
+  <Tab title="Use Extended Thinking For">
+    - **Agentic AI applications** with complex tool/MCP integrations
+    - **Multi-agent systems** requiring deep architectural understanding
+    - **Security-critical applications** where thoroughness is paramount
+    - **Complex RAG pipelines** with multiple data sources
+    - **Applications with custom LLM implementations**
+    - When you need **maximum depth and precision**
+  </Tab>
+  
+  <Tab title="Skip Extended Thinking For">
+    - **Simple web applications** with standard architecture
+    - **Rapid prototyping** and iterative refinement
+    - **Cost-sensitive projects** with budget constraints
+    - **Time-sensitive analysis** requiring quick results
+    - **Traditional applications** without AI components
+  </Tab>
+</Tabs>
+
+## Setup
+
+<Steps>
+  <Step title="Get API Key">
+    1. Visit the [Anthropic Console](https://console.anthropic.com/settings/keys)
+    2. Sign in or create an account
+    3. Navigate to **API Keys** section
+    4. Click **Create Key**
+    5. Copy the generated key (starts with `sk-ant-`)
+    
+    <Warning>
+    Store your API key securely. It cannot be recovered if lost.
+    </Warning>
+  </Step>
+  
+  <Step title="Configure in STRIDE GPT">
+    In the STRIDE GPT sidebar:
+    
+    1. Select **"Anthropic API"** from model provider dropdown
+    2. Paste your API key in the password field
+    3. Choose your preferred Claude 4.5 model
+    4. Optionally enable **Extended Thinking**
+  </Step>
+  
+  <Step title="Environment Variable (Optional)">
+    Set as environment variable:
+    
+    ```bash
+    export ANTHROPIC_API_KEY="sk-ant-..."
+    ```
+    
+    Or in `.env` file:
+    ```
+    ANTHROPIC_API_KEY=sk-ant-...
+    ```
+  </Step>
+</Steps>
+
+## Image Analysis
+
+All Claude 4.5 models support vision capabilities for architecture diagram analysis:
+
+<Steps>
+  <Step title="Upload Architecture Diagram">
+    Use the file uploader in STRIDE GPT to select a JPG or PNG image.
+  </Step>
+  
+  <Step title="Automatic Analysis">
+    Claude will analyze:
+    - System components and their relationships
+    - Data flows and trust boundaries
+    - Technologies and protocols in use
+    - Security measures depicted
+  </Step>
+  
+  <Step title="Integrated Threat Modeling">
+    The diagram analysis is incorporated into your threat model generation.
+  </Step>
+</Steps>
+
+<Info>
+Claude excels at understanding complex diagrams with multiple security zones, nested architectures, and detailed annotations.
+</Info>
+
+## Token Management
+
+### Token Limits by Mode
+
+| Mode | Max Tokens | Thinking Budget | Total Capacity |
+|------|-----------|-----------------|----------------|
+| **Standard** | 32,768 | 0 | 200,000 context |
+| **Extended Thinking** | 48,000 | 16,000 | 200,000 context |
+
+<Note>
+**Context Window**: All Claude 4.5 models support up to 200,000 tokens of context, suitable for analyzing medium to large applications and codebases.
+</Note>
+
+### Optimizing Token Usage
+
+For GitHub repository analysis:
+
+1. **Adjust in Advanced Settings**: Set token limit between 4K - 200K
+2. **Prioritize important files**: README, main application files are analyzed first
+3. **Truncation handling**: STRIDE GPT automatically truncates if approaching limit
+
+## Model Selection Guide
+
+### Claude Opus 4.5
+
+**Best for**: Maximum capability and depth
+
+<Card>
+  **Strengths**:
+  - Most thorough threat analysis
+  - Best at complex agentic architectures
+  - Superior understanding of security nuances
+  - Excellent for OWASP ASI threat detection
+  
+  **Considerations**:
+  - Slower response times (60-90s standard, 90-120s with thinking)
+  - Higher cost per request
+  - Overkill for simple applications
+</Card>
+
+**Use cases**:
+- Financial services applications
+- Healthcare systems with PHI
+- Government/defense applications
+- Critical infrastructure
+- Complex multi-agent AI systems
+
+### Claude Sonnet 4.5
+
+**Best for**: Balanced performance (default choice)
+
+<Card>
+  **Strengths**:
+  - Best balance of speed, cost, and quality
+  - Strong STRIDE threat identification
+  - Good at both traditional and AI-specific threats
+  - Suitable for most applications
+  
+  **Considerations**:
+  - Moderate response times (30-45s standard, 60-90s with thinking)
+  - May miss some subtle attack vectors vs. Opus
+</Card>
+
+**Use cases**:
+- SaaS applications
+- E-commerce platforms
+- Enterprise web applications
+- Standard GenAI applications
+- Most threat modeling scenarios
+
+### Claude Haiku 4.5
+
+**Best for**: Speed and cost efficiency
+
+<Card>
+  **Strengths**:
+  - Fastest Claude model (20-30s responses)
+  - Most cost-effective
+  - Good for iterative refinement
+  - Solid basic threat identification
+  
+  **Considerations**:
+  - Less depth than Sonnet/Opus
+  - May miss complex attack chains
+  - Limited extended thinking benefits
+</Card>
+
+**Use cases**:
+- Rapid prototyping
+- Internal development applications
+- Non-critical systems
+- Budget-conscious projects
+- Quick security reviews
+
+## Performance Characteristics
+
+### Expected Response Times
+
+| Model | Standard Mode | Extended Thinking |
+|-------|---------------|-------------------|
+| Opus 4.5 | 60-90s | 90-120s |
+| Sonnet 4.5 | 30-45s | 60-90s |
+| Haiku 4.5 | 20-30s | 45-60s |
+
+<Warning>
+Extended thinking mode can exceed 10-minute timeout for extremely complex applications. If you encounter timeout errors, try standard mode or simplify your input.
+</Warning>
+
+### Thinking Content Visibility
+
+When using extended thinking mode, STRIDE GPT captures Claude's internal reasoning:
+
+```python
+# Stored in session state for transparency
+st.session_state["last_thinking_content"]
+```
+
+This can be useful for:
+- Understanding Claude's analytical process
+- Debugging unexpected results
+- Learning security analysis techniques
+
+## Best Practices
+
+### Input Optimization
+
+<Steps>
+  <Step title="Structured Descriptions">
+    Organize your application description with clear sections:
+    ```
+    ## Architecture
+    [Component descriptions]
+    
+    ## Authentication
+    [Auth flow details]
+    
+    ## Data Flows
+    [How data moves through system]
+    
+    ## External Integrations
+    [APIs, services, databases]
+    ```
+  </Step>
+  
+  <Step title="Highlight AI Components">
+    For GenAI/Agentic apps, explicitly mention:
+    - LLM provider and model
+    - RAG implementation details
+    - Tool/function calling mechanisms
+    - Agent orchestration framework
+    - Memory persistence approach
+  </Step>
+  
+  <Step title="Specify Sensitive Data">
+    Clearly indicate:
+    - Types of sensitive data (PII, PHI, credentials)
+    - Data classification levels
+    - Compliance requirements (GDPR, HIPAA, SOC2)
+  </Step>
+</Steps>
+
+### Cost Management
+
+<Tabs>
+  <Tab title="Development Phase">
+    - Use **Haiku 4.5** for initial drafts
+    - Disable extended thinking
+    - Iterate quickly with lower costs
+    - Switch to Sonnet for refinement
+  </Tab>
+  
+  <Tab title="Production Use">
+    - Use **Sonnet 4.5** as default
+    - Enable extended thinking for critical apps
+    - Use **Opus 4.5** only for highest-priority systems
+    - Monitor usage in Anthropic Console
+  </Tab>
+</Tabs>
+
+## Troubleshooting
+
+<Accordion title="Invalid API Key Error">
+  **Symptom**: "Invalid Anthropic API key"
+  
+  **Solutions**:
+  - Verify key format: `sk-ant-api...`
+  - Check key status in Anthropic Console
+  - Ensure key hasn't been revoked
+  - Try generating a new key
+</Accordion>
+
+<Accordion title="Timeout Errors with Extended Thinking">
+  **Symptom**: Request times out after 10 minutes
+  
+  **Solutions**:
+  - Disable extended thinking and retry
+  - Simplify application description
+  - Break complex app into smaller components
+  - Use Haiku or Sonnet instead of Opus
+  - Check Anthropic service status
+</Accordion>
+
+<Accordion title="JSON Parsing Failures">
+  **Symptom**: "Failed to parse Claude response"
+  
+  **Explanation**: Sometimes Claude includes markdown formatting in JSON responses
+  
+  **Solutions**:
+  - STRIDE GPT automatically strips markdown code blocks
+  - Retry the request (usually works on second attempt)
+  - Switch to standard mode if thinking mode fails consistently
+</Accordion>
+
+<Accordion title="Incomplete Threat Models">
+  **Symptom**: Threat model seems less comprehensive than expected
+  
+  **Solutions**:
+  - Enable **extended thinking** for more depth
+  - Provide more detailed application description
+  - Switch from Haiku to Sonnet or Opus
+  - Explicitly mention application type (Agentic AI, GenAI, etc.)
+</Accordion>
+
+<Accordion title="Rate Limit Errors">
+  **Symptom**: "Rate limit exceeded"
+  
+  **Solutions**:
+  - Check usage tier in Anthropic Console
+  - Wait for rate limit reset (typically 1 minute)
+  - Upgrade to higher usage tier
+  - Reduce concurrent requests
+</Accordion>
+
+## Comparing Claude to Other Providers
+
+### vs. OpenAI GPT-5
+
+<Tabs>
+  <Tab title="Claude Advantages">
+    - ✅ Extended thinking mode available on any model
+    - ✅ Strong constitutional AI training for security
+    - ✅ Excellent at nuanced ethical considerations
+    - ✅ More affordable than GPT-5.2-pro
+    - ✅ Better at long-form security analysis
+  </Tab>
+  
+  <Tab title="GPT-5 Advantages">
+    - ✅ Faster reasoning (no separate thinking mode)
+    - ✅ Better at code-heavy threat modeling
+    - ✅ Larger context windows (400K-1M)
+    - ✅ More consistent JSON formatting
+    - ✅ Superior for agentic AI architectures
+  </Tab>
+</Tabs>
+
+### vs. Google Gemini
+
+<Tabs>
+  <Tab title="Claude Advantages">
+    - ✅ Better at detailed security reasoning
+    - ✅ More focused threat analysis
+    - ✅ Extended thinking for complex scenarios
+    - ✅ Stronger at OWASP mapping
+  </Tab>
+  
+  <Tab title="Gemini Advantages">
+    - ✅ Massive context window (1M tokens)
+    - ✅ Better for huge GitHub repositories
+    - ✅ Faster response times
+    - ✅ Lower cost per token
+  </Tab>
+</Tabs>
+
+## Advanced Configuration
+
+### Timeout Settings
+
+STRIDE GPT sets different timeouts based on mode:
+
+```python
+# Standard mode
+timeout = 300  # 5 minutes
+
+# Extended thinking mode
+timeout = 600  # 10 minutes
+```
+
+### Token Allocation
+
+```python
+# Standard mode
+max_tokens = 32768
+
+# Extended thinking mode
+max_tokens = 48000
+thinking_budget = 16000
+```
+
+### System Prompts
+
+Claude uses specialized system prompts:
+
+```
+You are a JSON-generating assistant. You must ONLY output 
+valid, parseable JSON with no additional text or formatting.
+```
+
+For extended thinking:
+```
+You are a cyber security expert. Use your extended reasoning 
+capabilities to deeply analyze threats across all STRIDE 
+categories and applicable OWASP risks.
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Compare All Providers" icon="scale-balanced" href="/providers/overview">
+    See full provider comparison matrix
+  </Card>
+  <Card title="OpenAI Integration" icon="openai" href="/providers/openai">
+    Explore GPT-5 series models
+  </Card>
+  <Card title="Google Gemini" icon="google" href="/providers/google">
+    Try 1M token context windows
+  </Card>
+  <Card title="Extended Thinking Guide" icon="brain" href="/providers/overview">
+    Deep dive into reasoning models
+  </Card>
+</CardGroup>

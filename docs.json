@@ -1,122 +1,117 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "STRIDE GPT",
+  "theme": "aspen",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#7B3FF2",
+    "light": "#A78BFA",
+    "dark": "#5B21B6"
   },
-  "favicon": "/favicon.svg",
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/mrwadams/stride-gpt"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/mrwadams/stride-gpt"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Get Started",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "introduction",
+              "quickstart"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Installation",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "installation/local",
+              "installation/docker",
+              "installation/configuration"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Core Features",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "features/threat-modeling",
+              "features/attack-trees",
+              "features/mitigations",
+              "features/dread-scoring",
+              "features/test-cases",
+              "features/multi-modal",
+              "features/github-analysis"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "AI Applications",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "ai-applications/overview",
+              "ai-applications/generative-ai",
+              "ai-applications/agentic-ai",
+              "ai-applications/owasp-integration"
+            ]
+          },
+          {
+            "group": "Model Providers",
+            "pages": [
+              "providers/overview",
+              "providers/openai",
+              "providers/anthropic",
+              "providers/google",
+              "providers/mistral",
+              "providers/groq",
+              "providers/ollama",
+              "providers/lm-studio"
+            ]
+          },
+          {
+            "group": "Enterprise",
+            "pages": [
+              "enterprise/operationalization",
+              "enterprise/customization",
+              "enterprise/deployment"
+            ]
+          },
+          {
+            "group": "Security",
+            "pages": [
+              "security/best-practices",
+              "security/api-keys",
+              "security/data-privacy"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "Resources",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Reference",
             "pages": [
-              "api-reference/introduction"
+              "reference/stride-methodology",
+              "reference/dread-framework",
+              "reference/owasp-llm-top-10",
+              "reference/owasp-asi-top-10"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Community",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "community/contributing",
+              "community/changelog",
+              "community/support"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

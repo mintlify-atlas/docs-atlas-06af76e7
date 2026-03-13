@@ -1,0 +1,543 @@
+---
+title: 'Data Privacy'
+description: 'Understanding what data STRIDE GPT sends to LLM providers and privacy implications'
+icon: 'lock'
+---
+
+## Overview
+
+Data privacy is a critical consideration when using STRIDE GPT. This page explains what data is sent to LLM providers, how providers handle your data, and strategies to protect sensitive information.
+
+<Warning>
+  **STRIDE GPT sends application details and threat model inputs to third-party LLM providers.** These providers may log this data according to their privacy policies.
+</Warning>
+
+## Data Storage in STRIDE GPT
+
+### What STRIDE GPT Does NOT Store
+
+STRIDE GPT is designed with privacy in mind:
+
+<Info>
+  **STRIDE GPT does not persist any user data to disk or databases.**
+</Info>
+
+- No database or persistent storage
+- No logging of application details
+- No saving of threat models (except user-initiated downloads)
+- No tracking or analytics
+- No telemetry data collection
+- No user accounts or authentication (in default deployment)
+
+### Session Data (Temporary)
+
+The following data exists only in browser session memory:
+
+- Application descriptions you provide
+- Generated threat models
+- Attack trees and mitigations
+- DREAD risk assessments
+- API keys (if entered via UI)
+- Streamlit session state
+
+**Session data is cleared when:**
+- You close the browser tab
+- You refresh the page
+- The Streamlit session expires (typically after inactivity)
+
+<Note>
+  All session data is stored in browser memory only and is never written to disk by STRIDE GPT.
+</Note>
+
+## Data Sent to LLM Providers
+
+When you generate a threat model, STRIDE GPT sends data to your selected LLM provider (OpenAI, Anthropic, Google, Mistral, Groq).
+
+### What Data is Sent
+
+The following information is transmitted to LLM providers via API:
+
+<Accordion title="Application Details">
+  - **Application type** (web application, mobile app, cloud service, API, agentic AI, etc.)
+  - **Authentication methods** (OAuth 2.0, SSO, MFA, etc.)
+  - **Internet-facing status** (yes/no)
+  - **Sensitive data handling** (PII, financial data, health records, etc.)
+  - **Application description** (free-text provided by user)
+</Accordion>
+
+<Accordion title="System Architecture Information">
+  - Architecture descriptions from user input
+  - Uploaded architecture diagrams (if using multi-modal models)
+  - Data flow descriptions
+  - Component interactions
+  - Technology stack details
+</Accordion>
+
+<Accordion title="GitHub Repository Data (if used)">
+  - README.md contents
+  - Selected source code files
+  - File structure and organization
+  - Configuration files
+  - Documentation files
+  
+  <Note>
+    When using GitHub analysis, STRIDE GPT selects key files intelligently but does send file contents to the LLM provider.
+  </Note>
+</Accordion>
+
+<Accordion title="Generated Outputs (for follow-up requests)">
+  - Previously generated threat models
+  - Attack trees
+  - Mitigation suggestions
+  - DREAD assessments
+  
+  (Used when requesting improvements or generating additional analysis)
+</Accordion>
+
+<Accordion title="Improvement Suggestions">
+  - Additional context provided when clicking "Improve this Threat Model"
+  - Follow-up questions and clarifications
+  - Specific areas for enhancement
+</Accordion>
+
+### What Data is NOT Sent
+
+- Your API keys (used for authentication only)
+- Browser session data
+- Your IP address (sent by API client, but not by STRIDE GPT)
+- File contents from your local system (except uploaded images)
+- Historical threat models from previous sessions
+
+## LLM Provider Data Handling
+
+Each LLM provider has different data retention and privacy policies:
+
+### OpenAI
+
+**Data Usage:**
+- API data is not used to train models (as of March 2023 policy)
+- Data may be retained for 30 days for abuse monitoring
+- Can be zero-retention with enterprise agreements
+
+**Privacy Controls:**
+- Enable "Do not train on my data" in account settings
+- Use Azure OpenAI Service for enterprise data controls
+- Enterprise agreements available for enhanced privacy
+
+**Documentation:**
+- [OpenAI API Data Usage Policies](https://openai.com/policies/api-data-usage-policies)
+- [OpenAI Privacy Policy](https://openai.com/policies/privacy-policy)
+
+### Anthropic
+
+**Data Usage:**
+- Does not train on customer API data
+- Retains data for 90 days for trust & safety
+- Can request zero-retention for enterprise customers
+
+**Privacy Controls:**
+- All API data excluded from training by default
+- Enterprise agreements available
+- SOC 2 Type 2 compliant
+
+**Documentation:**
+- [Anthropic Privacy Policy](https://www.anthropic.com/privacy)
+- [Commercial Terms of Service](https://www.anthropic.com/legal/commercial-terms)
+
+### Google AI (Gemini)
+
+**Data Usage:**
+- Google AI Studio: May use data to improve products
+- Vertex AI: Does not use customer data for model training
+- Retention varies by service
+
+**Privacy Controls:**
+- Use Vertex AI for enterprise privacy controls
+- Data residency options available
+- VPC Service Controls for enterprise
+
+**Documentation:**
+- [Google AI Privacy](https://ai.google/responsibility/privacy/)
+- [Vertex AI Data Governance](https://cloud.google.com/vertex-ai/docs/general/data-governance)
+
+### Mistral AI
+
+**Data Usage:**
+- Does not use API data for model training
+- 30-day retention for operational purposes
+- European data residency available
+
+**Privacy Controls:**
+- GDPR compliant
+- European-based provider
+- ISO 27001 certified
+
+**Documentation:**
+- [Mistral Privacy Policy](https://mistral.ai/privacy/)
+
+### Groq
+
+**Data Usage:**
+- Does not use customer data for training
+- Minimal data retention
+- Focus on inference speed
+
+**Privacy Controls:**
+- SOC 2 Type 2 certified
+- Enterprise agreements available
+
+**Documentation:**
+- [Groq Privacy Policy](https://groq.com/privacy-policy/)
+
+<Warning>
+  Provider policies change over time. Always review the current privacy policy of your chosen provider.
+</Warning>
+
+## Privacy Best Practices
+
+### Data Sanitization Strategies
+
+To protect sensitive organizational information:
+
+<Accordion title="Use Generic Descriptions">
+  **Instead of:**
+  > "Our customer database stores 10M user records including SSNs, credit card numbers, and medical histories in PostgreSQL 14.2 on AWS RDS in us-east-1 with daily backups to S3."
+  
+  **Use:**
+  > "A web application stores customer personal and financial data in a cloud-hosted relational database with regular backups."
+</Accordion>
+
+<Accordion title="Anonymize System Names">
+  **Instead of:**
+  > "The Acme Corp patient portal integrates with Epic EHR via HL7 FHIR APIs"
+  
+  **Use:**
+  > "A healthcare portal integrates with third-party EHR systems via standard APIs"
+</Accordion>
+
+<Accordion title="Remove Specific Versions and CVEs">
+  **Instead of:**
+  > "Running Apache 2.4.49 (vulnerable to CVE-2021-41773)"
+  
+  **Use:**
+  > "Running a web server with public-facing endpoints"
+</Accordion>
+
+<Accordion title="Generalize Infrastructure Details">
+  **Instead of:**
+  > "Kubernetes cluster in GCP us-central1 with 50 nodes running microservices for transaction processing"
+  
+  **Use:**
+  > "Container orchestration platform running microservices architecture"
+</Accordion>
+
+<Accordion title="Sanitize Architecture Diagrams">
+  Before uploading diagrams:
+  - Remove IP addresses and hostnames
+  - Replace specific product names with generic terms
+  - Remove internal network details
+  - Blur sensitive labels
+  - Use example.com for domain names
+</Accordion>
+
+### When to Use Local Models
+
+Consider local models (Ollama, LM Studio) for:
+
+<Note>
+  Local models keep 100% of your data on your machine with zero external data transmission.
+</Note>
+
+**High-Sensitivity Scenarios:**
+- Government or defense systems
+- Healthcare applications with PHI/HIPAA requirements
+- Financial systems with PCI DSS requirements
+- Classified or confidential projects
+- Pre-production security assessments of unreleased products
+- Compliance with data residency requirements (GDPR, etc.)
+
+**Local Model Trade-offs:**
+
+| Aspect | Local Models | Cloud Models |
+|--------|-------------|-------------|
+| **Privacy** | Complete data control | Data sent to provider |
+| **Cost** | Zero API costs | Pay per use |
+| **Quality** | Varies by model size | Typically higher quality |
+| **Speed** | Depends on hardware | Generally faster |
+| **Hardware** | Requires GPU for best performance | No local requirements |
+| **Convenience** | Manual setup required | Instant access |
+
+### Recommended Local Models
+
+**For Threat Modeling:**
+```bash
+# High quality (requires 48GB+ RAM)
+ollama pull llama3.3:70b
+
+# Balanced (requires 16GB+ RAM)
+ollama pull llama3.1:8b
+
+# Fast reasoning (requires 32GB+ RAM)
+ollama pull deepseek-r1:14b
+```
+
+**For Attack Trees:**
+```bash
+# Strong JSON generation
+ollama pull mistral:7b
+ollama pull qwen2.5:14b
+```
+
+<Info>
+  Local models are supported in STRIDE GPT for all features except attack tree generation with some models (due to safety restrictions).
+</Info>
+
+## Privacy for Different Deployment Scenarios
+
+### Individual Security Practitioners
+
+**Recommended Configuration:**
+- Use cloud models for non-sensitive learning and demos
+- Use local models for actual client work
+- Sanitize all production system details
+- Clear browser session after each use
+
+### Small Security Teams
+
+**Recommended Configuration:**
+- Deploy STRIDE GPT internally behind VPN
+- Use organization API keys with spending limits
+- Implement usage guidelines for data sanitization
+- Consider Azure OpenAI or Vertex AI for enhanced privacy
+- Document which providers are approved for which data classifications
+
+### Enterprise Organizations
+
+**Recommended Configuration:**
+- Deploy STRIDE GPT on internal infrastructure
+- Use enterprise LLM agreements with zero-retention clauses
+- Implement data classification policies
+- Mandate local models for classified/confidential systems
+- Use cloud models only for unclassified threat modeling
+- Implement DLP controls on outputs
+- Require security review of generated threat models before sharing
+
+### Regulated Industries (Healthcare, Finance, Government)
+
+**Recommended Configuration:**
+
+<Warning>
+  For HIPAA, PCI DSS, FedRAMP, or other regulated environments, consult your compliance team before using cloud LLM providers.
+</Warning>
+
+- **Default to local models** for all threat modeling
+- If using cloud providers:
+  - Require Business Associate Agreements (HIPAA)
+  - Use FedRAMP-authorized services (Government)
+  - Verify PCI DSS compliance (Finance)
+  - Implement data residency controls
+- Never input actual PHI, PII, or cardholder data
+- Use fictional examples and generalized descriptions
+- Implement audit logging for all threat model generation
+
+## GitHub Repository Analysis Privacy
+
+When using the GitHub repository analysis feature:
+
+### What Gets Sent
+
+1. **README.md** - Automatically included
+2. **Selected source files** - Intelligently chosen based on:
+   - File importance (main application files)
+   - Programming language
+   - File size (limited to prevent token overflow)
+   - Configuration files
+3. **Repository metadata** - File structure, directory organization
+
+### Privacy Considerations
+
+<Warning>
+  GitHub repository contents, including source code, are sent to the LLM provider.
+</Warning>
+
+**For Public Repositories:**
+- Already publicly accessible
+- Lower privacy risk
+- Still avoid repositories with embedded secrets
+
+**For Private Repositories:**
+- Source code sent to LLM provider
+- Consider data classification of the code
+- Use only for non-confidential projects
+- Alternative: Clone locally and provide manual description
+
+**What to Avoid:**
+- Repositories with embedded API keys or secrets
+- Proprietary algorithms or trade secrets
+- Pre-release products under NDA
+- Repositories with customer data in code comments
+
+### GitHub Enterprise Support
+
+STRIDE GPT supports GitHub Enterprise repositories:
+- Automatically detects GitHub Enterprise URLs
+- Uses appropriate API endpoints
+- Requires GitHub Enterprise API key
+
+<Note>
+  Even with GitHub Enterprise, repository contents are sent to the LLM provider. Use sanitized descriptions for sensitive projects.
+</Note>
+
+## Data Privacy Checklist
+
+Before generating a threat model:
+
+- [ ] Reviewed chosen LLM provider's privacy policy
+- [ ] Sanitized application descriptions (removed specific names, versions, IPs)
+- [ ] Removed sensitive organizational details
+- [ ] Using local models if handling classified/confidential systems
+- [ ] Set API spending limits
+- [ ] Verified .env file not committed to version control
+- [ ] Considered data residency and compliance requirements
+- [ ] Obtained approval for cloud LLM use (if required by organization)
+- [ ] Documented which provider was used (for audit trails)
+- [ ] Cleared browser session after use (if on shared computer)
+
+## Privacy Incident Response
+
+If sensitive data was accidentally sent to an LLM provider:
+
+### Immediate Actions
+
+1. **Document what was sent**
+   - Copy the exact input provided
+   - Note which provider was used
+   - Record timestamp
+
+2. **Contact the provider**
+   - Request data deletion (if supported)
+   - Reference their privacy policy deletion process
+   - Document the request
+
+3. **Notify stakeholders**
+   - Inform your security team
+   - Notify compliance/legal if required
+   - Document the incident
+
+4. **Assess impact**
+   - Determine sensitivity of exposed data
+   - Identify affected systems/individuals
+   - Evaluate regulatory requirements (breach notification, etc.)
+
+### Prevention for Future
+
+- Implement pre-submission review process
+- Create data sanitization templates
+- Provide training on privacy best practices
+- Use local models for sensitive systems
+- Implement technical controls (DLP, content filtering)
+
+## Compliance Considerations
+
+### GDPR (EU)
+
+- LLM providers may be data processors
+- Requires Data Processing Agreements (DPAs)
+- Data residency requirements may apply
+- Right to erasure considerations
+- Consider EU-based providers (Mistral AI)
+
+### HIPAA (Healthcare - US)
+
+- Requires Business Associate Agreements (BAAs)
+- PHI must not be sent without BAA
+- Use Azure OpenAI or similar HIPAA-compliant services
+- Default to local models for PHI-related systems
+
+### PCI DSS (Payment Card Industry)
+
+- Never send cardholder data to LLM providers
+- Use generic descriptions for payment systems
+- Verify provider's PCI compliance if required
+
+### FedRAMP (US Government)
+
+- Use FedRAMP-authorized LLM services only
+- Verify authorization level matches data classification
+- Local models recommended for higher classifications
+
+### SOC 2
+
+- Verify provider SOC 2 Type 2 compliance
+- Review audit reports
+- Implement access controls
+
+<Info>
+  Always consult your compliance and legal teams before using cloud LLM providers for regulated data.
+</Info>
+
+## Frequently Asked Questions
+
+<Accordion title="Can I use STRIDE GPT for HIPAA-covered systems?">
+  **Yes, with precautions:**
+  - Use local models (Ollama, LM Studio) - safest option
+  - OR use Azure OpenAI with a Business Associate Agreement
+  - Never input actual PHI (patient names, records, etc.)
+  - Use generalized descriptions only
+  - Obtain approval from your compliance team first
+</Accordion>
+
+<Accordion title="Does STRIDE GPT store my threat models?">
+  **No.** STRIDE GPT does not persist any data to disk or databases. All data exists only in browser session memory and is cleared when you close the tab or refresh the page.
+</Accordion>
+
+<Accordion title="Can LLM providers see my API keys?">
+  **No.** Your LLM provider API keys are used for authentication only and are not sent as data to the LLM. However, if you accidentally paste an API key into the application description field, it would be sent to the provider.
+</Accordion>
+
+<Accordion title="Which LLM provider is most private?">
+  **For privacy (based on policies):**
+  1. **Local models** (Ollama, LM Studio) - Zero external data transmission
+  2. **Mistral AI** - European-based, GDPR-compliant, does not train on data
+  3. **Anthropic** - Does not train on API data, 90-day retention
+  4. **Azure OpenAI** - Enterprise controls, configurable data residency
+  
+  Always review current policies as they change over time.
+</Accordion>
+
+<Accordion title="Can I request deletion of my data from LLM providers?">
+  **Depends on the provider:**
+  - **OpenAI**: Can request deletion through support
+  - **Anthropic**: Contact support for deletion requests
+  - **Google**: Vertex AI allows data deletion controls
+  - **Mistral**: GDPR right to erasure applies
+  
+  Check each provider's privacy policy for specific deletion procedures.
+</Accordion>
+
+<Accordion title="Is it safe to analyze public GitHub repositories?">
+  **Generally yes**, since the code is already public. However:
+  - Ensure the repository doesn't contain leaked secrets
+  - Avoid repositories with customer data in comments
+  - Consider if the repository is under NDA (pre-release products)
+  - Private repository contents will be sent to LLM provider
+</Accordion>
+
+## Related Documentation
+
+<CardGroup cols={2}>
+  <Card title="Best Practices" icon="shield-check" href="/security/best-practices">
+    Comprehensive security best practices for STRIDE GPT
+  </Card>
+  <Card title="API Key Security" icon="key" href="/security/api-keys">
+    How to protect your API keys and manage costs
+  </Card>
+</CardGroup>
+
+## Additional Resources
+
+- [OWASP Privacy Risks](https://owasp.org/www-project-top-10-privacy-risks/)
+- [NIST Privacy Framework](https://www.nist.gov/privacy-framework)
+- [GDPR Official Text](https://gdpr-info.eu/)
+- [HIPAA Security Rule](https://www.hhs.gov/hipaa/for-professionals/security/index.html)
+- [Cloud Security Alliance - AI Privacy](https://cloudsecurityalliance.org/research/topics/artificial-intelligence)

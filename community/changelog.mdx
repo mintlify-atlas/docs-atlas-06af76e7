@@ -1,0 +1,365 @@
+---
+title: Changelog
+description: Version history and release notes for STRIDE GPT
+---
+
+Track the evolution of STRIDE GPT from its initial release to the latest features and improvements.
+
+## Version 0.15 (Latest)
+
+<Note>
+Version 0.15 introduces comprehensive support for threat modeling agentic AI and generative AI applications with OWASP integration.
+</Note>
+
+### Agentic AI Application Support
+
+Added comprehensive support for threat modeling agentic AI systems with OWASP Top 10 for Agentic Applications (ASI01-ASI10) integration:
+
+- Select "Agentic AI application" to automatically apply relevant threat categories
+- LLM automatically detects architectural patterns from system descriptions
+- Each ASI risk is mapped to the appropriate STRIDE category for consistent analysis
+
+### Generative AI Application Support
+
+Added support for threat modeling GenAI applications:
+
+- OWASP LLM Top 10 (LLM01-LLM10) integration
+- Select "Generative AI application" for tailored LLM-specific threat analysis
+- Agentic AI applications include both LLM and ASI risk categories for comprehensive coverage
+
+### MAESTRO-Inspired Architectural Pattern Detection
+
+Enhanced agentic threat analysis with automatic detection of architectural patterns, inspired by the [Cloud Security Alliance MAESTRO framework](https://cloudsecurityalliance.org/blog/2025/02/06/agentic-ai-threat-modeling-framework-maestro):
+
+<Accordion title="RAG/Retrieval Systems">
+- Vector store poisoning
+- Embedding manipulation
+- Cross-tenant leakage
+</Accordion>
+
+<Accordion title="Multi-Agent Systems">
+- Agent impersonation
+- Inter-agent message tampering
+- Cascading compromises
+</Accordion>
+
+<Accordion title="Code Execution Environments">
+- Sandbox escape
+- Container breakout
+- Malicious code generation
+</Accordion>
+
+<Accordion title="Tool/MCP Ecosystems">
+- Rogue tool providers
+- Supply chain attacks
+- Confused deputy vulnerabilities
+</Accordion>
+
+<Accordion title="Persistent Memory">
+- Memory poisoning
+- Cross-session leakage
+- State manipulation
+</Accordion>
+
+<Accordion title="Autonomous Operations">
+- Rogue agent persistence
+- Human oversight bypass
+- Runaway loops
+</Accordion>
+
+### Cross-Layer Threat Analysis
+
+Threat models now include cross-component attack chains showing how compromise in one architectural layer can enable attacks on others (e.g., RAG poisoning → agent goal hijack → tool misuse → data exfiltration).
+
+### Model Updates
+
+- **OpenAI**: Updated to GPT-5.2 series models (gpt-5.2, gpt-5.2-pro, gpt-5-mini, gpt-5-nano, gpt-5, gpt-4.1). Removed deprecated models.
+- **Anthropic**: Updated to Claude 4.5 series (claude-sonnet-4-5, claude-haiku-4-5, claude-opus-4-5). Added "Enable Extended Thinking" checkbox. Increased max tokens to 32k (standard) and 48k (thinking mode).
+- **Google**: Added Gemini 3 preview models (gemini-3-pro-preview, gemini-3-flash-preview) alongside Gemini 2.5 models. Extended thinking mode support.
+- **Mistral**: Updated to latest versioned models including Mistral Large 3, Medium 3.1, Small 3.2, Ministral 3 (8B/14B), and Magistral 1.2 (Medium/Small).
+
+### Other Improvements
+
+- New project logo with cleaner, minimal shield + neural network design
+- Enhanced improvement suggestions for agentic applications (prompts for framework details, communication protocols, sandbox mechanisms)
+- Bug fix: Resolved issue where threat model output would disappear after clicking download button
+
+---
+
+## Version 0.14.1
+
+### Security Infrastructure
+
+Added comprehensive automated security scanning and hardening:
+
+- GitHub Actions workflows for Bandit, CodeQL, pip-audit, Safety, Gitleaks, and Trivy
+- SECURITY.md with vulnerability reporting process (48-hour acknowledgment SLA)
+- Enhanced Docker configuration with security hardening and resource limits
+- Production-ready docker-compose.yml
+- Dependabot configuration for automated weekly dependency updates
+- Production-ready secrets management guidance
+
+### Enterprise Operationalization Guide
+
+Added comprehensive guide for customizing STRIDE-GPT with organizational context:
+
+- Inject security controls and compliance requirements
+- Customize with approved technology stacks
+- Deployment patterns for enterprise use
+- Step-by-step instructions and code examples
+
+---
+
+## Version 0.14
+
+### Advanced Reasoning Models
+
+- **GPT-5 Series Support**: Comprehensive support for OpenAI's GPT-5 series (gpt-5, gpt-5-mini, gpt-5-nano) with enhanced analytical capabilities
+- **Anthropic Claude 4**: Added support for Claude 4 models (claude-opus-4-1-20250805, claude-opus-4-20250514, claude-sonnet-4-20250514)
+- **Enhanced Reasoning Integration**: Updated parameter handling using `max_completion_tokens` for compatibility with latest API requirements
+
+### GitHub Enterprise Support
+
+Added support for GitHub Enterprise repositories with automatic API endpoint detection and configuration. (Thanks to @danielpops!)
+
+### Improvements
+
+- Removed truncation limits in DREAD assessment scenario descriptions
+- Security updates for dependencies (anyio, zipp, tornado, requests, urllib3)
+- Mistral model updates: Added Magistral Medium/Small, Mistral Medium, Ministral 8B
+- Groq model updates: OpenAI GPT-OSS models, Moonshot Kimi K2, Qwen3 32B
+- Google Gemini 2.5 GA versions (replacing preview versions)
+- Added "Buy me a coffee" button in sidebar for project support
+
+---
+
+## Version 0.13
+
+### Model Enhancements
+
+- **New OpenAI Models**: Added gpt-4.1, o3, and o4-mini with detailed analytical capabilities
+- **Google GenAI SDK Migration**: Completely migrated to new Google GenAI SDK, removing dependency on deprecated library
+- **Enhanced Reasoning Model Support**: Expanded reasoning framework to work with all OpenAI reasoning models (o1, o3, o3-mini, o4-mini)
+
+### Improvements
+
+- Increased token limits for new models (gpt-4.1: 1M tokens, o4-mini: 200K tokens)
+- Enhanced multi-modal support for Gemini 2.5, Claude 3, and Claude 4 models
+- Updated to latest Gemini preview models
+
+---
+
+## Version 0.12
+
+### Claude 3.7 Integration
+
+Added comprehensive support for Anthropic's Claude 3.7 models with innovative "thinking mode" for detailed reasoning during analysis.
+
+### Improvements
+
+- Significantly enhanced GitHub repository analysis with intelligent file selection
+- Better programming language support and progress tracking
+- GPT-4.5 preview support with improved model selection guidance
+- Performance optimizations with better token usage tracking and warnings
+
+---
+
+## Version 0.11
+
+### Local Model Hosting
+
+- **LM Studio Server Support**: Run local LLMs with OpenAI-compatible API endpoints, complementing existing Ollama integration
+- **Dynamic Model Discovery**: Automatic model discovery for Ollama and LM Studio Server
+
+### Model Support
+
+- Google Gemini attack tree support
+- Reasoning models: OpenAI's o1 and o3-mini, DeepSeek R1 via Groq API
+- Google Gemini 2.0 Flash for faster inference
+
+### Improvements
+
+- Enhanced attack tree generation with robust JSON parsing and Mermaid diagram conversion
+- Improved threat model generation guidance and prompts
+- Structured output support across all model providers
+- UI enhancements for new model configurations and local LLM limitations
+
+---
+
+## Version 0.10
+
+### GitHub Repository Analysis
+
+STRIDE GPT now supports automatic analysis of GitHub repositories. Provide a repository URL to analyze README and key files for comprehensive threat modeling.
+
+### Other Features
+
+- Environment variable support for API keys and configuration
+- Improved error handling and retry mechanisms for API calls
+- UI enhancements to accommodate new features
+
+---
+
+## Version 0.9
+
+### Local Model Hosting
+
+Added support for locally hosted LLMs via Ollama integration - particularly useful for organizations with strict data privacy requirements.
+
+<Info>
+Local model hosting is not available on the Streamlit Community Cloud version at https://stridegpt.streamlit.app
+</Info>
+
+### Other Updates
+
+- Updated to Mistral Client v1.0, resolving breaking changes in latest Mistral API
+
+---
+
+## Version 0.8.1
+
+### Model Support
+
+- **GPT-4o mini**: Cost-efficient small model with high-quality threat modeling responses
+- **Gemini 1.5 Pro (stable)**: Choice between stable or preview versions
+
+---
+
+## Version 0.8
+
+### Major Features
+
+<Steps>
+  <Step title="DREAD Risk Scoring">
+    Assign risk scores to identified threats based on the DREAD model for comprehensive threat assessment and prioritization.
+  </Step>
+  
+  <Step title="Gherkin Test Cases">
+    Generate Gherkin test cases based on identified threats to bridge the gap between threat modeling and testing.
+  </Step>
+  
+  <Step title="UI Enhancements">
+    Refreshed user interface making it easier to navigate and interact with features.
+  </Step>
+</Steps>
+
+---
+
+## Version 0.7
+
+### Multi-Modal Threat Modeling
+
+Added support for multi-modal threat modeling using OpenAI's GPT-4o and GPT-4-Turbo models. Provide architecture diagrams, flowcharts, or other visual representations to enhance threat modeling.
+
+### Google AI Integration
+
+Added Gemini 1.5 Pro support via Google AI API.
+
+<Note>
+Gemini doesn't consistently generate JSON output, so you may need to retry some requests. Attack trees can't be generated using Google AI models due to Google's safety restrictions.
+</Note>
+
+### Improvements
+
+- Refactored codebase for improved maintainability and readability
+- Minor bug fixes and error handling improvements
+
+---
+
+## Version 0.6
+
+### Mistral API Integration
+
+Users can now choose LLMs provided by Mistral AI for generating threat models, attack trees, and mitigation suggestions - providing an alternative to OpenAI's GPT models.
+
+### Other Updates
+
+- Refined prompts to encourage more comprehensive outputs with multiple threats per STRIDE category
+- Public roadmap for visibility into upcoming features
+- UI enhancements for Mistral API integration
+
+---
+
+## Version 0.5
+
+### Docker Container Image
+
+STRIDE GPT is now available as a [Docker container image](https://hub.docker.com/repository/docker/mrwadams/stridegpt/general) on Docker Hub for easier deployment on public and private clouds.
+
+---
+
+## Version 0.4
+
+### Integration of New GPT Models
+
+Added support for "gpt-4-1106-preview" and "gpt-3.5-turbo-1106" models with advanced capabilities for threat modeling.
+
+### Direct OpenAI API Calls
+
+STRIDE GPT now makes direct calls to OpenAI API using JSON Mode, greatly reducing syntax errors in threat model generation.
+
+### Other Improvements
+
+- Refined attack tree generation for more reliable output
+- Minimized syntax errors in Mermaid diagram generation
+- New logo and color scheme (generated by DALL·E 3)
+- Bug fixes and performance improvements
+
+---
+
+## Version 0.3
+
+### Threat Mitigations
+
+STRIDE GPT can now suggest potential mitigations for identified threats, helping users develop prevention strategies.
+
+### Downloadable Output
+
+Download generated threat models, attack trees, and mitigations as Markdown files directly from the application.
+
+### Improvements
+
+- Refined user interface for better readability and usability
+- Updated to latest 0613 versions of GPT-3.5-turbo and GPT-4 models
+- Bug fixes and performance enhancements
+
+---
+
+## Version 0.2
+
+### Attack Tree Generation
+
+Added attack tree generation for applications based on provided details, helping users understand potential attack paths.
+
+### Attack Tree Visualization
+
+Experimental feature to visualize generated attack trees directly in the app using Mermaid.js.
+
+### GPT-4 Model Support
+
+Added support for OpenAI's GPT-4 model (for users with GPT-4 API access).
+
+### UI Improvements
+
+Restructured app layout with collapsible sections for Threat Model and Attack Tree for cleaner navigation.
+
+---
+
+## Version 0.1
+
+Initial release of STRIDE GPT with core threat modeling capabilities:
+
+- Generate threat models based on STRIDE methodology
+- Simple and user-friendly interface
+- Support for basic application details input
+- Integration with OpenAI GPT models
+
+---
+
+## Stay Updated
+
+<Info>
+Watch the [GitHub repository](https://github.com/mrwadams/stride-gpt) for release notifications and subscribe to security advisories to stay informed about the latest updates.
+</Info>
+
+For future roadmap items, check the [GitHub Issues](https://github.com/mrwadams/stride-gpt/issues) page.

@@ -1,0 +1,383 @@
+---
+title: 'Multi-Modal Analysis'
+description: 'Upload architecture diagrams and images for AI-powered visual analysis and threat modeling'
+icon: 'image'
+---
+
+## Overview
+
+STRIDE GPT supports multi-modal analysis, allowing you to upload architecture diagrams, system diagrams, and other visual representations of your application. The AI analyzes the image and generates a detailed description that's automatically incorporated into your threat model.
+
+## Supported Models
+
+Multi-modal image analysis is available with the following model providers:
+
+<CardGroup cols={3}>
+  <Card title="OpenAI" icon="openai">
+    - GPT-4.1
+    - GPT-5 series
+    - GPT-5-mini
+    - GPT-5-nano
+    - GPT-5.2
+    - GPT-5.2-pro
+  </Card>
+  
+  <Card title="Google AI" icon="google">
+    - Gemini 3 Pro Preview
+    - Gemini 3 Flash Preview
+    - Gemini 2.5 Flash
+    - Gemini 2.5 Flash Lite
+    - Gemini 2.5 Pro
+  </Card>
+  
+  <Card title="Anthropic" icon="cloud">
+    - Claude Sonnet 4.5
+    - Claude Haiku 4.5
+    - Claude Opus 4.5
+  </Card>
+</CardGroup>
+
+<Info>
+Image analysis is automatically enabled when you select a compatible model. The file uploader appears in the Threat Model tab.
+</Info>
+
+## Supported Image Formats
+
+You can upload the following image types:
+
+- **JPEG** (.jpg, .jpeg)
+- **PNG** (.png)
+
+<Note>
+Images are automatically converted to base64 encoding for API transmission.
+</Note>
+
+## Image Analysis Prompt
+
+The AI uses a specialized prompt to analyze architecture diagrams:
+
+```python
+def create_image_analysis_prompt():
+    return """
+    You are a Senior Solution Architect tasked with explaining the following architecture diagram to
+    a Security Architect to support the threat modelling of the system.
+
+    In order to complete this task you must:
+
+      1. Analyse the diagram
+      2. Explain the system architecture to the Security Architect. Your explanation should cover the key
+         components, their interactions, and any technologies used.
+
+    Provide a direct explanation of the diagram in a clear, structured format, suitable for a professional
+    discussion.
+
+    IMPORTANT INSTRUCTIONS:
+     - Do not include any words before or after the explanation itself. For example, do not start your
+    explanation with "The image shows..." or "The diagram shows..." just start explaining the key components
+    and other relevant details.
+     - Do not infer or speculate about information that is not visible in the diagram. Only provide information that can be
+    directly determined from the diagram itself.
+    """
+```
+
+<Warning>
+The AI only analyzes what is **directly visible** in the diagram. It does not infer or speculate about components not shown.
+</Warning>
+
+## What the AI Extracts
+
+When analyzing architecture diagrams, the AI identifies:
+
+<Steps>
+  <Step title="Overall Architecture">
+    Brief overview of the system shown in the diagram
+  </Step>
+  
+  <Step title="Key Components">
+    - Frontend applications (web, mobile)
+    - Backend services and APIs
+    - Databases and data stores
+    - Message queues and event systems
+    - Authentication/authorization services
+    - Third-party integrations
+  </Step>
+  
+  <Step title="Data Flow">
+    How information moves through the system:
+    - User requests
+    - API calls
+    - Database queries
+    - Event propagation
+    - External service communication
+  </Step>
+  
+  <Step title="Technologies Used">
+    Identifiable technologies, frameworks, or platforms:
+    - Programming languages (if labeled)
+    - Frameworks (React, Node.js, etc.)
+    - Databases (PostgreSQL, MongoDB, etc.)
+    - Cloud providers (AWS, Azure, GCP)
+    - Protocols (HTTP, gRPC, WebSocket)
+  </Step>
+  
+  <Step title="Security Considerations">
+    Visible security measures:
+    - Firewalls
+    - Load balancers
+    - API gateways
+    - VPCs/network boundaries
+    - Authentication mechanisms
+  </Step>
+</Steps>
+
+## Implementation Details
+
+### OpenAI Models
+
+For GPT-4 and GPT-5 series models (main.py:453-504):
+
+```python
+def get_image_analysis(api_key, model_name, prompt, base64_image):
+    client = OpenAI(api_key=api_key)
+    
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
+                },
+            ],
+        }
+    ]
+    
+    # For GPT-5 reasoning models, use structured system prompt
+    if model_name in ["gpt-5.2", "gpt-5-mini", "gpt-5-nano", "gpt-5.2-pro", "gpt-5"]:
+        system_prompt = create_reasoning_system_prompt(
+            task_description="Analyze the provided architecture diagram and explain it to a Security Architect.",
+            approach_description="""1. Carefully examine the diagram
+2. Identify all components and their relationships
+3. Note any technologies, protocols, or security measures shown
+4. Create a clear, structured explanation with these sections:
+   - Overall Architecture: Brief overview of the system
+   - Key Components: List and explain each major component
+   - Data Flow: How information moves through the system
+   - Technologies Used: Identify technologies, frameworks, or platforms
+   - Security Considerations: Note any visible security measures""",
+        )
+        messages.insert(0, {"role": "system", "content": system_prompt})
+        
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=messages,
+            max_completion_tokens=20000 if model_name.startswith("gpt-5") else 8192
+        )
+    else:
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=messages,
+            max_tokens=8192
+        )
+    
+    return {"choices": [{"message": {"content": response.choices[0].message.content}}]}
+```
+
+### Google Gemini Models
+
+For Gemini models (main.py:507-526):
+
+```python
+def get_image_analysis_google(api_key, model_name, prompt, base64_image):
+    from google.genai import types as google_types
+    
+    client = google_genai.Client(api_key=api_key)
+    
+    # Create blob from base64 image
+    blob = google_types.Blob(
+        data=base64.b64decode(base64_image),
+        mime_type="image/jpeg"
+    )
+    
+    # Create content with text and image
+    content = [
+        google_types.Content(
+            role="user",
+            parts=[
+                google_types.Part(text=prompt),
+                google_types.Part(inlineData=blob),
+            ],
+        )
+    ]
+    
+    config = google_types.GenerateContentConfig()
+    response = client.models.generate_content(
+        model=model_name,
+        contents=content,
+        config=config
+    )
+    
+    return {"choices": [{"message": {"content": response.text}}]}
+```
+
+### Anthropic Claude Models
+
+For Claude models (main.py:529-556):
+
+```python
+def get_image_analysis_anthropic(api_key, model_name, prompt, base64_image, media_type="image/jpeg"):
+    client = Anthropic(api_key=api_key)
+    
+    response = client.messages.create(
+        model=model_name,
+        max_tokens=4000,
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": media_type,
+                            "data": base64_image,
+                        },
+                    },
+                    {"type": "text", "text": prompt},
+                ],
+            }
+        ],
+    )
+    
+    text = "".join(block.text for block in response.content if getattr(block, "text", None))
+    return {"choices": [{"message": {"content": text}}]}
+```
+
+## Using Multi-Modal Analysis
+
+<Steps>
+  <Step title="Select Compatible Model">
+    Choose a model that supports image analysis (GPT-4+, Gemini, or Claude)
+  </Step>
+  
+  <Step title="Navigate to Threat Model Tab">
+    The file uploader appears automatically for compatible models
+  </Step>
+  
+  <Step title="Upload Architecture Diagram">
+    Click "Upload architecture diagram" and select a JPEG or PNG file
+  </Step>
+  
+  <Step title="Wait for Analysis">
+    The AI analyzes the image and generates a detailed description
+  </Step>
+  
+  <Step title="Review Generated Description">
+    The image analysis is automatically added to the application description field
+  </Step>
+  
+  <Step title="Add Additional Context">
+    Supplement the AI-generated description with additional details about:
+    - Authentication mechanisms not visible in the diagram
+    - Data sensitivity levels
+    - Compliance requirements
+    - Deployment environment
+  </Step>
+  
+  <Step title="Generate Threat Model">
+    Click "Generate Threat Model" to create threats based on the visual analysis
+  </Step>
+</Steps>
+
+## Example Analysis Output
+
+For a typical three-tier web application diagram, the AI might generate:
+
+```
+The architecture consists of three primary layers:
+
+Presentation Layer:
+- React-based web application served via CDN
+- Mobile applications (iOS and Android) for client access
+- API Gateway handling authentication and routing
+
+Application Layer:
+- Node.js backend services running in containerized environment
+- Microservices architecture with separate services for:
+  - User authentication and authorization
+  - Business logic processing
+  - Data aggregation and transformation
+- Redis cache for session management and performance optimization
+
+Data Layer:
+- PostgreSQL primary database for transactional data
+- MongoDB for unstructured document storage
+- S3-compatible object storage for file uploads
+
+Data Flow:
+1. Client requests pass through API Gateway
+2. Gateway authenticates via OAuth2 and routes to appropriate backend service
+3. Backend services query databases and cache as needed
+4. Responses flow back through Gateway to clients
+
+Technologies Identified:
+- Frontend: React, React Native
+- Backend: Node.js, Express
+- Databases: PostgreSQL, MongoDB
+- Cache: Redis
+- Container orchestration: Kubernetes
+- Cloud provider: AWS (indicated by service icons)
+
+Security Considerations:
+- API Gateway provides centralized authentication
+- Network segmentation between layers visible
+- Database shown in private subnet
+- HTTPS/TLS indicated for external communication
+```
+
+<Note>
+The AI provides only what it can **see** in the diagram. Always supplement with additional context about implementation details, security controls, and architectural decisions not visible in the image.
+</Note>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Clear Diagrams" icon="diagram-project">
+    Use high-quality, clearly labeled architecture diagrams. Include component names, technology labels, and connection types.
+  </Card>
+  
+  <Card title="Standard Notation" icon="shapes">
+    Use standard diagramming notation (AWS icons, Azure icons, etc.) for better AI recognition.
+  </Card>
+  
+  <Card title="Supplement with Text" icon="text">
+    Add textual descriptions for implementation details not visible in the diagram (authentication flows, encryption methods, etc.).
+  </Card>
+  
+  <Card title="Multiple Views" icon="layer-group">
+    For complex systems, upload multiple diagrams showing different architectural views (logical, physical, network, etc.).
+  </Card>
+</CardGroup>
+
+## Limitations
+
+<Warning>
+Multi-modal analysis has the following limitations:
+
+- AI can only analyze **visible** elements in the diagram
+- Cannot infer implementation details not shown
+- May misinterpret ambiguous or non-standard diagram notation
+- Limited to static architecture - cannot analyze dynamic behavior
+- Image quality affects analysis accuracy
+</Warning>
+
+## Code Reference
+
+Multi-modal analysis is implemented in:
+
+- **threat_model.py:430-451** - `create_image_analysis_prompt()` function
+- **threat_model.py:453-504** - `get_image_analysis()` for OpenAI models
+- **threat_model.py:507-526** - `get_image_analysis_google()` for Gemini models
+- **threat_model.py:529-556** - `get_image_analysis_anthropic()` for Claude models
+- **main.py:1162-1238** - Upload and processing logic

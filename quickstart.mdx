@@ -1,80 +1,197 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: 'Quickstart'
+description: 'Get started with STRIDE GPT in 5 minutes'
 ---
 
-## Get started in three steps
+Get up and running with STRIDE GPT to generate your first threat model using AI-powered security analysis.
 
-Get your documentation site running locally and make your first customization.
+## Prerequisites
 
-### Step 1: Set up your local environment
+Before you begin, you'll need:
+- An API key from at least one AI provider (OpenAI, Anthropic, Google, Mistral, or Groq)
+- OR a local model running via [Ollama](https://ollama.ai) or LM Studio
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+<Info>
+Don't have an API key? Check out the [installation configuration guide](/installation/configuration) for links to get started with each provider.
+</Info>
 
-### Step 2: Deploy your changes
+## Installation
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
+Choose your preferred installation method:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Local Setup" icon="laptop-code" href="/installation/local">
+    Clone the repository and run locally with Python
+  </Card>
+  <Card title="Docker Deployment" icon="docker" href="/installation/docker">
+    Pull and run the pre-built Docker container
+  </Card>
 </CardGroup>
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+## Launch the Application
+
+<Steps>
+  <Step title="Start STRIDE GPT">
+    After installation, launch the application:
+    
+    <CodeGroup>
+    ```bash Local
+    streamlit run main.py
+    ```
+    
+    ```bash Docker
+    docker run -p 8501:8501 --env-file .env mrwadams/stridegpt
+    ```
+    </CodeGroup>
+    
+    The application will open in your browser at `http://localhost:8501`
+  </Step>
+  
+  <Step title="Configure Your AI Provider">
+    In the sidebar, select your preferred model provider and enter your API key:
+    
+    ```python Example: OpenAI Configuration
+    1. Select "OpenAI API" from the dropdown
+    2. Enter your OpenAI API key
+    3. Choose a model (e.g., gpt-5.2)
+    ```
+    
+    <Note>
+    Your API keys are stored only in your browser session and are never saved to disk.
+    </Note>
+  </Step>
+  
+  <Step title="Describe Your Application">
+    In the main area, provide details about your application:
+    
+    ```text Example Description
+    A web application that allows users to create, store, and share 
+    personal notes. The application is built using React frontend and 
+    Node.js backend with MongoDB database. Users authenticate via 
+    OAuth2 with Google or Facebook. Notes are encrypted at rest and 
+    only accessible by the user who created them. The application 
+    supports real-time collaboration with other users.
+    ```
+    
+    Fill in additional details:
+    - **Application Type**: Web application, Mobile app, API, etc.
+    - **Authentication**: OAuth, JWT, Session-based, etc.
+    - **Internet Facing**: Yes/No
+    - **Sensitive Data**: PII, Financial, Health records, etc.
+  </Step>
+  
+  <Step title="Generate Threat Model">
+    Click **"Generate Threat Model"** and wait for the AI to analyze your application.
+    
+    The threat model will display threats categorized by STRIDE methodology:
+    - **S**poofing
+    - **T**ampering
+    - **R**epudiation
+    - **I**nformation Disclosure
+    - **D**enial of Service
+    - **E**levation of Privilege
+    
+    <Warning>
+    Generation time varies based on your chosen model and API rate limits. 
+    Reasoning models (GPT-5 series) take longer but provide deeper analysis.
+    </Warning>
+  </Step>
+  
+  <Step title="Review Your Results">
+    Examine the generated threats in the table format:
+    
+    | Threat Type | Scenario | Potential Impact |
+    |-------------|----------|------------------|
+    | Spoofing | Attacker impersonates OAuth provider... | Unauthorized account access... |
+    | Tampering | Man-in-the-middle attack on API calls... | Data modification... |
+    
+    Review the **Improvement Suggestions** to enhance your threat model in the next iteration.
+    
+    Download your results as Markdown using the **Download** button.
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Generate Attack Trees" icon="diagram-project" href="/features/attack-trees">
+    Visualize attack paths and scenarios
+  </Card>
+  <Card title="Add Mitigations" icon="shield-check" href="/features/mitigations">
+    Get AI-powered security recommendations
+  </Card>
+  <Card title="DREAD Scoring" icon="chart-line" href="/features/dread-scoring">
+    Quantify and prioritize risks
+  </Card>
+  <Card title="Agentic AI Apps" icon="robot" href="/ai-applications/agentic-ai">
+    Threat model AI agents and autonomous systems
+  </Card>
+</CardGroup>
+
+## Optional: Advanced Features
+
+### Upload Architecture Diagrams
+
+For supported models (GPT-4+, Claude, Gemini), upload architecture diagrams to automatically generate application descriptions:
+
+```python
+1. Click "Upload architecture diagram"
+2. Select your diagram (JPG, PNG)
+3. Wait for AI analysis
+4. Review and edit the generated description
+```
+
+### Analyze GitHub Repositories
+
+Automatically analyze codebases from GitHub:
+
+```python
+1. Enter your GitHub API key in the sidebar
+2. Paste the repository URL (e.g., https://github.com/owner/repo)
+3. STRIDE GPT will analyze README and code files
+4. Generated description appears in the text area
+```
+
+<Info>
+GitHub analysis supports both public GitHub and GitHub Enterprise instances.
+</Info>
+
+### Use Local Models
+
+For air-gapped or privacy-sensitive environments:
+
+```python
+1. Select "Ollama" or "LM Studio Server" as provider
+2. Configure your local endpoint
+3. Select from available local models
+4. Generate threat models entirely offline
+```
+
+Learn more in the [Ollama](/providers/ollama) and [LM Studio](/providers/lm-studio) guides.
+
+## Security Best Practices
+
+<Warning>
+Always follow security best practices when using STRIDE GPT:
+- Store API keys in `.env` files, not in code
+- Set spending limits in your AI provider dashboard
+- Review generated outputs—AI models can make mistakes
+- Avoid sharing real credentials in application descriptions
+</Warning>
+
+For comprehensive security guidance, see [Security Best Practices](/security/best-practices).
+
+## Need Help?
+
+<CardGroup cols={2}>
+  <Card title="Configuration Guide" icon="gear" href="/installation/configuration">
+    Detailed setup for all AI providers
+  </Card>
+  <Card title="STRIDE Methodology" icon="book" href="/reference/stride-methodology">
+    Learn about the STRIDE framework
+  </Card>
+</CardGroup>
+
+---
+
+**Ready to threat model?** Start by [installing STRIDE GPT locally](/installation/local) or [running with Docker](/installation/docker).

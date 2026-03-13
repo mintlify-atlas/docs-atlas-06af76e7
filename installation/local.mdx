@@ -1,0 +1,158 @@
+---
+title: Local Installation
+description: Install and run STRIDE GPT locally on your machine
+---
+
+STRIDE GPT can be installed locally on your machine for development or personal use. This guide walks you through cloning the repository, installing dependencies, and running the application.
+
+## Prerequisites
+
+Before installing STRIDE GPT, ensure you have the following:
+
+- Python 3.12 or higher
+- pip (Python package manager)
+- Git
+- At least one LLM provider API key (OpenAI, Anthropic, Google AI, Mistral, or Groq)
+
+## Installation Steps
+
+<Steps>
+  <Step title="Clone the Repository">
+    Clone the STRIDE GPT repository from GitHub:
+
+    ```bash
+    git clone https://github.com/mrwadams/stride-gpt.git
+    ```
+  </Step>
+
+  <Step title="Navigate to Directory">
+    Change to the cloned repository directory:
+
+    ```bash
+    cd stride-gpt
+    ```
+  </Step>
+
+  <Step title="Install Dependencies">
+    Install the required Python packages using pip:
+
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+    This will install the following core dependencies:
+    - `streamlit>=1.40` - Web application framework
+    - `openai` - OpenAI API client for GPT models
+    - `anthropic` - Anthropic API client for Claude models
+    - `google-genai` - Google AI API client for Gemini models
+    - `mistralai>=1.0.0` - Mistral AI API client
+    - `groq` - Groq API client
+    - `pyGithub` - GitHub API integration
+    - `python-dotenv` - Environment variable management
+    - `tiktoken` - Token counting for OpenAI models
+
+    Security-pinned dependencies:
+    - `tornado>=6.4.2`
+    - `requests>=2.32.2`
+    - `urllib3>=2.2.2`
+    - `anyio>=4.4.0`
+    - `zipp>=3.19.1`
+    - `h11>=0.16.0`
+  </Step>
+
+  <Step title="Configure Environment Variables">
+    Copy the example environment file and configure your API keys:
+
+    ```bash
+    cp .env.example .env
+    ```
+
+    Edit the `.env` file with your actual API keys. See the [Configuration](/installation/configuration) page for detailed environment variable setup.
+  </Step>
+</Steps>
+
+## Running the Application
+
+Once installation is complete, start the Streamlit application:
+
+```bash
+streamlit run main.py
+```
+
+The application will start and provide a local URL (typically `http://localhost:8501`). Open this URL in your web browser to access STRIDE GPT.
+
+<Info>
+  When you run the application, it will automatically load the environment variables from your `.env` file, pre-filling the API keys in the application interface.
+</Info>
+
+## Local Model Hosting (Optional)
+
+STRIDE GPT supports local LLM hosting for organizations with strict data privacy requirements:
+
+### Ollama Integration
+
+STRIDE GPT supports [Ollama](https://ollama.ai/) for running models locally:
+
+1. Install Ollama on your machine
+2. Pull a model (e.g., `ollama pull llama3`)
+3. Ensure Ollama is running on the default endpoint: `http://localhost:11434`
+4. Select Ollama as your model provider in the STRIDE GPT interface
+
+### LM Studio Server Integration
+
+STRIDE GPT also supports [LM Studio Server](https://lmstudio.ai/) with OpenAI-compatible API endpoints:
+
+1. Install LM Studio
+2. Start the local server
+3. Ensure LM Studio is running on the default endpoint: `http://localhost:1234`
+4. Select LM Studio Server as your model provider in the STRIDE GPT interface
+
+<Note>
+  Local model hosting features are not available for users of the STRIDE GPT version hosted on Streamlit Community Cloud. These features require local installation.
+</Note>
+
+## Verifying Installation
+
+To verify your installation is working correctly:
+
+1. Access the application in your browser
+2. Enter your API key in the sidebar (or verify it's pre-filled from `.env`)
+3. Select a model provider and model
+4. Enter basic application details in the interface
+5. Generate a simple threat model to test functionality
+
+## Troubleshooting
+
+### Import Errors
+
+If you encounter import errors, ensure all dependencies are installed:
+
+```bash
+pip install -r requirements.txt --upgrade
+```
+
+### Port Already in Use
+
+If port 8501 is already in use, specify a different port:
+
+```bash
+streamlit run main.py --server.port 8502
+```
+
+### API Key Issues
+
+If API keys aren't being loaded:
+
+1. Verify your `.env` file is in the same directory as `main.py`
+2. Check that variable names in `.env` match the expected format
+3. Restart the application after modifying `.env`
+
+<Warning>
+  Never commit your `.env` file to version control. The `.gitignore` file is pre-configured to exclude it, but verify this before committing changes.
+</Warning>
+
+## Next Steps
+
+- Review the [Configuration](/installation/configuration) guide for detailed API key setup
+- Learn about [Docker deployment](/installation/docker) for containerized environments
+- Explore the application features and generate your first threat model

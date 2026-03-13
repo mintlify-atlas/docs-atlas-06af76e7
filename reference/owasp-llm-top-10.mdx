@@ -1,0 +1,299 @@
+---
+title: OWASP LLM Top 10
+description: OWASP Top 10 for Large Language Model Applications security risks in STRIDE GPT
+---
+
+## Overview
+
+The **OWASP Top 10 for Large Language Model Applications 2025** identifies the most critical security risks specific to LLM-powered systems. STRIDE GPT maps these LLM-specific vulnerabilities to STRIDE categories for comprehensive threat modeling.
+
+<Note>
+STRIDE GPT automatically includes OWASP LLM risks when analyzing Generative AI or Agentic AI applications.
+</Note>
+
+## OWASP LLM Risk Categories
+
+### LLM01: Prompt Injection
+
+**Description**: Attacker crafts inputs that override system prompts or instructions, manipulating the LLM's behavior or outputs.
+
+**STRIDE Categories**:
+- **Spoofing**: Making the LLM impersonate other entities
+- **Tampering**: Direct or indirect injection manipulating LLM behavior
+
+**Examples**:
+- User input containing hidden instructions to ignore safety guidelines
+- Malicious content in documents processed by RAG systems
+- Email content that redirects agent objectives
+- Web scraping that injects adversarial instructions
+
+<Accordion title="Risk Scenario">
+**Scenario**: An attacker injects malicious instructions into a document processed by a RAG system, causing the LLM to provide misleading financial advice.
+
+**Impact**: Users make poor decisions based on manipulated outputs, leading to financial losses.
+
+**Mitigation**: Input validation, prompt engineering, output filtering, user confirmation for sensitive actions.
+</Accordion>
+
+### LLM02: Sensitive Information Disclosure
+
+**Description**: LLM reveals training data, personally identifiable information (PII), credentials, or proprietary information in its responses.
+
+**STRIDE Category**: **Information Disclosure**
+
+**Examples**:
+- Training data memorization leading to PII leakage
+- API keys or credentials exposed in responses
+- Proprietary business logic revealed through careful prompting
+- Cross-user data leakage in multi-tenant systems
+
+<Accordion title="Risk Scenario">
+**Scenario**: The LLM inadvertently reveals PII from its training data when users ask questions similar to training examples.
+
+**Impact**: Privacy breach exposing customer personal information, potential regulatory violations.
+
+**Mitigation**: Data sanitization, differential privacy, output filtering, access controls.
+</Accordion>
+
+### LLM03: Supply Chain Vulnerabilities
+
+**Description**: Compromised models, plugins, training data, or dependencies introduce backdoors or malicious capabilities.
+
+**STRIDE Category**: **Elevation of Privilege**
+
+**Examples**:
+- Models from untrusted sources containing backdoors
+- Compromised plugins or extensions
+- Poisoned pre-trained models or embeddings
+- Vulnerable dependencies in the ML pipeline
+
+<Accordion title="Risk Scenario">
+**Scenario**: A third-party plugin used by the LLM application contains malicious code that exfiltrates user queries.
+
+**Impact**: Loss of confidential user data, compliance violations, reputational damage.
+
+**Mitigation**: Model provenance verification, dependency scanning, code review, trusted suppliers only.
+</Accordion>
+
+### LLM04: Data and Model Poisoning
+
+**Description**: Malicious modification of training data, fine-tuning data, or embeddings to alter model behavior or degrade performance.
+
+**STRIDE Categories**:
+- **Tampering**: Malicious modification of training data or embeddings
+- **Denial of Service**: Model performance degradation
+
+**Examples**:
+- Backdoor triggers inserted during fine-tuning
+- Adversarial examples in training data
+- Poisoned documents in RAG knowledge bases
+- Manipulated embeddings affecting retrieval
+
+<Accordion title="Risk Scenario">
+**Scenario**: An attacker uploads poisoned documents to a RAG knowledge base, causing the system to return malicious recommendations.
+
+**Impact**: All users querying the poisoned data receive compromised responses.
+
+**Mitigation**: Input validation, content filtering, data provenance tracking, regular audits.
+</Accordion>
+
+### LLM05: Improper Output Handling
+
+**Description**: LLM output passed to downstream systems without validation enables command injection, XSS, SSRF, or other vulnerabilities.
+
+**STRIDE Category**: **Elevation of Privilege**
+
+**Examples**:
+- SQL injection through unsanitized LLM output
+- Cross-site scripting (XSS) from LLM-generated HTML
+- Server-side request forgery (SSRF) via generated URLs
+- Command injection through shell execution of LLM output
+
+<Accordion title="Risk Scenario">
+**Scenario**: LLM output containing user-controlled content is passed to a SQL query without sanitization, enabling SQL injection.
+
+**Impact**: Database compromise and unauthorized data access.
+
+**Mitigation**: Output validation, parameterized queries, sandboxing, principle of least privilege.
+</Accordion>
+
+### LLM06: Excessive Agency
+
+**Description**: LLM granted excessive permissions or autonomy to perform actions beyond intended scope.
+
+**STRIDE Category**: **Elevation of Privilege**
+
+**Examples**:
+- Agents with write access to critical databases
+- Autonomous actions without human approval
+- Over-privileged tool access
+- Insufficient guardrails on agent capabilities
+
+<Accordion title="Risk Scenario">
+**Scenario**: An LLM agent is granted file system write access and, through prompt injection, deletes critical files.
+
+**Impact**: Data loss, system unavailability, operational disruption.
+
+**Mitigation**: Least privilege principle, human-in-the-loop for sensitive actions, action scoping, audit logging.
+</Accordion>
+
+### LLM07: System Prompt Leakage
+
+**Description**: Extraction of system prompts reveals confidential system instructions, business logic, or secrets embedded in prompts.
+
+**STRIDE Categories**:
+- **Spoofing**: Reveals intended identity/behavior for targeted spoofing
+- **Information Disclosure**: Exposure of confidential instructions, secrets, or logic
+
+**Examples**:
+- System prompts containing API keys or credentials
+- Business logic exposed through prompt extraction
+- Security controls revealed in system instructions
+- Role-based instructions leaking access patterns
+
+<Accordion title="Risk Scenario">
+**Scenario**: The LLM reveals fragments of its system prompt containing API keys when users craft specific queries about its configuration.
+
+**Impact**: Exposure of credentials enables unauthorized access to backend services.
+
+**Mitigation**: Externalize secrets, prompt hardening, output filtering, monitoring for extraction attempts.
+</Accordion>
+
+### LLM08: Vector and Embedding Weaknesses
+
+**Description**: Vulnerabilities in embeddings and RAG systems enable manipulation, leakage, or poisoning of retrieval results.
+
+**STRIDE Categories**:
+- **Tampering**: Manipulation of RAG data or embeddings
+- **Information Disclosure**: Cross-tenant data leakage through embeddings
+
+**Examples**:
+- Adversarial documents designed to surface in unrelated queries
+- Cross-tenant data exposure in shared vector databases
+- Embedding inversion attacks extracting original text
+- Metadata leakage through similarity search
+
+<Accordion title="Risk Scenario">
+**Scenario**: An attacker crafts documents with embeddings similar to financial queries, causing their content to appear in other users' results.
+
+**Impact**: Cross-user data leakage, exposure of proprietary information.
+
+**Mitigation**: Tenant isolation, embedding security, access controls, content filtering.
+</Accordion>
+
+### LLM09: Misinformation
+
+**Description**: LLM generates false, misleading, or harmful information that users trust and act upon.
+
+**STRIDE Category**: **Repudiation**
+
+**Examples**:
+- Hallucinated medical advice causing harm
+- Fabricated legal citations in legal research
+- False financial information affecting decisions
+- Invented sources or references
+
+<Accordion title="Risk Scenario">
+**Scenario**: An LLM provides hallucinated medical advice that a user follows, leading to adverse health outcomes.
+
+**Impact**: Physical harm, legal liability, loss of trust, reputational damage.
+
+**Mitigation**: Fact-checking, source attribution, confidence scoring, user disclaimers, human review.
+</Accordion>
+
+### LLM10: Unbounded Consumption
+
+**Description**: Resource exhaustion through expensive queries, long contexts, repeated requests, or denial-of-wallet attacks.
+
+**STRIDE Category**: **Denial of Service**
+
+**Examples**:
+- Extremely long context windows consuming resources
+- Rapid-fire requests exhausting API quotas
+- Complex queries causing timeout or crashes
+- Cost-based DoS through expensive model calls
+
+<Accordion title="Risk Scenario">
+**Scenario**: An attacker sends thousands of maximum-length prompts to exhaust API rate limits and incur excessive costs.
+
+**Impact**: Service unavailability, unexpected costs, degraded performance for legitimate users.
+
+**Mitigation**: Rate limiting, request throttling, cost caps, input length limits, monitoring.
+</Accordion>
+
+## STRIDE Mapping Reference
+
+<CardGroup cols={2}>
+  <Card title="Spoofing" icon="mask">
+    LLM01 (Prompt Injection)
+    LLM07 (System Prompt Leakage)
+  </Card>
+  <Card title="Tampering" icon="wrench">
+    LLM01 (Prompt Injection)
+    LLM04 (Data and Model Poisoning)
+    LLM08 (Vector and Embedding Weaknesses)
+  </Card>
+  <Card title="Repudiation" icon="clock-rotate-left">
+    LLM09 (Misinformation)
+    Lack of audit trails
+  </Card>
+  <Card title="Information Disclosure" icon="eye">
+    LLM02 (Sensitive Information Disclosure)
+    LLM07 (System Prompt Leakage)
+    LLM08 (Vector and Embedding Weaknesses)
+  </Card>
+  <Card title="Denial of Service" icon="ban">
+    LLM10 (Unbounded Consumption)
+    LLM04 (Data and Model Poisoning - performance)
+  </Card>
+  <Card title="Elevation of Privilege" icon="arrow-up">
+    LLM05 (Improper Output Handling)
+    LLM06 (Excessive Agency)
+    LLM03 (Supply Chain)
+  </Card>
+</CardGroup>
+
+## Critical Evaluation Questions
+
+When analyzing GenAI applications, STRIDE GPT evaluates:
+
+1. **LLM01**: Can users or external content manipulate the LLM's behavior through crafted inputs?
+2. **LLM02**: Could the LLM leak training data, PII, or secrets in its responses?
+3. **LLM03**: Are models, plugins, and dependencies from trusted sources with integrity verification?
+4. **LLM04**: Could training data, fine-tuning data, or RAG content be poisoned?
+5. **LLM05**: Is LLM output validated and sanitized before use in downstream systems?
+6. **LLM06**: Does the LLM have appropriate limits on its actions and permissions?
+7. **LLM07**: Could system prompts containing secrets or logic be extracted?
+8. **LLM08**: Are embeddings and RAG systems protected from manipulation and leakage?
+9. **LLM09**: Could LLM hallucinations or false outputs cause harm if trusted?
+10. **LLM10**: Are there limits on resource consumption to prevent DoS and cost overruns?
+
+## Application in STRIDE GPT
+
+When you select **"Generative AI application"** or **"Agentic AI application"**, STRIDE GPT:
+
+<Accordion title="Automatic Analysis">
+1. Includes all 10 OWASP LLM risks in threat analysis
+2. Maps each LLM risk to corresponding STRIDE categories
+3. Generates specific threat scenarios based on your application description
+4. Includes the `OWASP_LLM` field in JSON output (e.g., "LLM01", "LLM02")
+5. Provides LLM-specific improvement suggestions
+</Accordion>
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="STRIDE Methodology" href="/reference/stride-methodology">
+    Learn how STRIDE integrates with OWASP LLM risks
+  </Card>
+  <Card title="OWASP ASI Top 10" href="/reference/owasp-asi-top-10">
+    Explore agentic-specific security risks
+  </Card>
+  <Card title="DREAD Framework" href="/reference/dread-framework">
+    Understand risk scoring for LLM threats
+  </Card>
+</CardGroup>
+
+<Note>
+For the official OWASP LLM Top 10 documentation, visit [https://owasp.org/www-project-top-10-for-large-language-model-applications/](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
+</Note>

@@ -1,0 +1,339 @@
+---
+title: 'DREAD Scoring'
+description: 'Quantify and prioritize security risks using the DREAD methodology with AI-powered risk assessments'
+icon: 'chart-line'
+---
+
+## Overview
+
+DREAD scoring provides a quantitative risk assessment for each identified threat. STRIDE GPT automatically evaluates threats across five dimensions and calculates an overall risk score to help prioritize security efforts.
+
+## DREAD Methodology
+
+DREAD is a risk assessment model that evaluates threats on a scale of 1-10 across five categories:
+
+<CardGroup cols={2}>
+  <Card title="Damage Potential" icon="burst">
+    How much harm could the attack cause?
+    - **1-3**: Limited impact, minimal damage
+    - **4-6**: Moderate damage, some data loss
+    - **7-10**: Severe damage, complete system compromise
+  </Card>
+  
+  <Card title="Reproducibility" icon="repeat">
+    How easy is it to reproduce the attack?
+    - **1-3**: Difficult to reproduce, requires specific conditions
+    - **4-6**: Can be reproduced with some effort
+    - **7-10**: Easily reproducible every time
+  </Card>
+  
+  <Card title="Exploitability" icon="wrench">
+    How much skill/resources are needed?
+    - **1-3**: Requires advanced skills and specialized tools
+    - **4-6**: Requires moderate technical knowledge
+    - **7-10**: Can be exploited with minimal skills
+  </Card>
+  
+  <Card title="Affected Users" icon="users">
+    How many users are impacted?
+    - **1-3**: Small subset of users
+    - **4-6**: Significant portion of users
+    - **7-10**: All users affected
+  </Card>
+  
+  <Card title="Discoverability" icon="magnifying-glass">
+    How easy is it to find the vulnerability?
+    - **1-3**: Difficult to discover, requires deep analysis
+    - **4-6**: Can be discovered with some research
+    - **7-10**: Obvious vulnerability, easily discoverable
+  </Card>
+</CardGroup>
+
+## Risk Score Calculation
+
+The overall risk score is calculated as:
+
+```
+Risk Score = (Damage Potential + Reproducibility + Exploitability + Affected Users + Discoverability) / 5
+```
+
+**Risk Levels**:
+- **1.0 - 3.0**: Low Risk
+- **3.1 - 6.0**: Medium Risk
+- **6.1 - 10.0**: High Risk
+
+## LLM/GenAI DREAD Considerations
+
+For Generative AI applications, scoring includes specific factors:
+
+### Damage Potential
+- Prompt injection → Complete system compromise or data exfiltration
+- Training data poisoning affects all users, persists across model updates
+- Sensitive data disclosure may include PII, credentials, proprietary information
+- Malicious output generation causes reputational damage and legal liability
+
+### Reproducibility
+- Prompt injection success varies with model, temperature, and context
+- Some attacks require specific phrasing or multi-turn conversations
+- RAG poisoning may need time for embeddings to propagate
+- Model behavior can be non-deterministic, making exact reproduction difficult
+
+### Exploitability
+- Prompt injection requires **minimal technical skill**
+- Supply chain attacks on models/plugins require access to trusted sources
+- Training data poisoning may need access to fine-tuning pipelines
+- Some attacks are as simple as crafting malicious user input
+
+### Affected Users
+- Model-level vulnerabilities affect **all users** of that model instance
+- RAG/knowledge base poisoning impacts everyone querying that data
+- Per-user context isolation failures expose cross-user data
+- Shared prompt templates multiply the blast radius
+
+### Discoverability
+- Basic prompt injection is **easily discoverable** through experimentation
+- System prompt extraction is often trivial with creative prompting
+- Training data can sometimes be extracted through careful probing
+- Model capabilities and limitations are often documented or enumerable
+
+## Agentic AI DREAD Considerations
+
+For Agentic AI applications, additional scoring factors apply:
+
+### Damage Potential
+<AccordionGroup>
+  <Accordion title="Cascading Effects">
+    - Consider **cascading effects across agent chains** and downstream systems
+    - Memory/context poisoning affects all future sessions and users
+    - Credential exfiltration grants persistent access to multiple systems
+    - Autonomous actions may cause irreversible damage before detection
+    - Multi-agent compromises have exponential blast radius
+    - Infrastructure attacks enable lateral movement
+    
+    **Scoring Adjustment**: +2-3 for cascading/amplification effects
+  </Accordion>
+  
+  <Accordion title="Persistent Impact">
+    - Memory poisoning creates **persistent compromise** across sessions
+    - Rogue agents establish persistence beyond intended lifecycle
+    - Compromised training data affects all future model generations
+    
+    **Scoring Adjustment**: +2 for persistent impact
+  </Accordion>
+</AccordionGroup>
+
+### Reproducibility
+- Agent behaviors may be probabilistic and context-dependent
+- Prompt injection success depends on specific input formatting and model state
+- Memory poisoning effects manifest inconsistently across sessions
+- Multi-step attacks through agent chains harder to reproduce exactly
+- RAG-based attacks depend on embedding similarity and retrieval ranking
+
+**Scoring Adjustment**: -1 to -2 for non-deterministic agent behaviors
+
+### Exploitability
+- Prompt injection attacks require low technical skill but specific knowledge of agent behavior
+- Tool misuse often exploits configuration gaps rather than code vulnerabilities
+- Supply chain attacks (malicious MCP servers) require access to trusted repositories
+- Context poisoning may require patience but little technical sophistication
+- Code execution exploits vary: simple prompt tricks vs. advanced sandbox escapes
+- Multi-agent attacks may require understanding of communication protocols
+
+### Affected Users
+- Multi-agent systems **amplify impact** across all connected agents and their users
+- Shared memory/RAG databases affect all users of that knowledge base
+- Credential abuse affects all systems accessible with those credentials
+- Agent-to-agent communication attacks cascade across entire agent ecosystems
+- Foundation model compromises affect every application using that model
+- Infrastructure attacks impact all tenants in shared environments
+
+**Scoring Adjustment**: +2-3 for ecosystem-wide attacks
+
+### Discoverability
+- Prompt injection vulnerabilities easily discoverable through normal interaction
+- Agent decision logs may reveal exploitable patterns and tool permissions
+- Tool permissions and capabilities often documented or easily enumerated
+- Memory contents may leak through carefully crafted queries
+- Framework vulnerabilities often published in CVE databases
+- Agent behavior patterns can be profiled through systematic probing
+
+**Scoring Adjustment**: +1-2 for easily enumerable agent capabilities
+
+## Architectural Pattern Scoring Adjustments
+
+DREAD scores are automatically adjusted based on detected patterns:
+
+<Steps>
+  <Step title="RAG/Retrieval Systems">
+    - **Damage Potential**: +1-2 if RAG serves multiple users (poisoning affects everyone)
+    - **Reproducibility**: -1 if retrieval is non-deterministic
+    - **Affected Users**: +2-3 if shared knowledge base across users/tenants
+    - **Discoverability**: +1 if document upload is user-accessible
+  </Step>
+  
+  <Step title="Multi-Agent Systems">
+    - **Damage Potential**: +2-3 for cascading/amplification effects across agent chains
+    - **Reproducibility**: -1-2 for complex multi-agent interactions
+    - **Affected Users**: +2 for ecosystem-wide attacks affecting all connected agents
+    - **Discoverability**: +1 if agent communication patterns are observable
+  </Step>
+  
+  <Step title="Code Execution Environments">
+    - **Damage Potential**: +3 if sandbox escape is possible (full system compromise)
+    - **Exploitability**: Variable based on sandbox strength (-2 for strong, +2 for weak)
+    - **Affected Users**: +2-3 if shared infrastructure (affects co-tenants)
+    - **Discoverability**: -1 for sophisticated sandbox escapes (requires expertise)
+  </Step>
+  
+  <Step title="Tool/MCP Ecosystems">
+    - **Damage Potential**: +1-2 based on tool permissions (higher for write/execute tools)
+    - **Reproducibility**: +1 if tool behavior is deterministic
+    - **Exploitability**: +2 if tools accept unvalidated parameters
+    - **Discoverability**: +2 if tool list and capabilities are enumerable
+  </Step>
+  
+  <Step title="Persistent Memory Systems">
+    - **Damage Potential**: +2 if memory affects future sessions (persistent compromise)
+    - **Reproducibility**: -1 if memory retrieval is similarity-based (less predictable)
+    - **Affected Users**: +2-3 if memory is shared across users
+    - **Discoverability**: +1 if memory contents can be queried directly
+  </Step>
+  
+  <Step title="Autonomous Operations">
+    - **Damage Potential**: +2-3 if actions are irreversible before human review
+    - **Exploitability**: +1 if human oversight is minimal or can be bypassed
+    - **Affected Users**: Based on scope of autonomous actions
+    - **Discoverability**: -1 if attack occurs during low-monitoring periods
+  </Step>
+</Steps>
+
+## Output Format
+
+DREAD assessments are displayed as a comprehensive table:
+
+| Threat Type | Scenario | Damage Potential | Reproducibility | Exploitability | Affected Users | Discoverability | Risk Score |
+|------------|----------|------------------|-----------------|----------------|----------------|-----------------|------------|
+| Spoofing | OAuth2 provider impersonation | 8 | 6 | 5 | 9 | 7 | **7.00** |
+| Information Disclosure | LLM reveals system prompt with API keys | 9 | 8 | 8 | 10 | 9 | **8.80** |
+| Elevation of Privilege | Agent code execution escapes sandbox | 10 | 7 | 6 | 8 | 5 | **7.20** |
+
+<Info>
+Higher risk scores indicate threats that should be prioritized for immediate mitigation.
+</Info>
+
+## Cross-Layer Threat Scoring
+
+For threats spanning multiple architectural components, the tool considers cumulative risk:
+
+```
+Example: RAG Poisoning → Agent Goal Hijack → Tool Misuse → Data Exfiltration
+
+Damage Potential: 10 (Full attack chain leads to complete data exfiltration)
+Reproducibility: 6 (Multi-step attack, some variance in each stage)
+Exploitability: 7 (Initial poisoning is easy, subsequent steps are automated)
+Affected Users: 9 (Poisoned RAG affects all users querying that data)
+Discoverability: 5 (RAG poisoning is detectable but agent behavior change may be subtle)
+
+Risk Score: 7.40 (High Risk)
+```
+
+<Warning>
+For cross-layer threats, score the **Damage Potential for the full attack chain**, not just the initial step.
+</Warning>
+
+## JSON Response Format
+
+DREAD assessments are generated as structured JSON:
+
+```json
+{
+  "Risk Assessment": [
+    {
+      "Threat Type": "Spoofing",
+      "Scenario": "An attacker could create a fake OAuth2 provider and trick users into logging in through it.",
+      "Damage Potential": 8,
+      "Reproducibility": 6,
+      "Exploitability": 5,
+      "Affected Users": 9,
+      "Discoverability": 7
+    },
+    {
+      "Threat Type": "Information Disclosure",
+      "Scenario": "The LLM reveals fragments of its system prompt containing API keys when users craft specific queries.",
+      "Damage Potential": 9,
+      "Reproducibility": 8,
+      "Exploitability": 8,
+      "Affected Users": 10,
+      "Discoverability": 9
+    }
+  ]
+}
+```
+
+## Conversion to Markdown
+
+The `dread_json_to_markdown()` function (dread.py:16-69) converts JSON to a formatted table:
+
+```python
+def dread_json_to_markdown(dread_assessment):
+    markdown_output = "| Threat Type | Scenario | Damage Potential | Reproducibility | Exploitability | Affected Users | Discoverability | Risk Score |\n"
+    markdown_output += "|------------|----------|------------------|-----------------|----------------|----------------|-----------------|------------|\n"
+    
+    threats = dread_assessment.get("Risk Assessment", [])
+    
+    for threat in threats:
+        # Get DREAD values
+        damage_potential = threat.get("Damage Potential", 0)
+        reproducibility = threat.get("Reproducibility", 0)
+        exploitability = threat.get("Exploitability", 0)
+        affected_users = threat.get("Affected Users", 0)
+        discoverability = threat.get("Discoverability", 0)
+        
+        # Calculate Risk Score
+        risk_score = (
+            damage_potential + reproducibility + exploitability + 
+            affected_users + discoverability
+        ) / 5
+        
+        markdown_output += f"| {threat_type} | {scenario} | {damage_potential} | {reproducibility} | {exploitability} | {affected_users} | {discoverability} | {risk_score:.2f} |\n"
+    
+    return markdown_output
+```
+
+## Using the DREAD Scoring Feature
+
+<Steps>
+  <Step title="Generate Threat Model">
+    First, create a threat model with identified threats
+  </Step>
+  
+  <Step title="Navigate to DREAD Tab">
+    Click the "DREAD" tab in the STRIDE GPT interface
+  </Step>
+  
+  <Step title="Generate DREAD Assessment">
+    Click "Generate DREAD Assessment" to score all identified threats
+  </Step>
+  
+  <Step title="Review Risk Scores">
+    Sort threats by risk score to identify highest-priority items
+  </Step>
+  
+  <Step title="Prioritize Mitigations">
+    Use DREAD scores to prioritize which mitigations to implement first
+  </Step>
+</Steps>
+
+<Note>
+DREAD scores are estimates based on the information provided. Always validate scores with security experts familiar with your specific environment and threat landscape.
+</Note>
+
+## Code Reference
+
+DREAD scoring is implemented in:
+
+- **dread.py:16-69** - `dread_json_to_markdown()` conversion function
+- **dread.py:72-247** - `create_dread_assessment_prompt()` prompt generation
+- **dread.py:267-315** - `get_dread_assessment()` for OpenAI models
+- **dread.py:318-372** - `get_dread_assessment_google()` for Google models
+- **dread.py:471-574** - `get_dread_assessment_anthropic()` for Claude models

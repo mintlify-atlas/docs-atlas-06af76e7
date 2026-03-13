@@ -1,0 +1,456 @@
+---
+title: 'GitHub Repository Analysis'
+description: 'Automatically analyze GitHub repositories to extract code structure and README content for threat modeling'
+icon: 'github'
+---
+
+## Overview
+
+STRIDE GPT can automatically analyze GitHub repositories to extract code structure, dependencies, and README content. This provides rich context for threat modeling without manually describing your application.
+
+## How It Works
+
+The GitHub analysis feature:
+
+<Steps>
+  <Step title="Connects to Repository">
+    Uses the GitHub API to access your repository (requires API token)
+  </Step>
+  
+  <Step title="Extracts README">
+    Prioritizes README.md content for project overview and context
+  </Step>
+  
+  <Step title="Analyzes Code Files">
+    Scans supported file types (Python, JavaScript, Java, Go, etc.) to extract:
+    - Imports and dependencies
+    - Class definitions
+    - Function signatures
+    - Configuration files
+  </Step>
+  
+  <Step title="Generates Summary">
+    Creates a structured summary of the repository with token usage tracking
+  </Step>
+  
+  <Step title="Auto-Populates Description">
+    Automatically fills the application description field with the analysis
+  </Step>
+</Steps>
+
+## Supported Languages
+
+The tool analyzes the following file types:
+
+<CardGroup cols={3}>
+  <Card title="Python" icon="python">
+    .py files
+    - Import statements
+    - Class definitions
+    - Function signatures
+  </Card>
+  
+  <Card title="JavaScript/TypeScript" icon="js">
+    .js, .ts files
+    - Import/require statements
+    - Class definitions
+    - Function declarations
+  </Card>
+  
+  <Card title="Java" icon="java">
+    .java files
+    - Import statements
+    - Class/interface definitions
+    - Method signatures
+  </Card>
+  
+  <Card title="Go" icon="golang">
+    .go files
+    - Import statements
+    - Function declarations
+  </Card>
+  
+  <Card title="C/C++" icon="c">
+    .c, .cpp, .h files
+    - Function signatures
+  </Card>
+  
+  <Card title="C#" icon="microsoft">
+    .cs files
+    - Using statements
+    - Class definitions
+    - Method signatures
+  </Card>
+  
+  <Card title="Ruby" icon="gem">
+    .rb files
+    - Require statements
+    - Class definitions
+  </Card>
+  
+  <Card title="PHP" icon="php">
+    .php files
+    - Include/require statements
+    - Class definitions
+  </Card>
+  
+  <Card title="HTML/CSS" icon="html5">
+    .html, .css files
+    - Structure analysis
+  </Card>
+</CardGroup>
+
+## Setup Requirements
+
+### GitHub API Token
+
+You need a GitHub Personal Access Token to use this feature:
+
+<Steps>
+  <Step title="Navigate to GitHub Settings">
+    Go to [GitHub Developer Settings](https://github.com/settings/tokens)
+  </Step>
+  
+  <Step title="Generate New Token">
+    Click "Generate new token" → "Generate new token (classic)"
+  </Step>
+  
+  <Step title="Configure Permissions">
+    Select the following scopes:
+    - `repo` (for private repositories)
+    - `public_repo` (for public repositories only)
+  </Step>
+  
+  <Step title="Copy Token">
+    Copy the generated token and paste it into STRIDE GPT sidebar
+  </Step>
+</Steps>
+
+<Warning>
+GitHub tokens are sensitive. Store them securely and never commit them to version control.
+</Warning>
+
+## Token Limit Management
+
+The tool includes intelligent token management to prevent exceeding model context limits:
+
+### Configurable Token Limit
+
+Set your maximum token limit in Advanced Settings (sidebar):
+
+- **Minimum**: 4,000 tokens
+- **Maximum**: Varies by model (up to 1,000,000 for some models)
+- **Default**: Typically 64,000-128,000 depending on selected model
+
+### How Token Limits Work
+
+```python
+# From main.py:256-272
+token_limit = st.session_state.get("token_limit", 64000)
+
+# Reserve 70% for analysis, 30% for model response
+analysis_token_limit = int(token_limit * 0.7)
+
+# README gets up to 70% of analysis budget
+max_readme_tokens = analysis_token_limit * 0.7
+
+# Remaining 30% reserved for code analysis
+code_token_limit = analysis_token_limit - readme_tokens
+```
+
+<Info>
+If your README is very large, it will be automatically truncated to stay within token limits.
+</Info>
+
+### Automatic Truncation
+
+When approaching token limits:
+
+1. **README truncation**: Large READMEs are truncated to 70% of the analysis budget
+2. **File prioritization**: Important files (main.py, app.py, config.json) are analyzed first
+3. **Summary notification**: Tool notifies you how many files were analyzed vs. skipped
+
+Example notification:
+
+```
+Repository Analysis Summary:
+- Files analyzed: 42 of 87 total files
+- Token usage estimate: ~45,000 tokens
+- Token limit configured: 64,000 tokens
+```
+
+<Warning>
+If you see truncation warnings, consider increasing the token limit in Advanced Settings or providing a manual application description.
+</Warning>
+
+## File Summarization
+
+The `summarize_file()` function (main.py:418-517) extracts key components:
+
+```python
+def summarize_file(file_path, content):
+    summary = f"File: {file_path}\n"
+    
+    # Extract imports (language-specific)
+    if file_ext in ["py"]:
+        imports = re.findall(r"^import .*|^from .* import .*", content, re.MULTILINE)
+    elif file_ext in ["js", "ts"]:
+        imports = re.findall(r"^import .*|^const .* = require\(.*\)", content, re.MULTILINE)
+    # ... other languages
+    
+    # Extract functions (language-specific)
+    if file_ext in ["py"]:
+        functions = re.findall(r"def .*\(.*\):", content, re.MULTILINE)
+    elif file_ext in ["js", "ts"]:
+        functions = re.findall(r"function .*\(.*\) {|const .* = \(.*\) =>", content, re.MULTILINE)
+    # ... other languages
+    
+    # Extract classes (language-specific)
+    if file_ext in ["py"]:
+        classes = re.findall(r"class .*:", content, re.MULTILINE)
+    elif file_ext in ["js", "ts"]:
+        classes = re.findall(r"class .* {", content, re.MULTILINE)
+    # ... other languages
+    
+    # Build summary with limits
+    import_limit = 5 if not is_large_file else 3
+    function_limit = 10 if not is_large_file else 5
+    class_limit = 5 if not is_large_file else 3
+    
+    return summary
+```
+
+<Note>
+For large files (>10,000 characters), the tool reduces the number of extracted items to stay within token limits.
+</Note>
+
+## File Prioritization
+
+Files are analyzed in order of importance:
+
+```python
+def file_importance(file):
+    # Lower score = higher importance
+    if file.path.lower() in ["main.py", "app.py", "index.js", "package.json", "config.json"]:
+        return 0  # Highest priority
+    if "test" in file.path.lower() or "spec" in file.path.lower():
+        return 3  # Lowest priority
+    if file.path.endswith((".py", ".js", ".ts", ".java", ".go")):
+        return 1  # High priority
+    return 2  # Medium priority
+```
+
+This ensures critical files are analyzed first before hitting token limits.
+
+## Example Analysis Output
+
+### README Content
+
+```markdown
+Repository: https://github.com/mrwadams/stride-gpt
+
+README.md Content:
+# STRIDE GPT
+
+AI-powered threat modeling tool using the STRIDE methodology.
+
+## Features
+- Automatic threat identification
+- DREAD risk scoring
+- Attack tree generation
+- Gherkin test case creation
+
+## Tech Stack
+- Python 3.11+
+- Streamlit
+- OpenAI GPT-4
+- Anthropic Claude
+- Google Gemini
+...
+```
+
+### Code File Summaries
+
+```
+PY Files:
+File: main.py
+Imports:
+import streamlit as st
+from openai import OpenAI
+from anthropic import Anthropic
+from google import genai as google_genai
+...
+
+Functions:
+def get_input():
+def analyze_github_repo(repo_url):
+def summarize_file(file_path, content):
+...
+
+File: threat_model.py
+Imports:
+import json
+import re
+import requests
+import streamlit as st
+...
+
+Functions:
+def json_to_markdown(threat_model, improvement_suggestions):
+def create_llm_stride_prompt_section():
+def create_agentic_stride_prompt_section():
+def create_threat_model_prompt(app_type, authentication, internet_facing, sensitive_data, app_input):
+...
+```
+
+### Analysis Summary
+
+```
+Repository Analysis Summary:
+- Files analyzed: 15 of 23 total files
+- Token usage estimate: ~38,456 tokens
+- Token limit configured: 64,000 tokens
+```
+
+## Using GitHub Analysis
+
+<Steps>
+  <Step title="Enter GitHub API Key">
+    Paste your GitHub Personal Access Token in the sidebar
+  </Step>
+  
+  <Step title="Configure Token Limit (Optional)">
+    Adjust token limit in Advanced Settings if needed for large repositories
+  </Step>
+  
+  <Step title="Enter Repository URL">
+    In the Threat Model tab, enter a GitHub repository URL:
+    ```
+    https://github.com/owner/repository
+    ```
+  </Step>
+  
+  <Step title="Wait for Analysis">
+    The tool displays a progress bar while analyzing files
+  </Step>
+  
+  <Step title="Review Generated Summary">
+    The application description field is auto-populated with the analysis
+  </Step>
+  
+  <Step title="Add Additional Context">
+    Supplement the auto-generated description with:
+    - Deployment environment details
+    - Authentication/authorization specifics
+    - Data sensitivity classifications
+    - Compliance requirements
+  </Step>
+  
+  <Step title="Generate Threat Model">
+    Click "Generate Threat Model" to analyze based on the code structure
+  </Step>
+</Steps>
+
+## Private vs. Public Repositories
+
+### Public Repositories
+
+Require a token with `public_repo` scope:
+
+```
+Scopes: public_repo
+```
+
+### Private Repositories
+
+Require a token with full `repo` scope:
+
+```
+Scopes: repo (includes all private repository access)
+```
+
+<Warning>
+Grant only the minimum required permissions. For public repositories, use `public_repo` scope only.
+</Warning>
+
+## GitHub Enterprise Support
+
+STRIDE GPT supports GitHub Enterprise installations:
+
+```python
+# From main.py:232-242
+parsed_url = urlparse(repo_url)
+owner = parts[-2]
+repo_name = parts[-1]
+
+# Initialize PyGithub with custom base URL
+g = Github(
+    st.session_state.get("github_api_key", ""),
+    base_url=f"{parsed_url.scheme}://{parsed_url.hostname}/api/v3"
+)
+```
+
+For GitHub Enterprise, use URLs like:
+```
+https://github.your-company.com/owner/repository
+```
+
+## Token Estimation
+
+The tool uses tiktoken for accurate token counting:
+
+```python
+def estimate_tokens(text, model="gpt-5.2"):
+    try:
+        # Use tiktoken for accurate estimation
+        enc = tiktoken.encoding_for_model(model)
+        return len(enc.encode(text))
+    except (ImportError, KeyError, ValueError):
+        # Fall back to character-based approximation
+        return len(text) // 4  # Conservative estimate for English
+```
+
+<Info>
+Token estimates help prevent exceeding model context windows. Adjust the token limit slider if you need more comprehensive analysis.
+</Info>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Provide Context" icon="message">
+    Supplement auto-generated descriptions with security-relevant details not visible in code (threat actors, compliance requirements, etc.)
+  </Card>
+  
+  <Card title="Update Token Limits" icon="sliders">
+    For large repositories, increase token limits in Advanced Settings to analyze more files
+  </Card>
+  
+  <Card title="Review Summaries" icon="eye">
+    Always review auto-generated summaries for accuracy before generating threat models
+  </Card>
+  
+  <Card title="Combine with Images" icon="images">
+    Use GitHub analysis with architecture diagram uploads for comprehensive context
+  </Card>
+</CardGroup>
+
+## Limitations
+
+<Warning>
+GitHub analysis has the following limitations:
+
+- **Static analysis only**: Cannot analyze runtime behavior or configuration
+- **Token limits**: Very large repositories may be truncated
+- **Language support**: Only extracts structure from supported languages
+- **Binary files**: Cannot analyze compiled binaries or images
+- **Secrets**: Does not detect hardcoded secrets (use dedicated secret scanning tools)
+</Warning>
+
+## Code Reference
+
+GitHub analysis is implemented in:
+
+- **main.py:232-415** - `analyze_github_repo()` main analysis function
+- **main.py:418-517** - `summarize_file()` file summarization function
+- **main.py:209-229** - `estimate_tokens()` token counting function
+- **main.py:174-206** - `get_input()` GitHub URL input handling

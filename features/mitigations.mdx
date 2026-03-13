@@ -1,0 +1,441 @@
+---
+title: 'Mitigations'
+description: 'Generate AI-powered security recommendations and mitigating controls for identified threats'
+icon: 'shield-check'
+---
+
+## Overview
+
+The Mitigations feature provides specific, actionable security controls to address each threat identified in your threat model. Recommendations are tailored to your application type and include industry best practices.
+
+## Mitigation Categories
+
+Mitigations are organized by threat type and application category:
+
+### Traditional Application Mitigations
+
+<CardGroup cols={2}>
+  <Card title="Authentication & Authorization" icon="key">
+    - Multi-factor authentication
+    - Role-based access control (RBAC)
+    - Principle of least privilege
+    - Session management best practices
+  </Card>
+  
+  <Card title="Data Protection" icon="database">
+    - Encryption at rest and in transit
+    - Data classification and handling
+    - Secure key management
+    - Data retention policies
+  </Card>
+  
+  <Card title="Input Validation" icon="filter">
+    - Server-side validation
+    - Output encoding
+    - Parameterized queries
+    - Content Security Policy (CSP)
+  </Card>
+  
+  <Card title="Infrastructure Security" icon="server">
+    - Network segmentation
+    - Security monitoring and logging
+    - Patch management
+    - Incident response planning
+  </Card>
+</CardGroup>
+
+### LLM/GenAI Application Mitigations
+
+For Generative AI applications, the tool provides specialized controls based on **OWASP Top 10 for LLM Applications 2025**:
+
+<AccordionGroup>
+  <Accordion title="1. Prompt Injection Defense">
+    - Implement input validation and sanitization for all user inputs
+    - Use prompt/response filtering to detect injection attempts
+    - Separate system instructions from user content with clear delimiters
+    - Consider using instruction hierarchy or privileged prompts
+    - Implement content security scanning for documents and data sources
+    
+    **Example Implementation**:
+    ```python
+    def validate_user_input(user_input: str) -> str:
+        # Remove instruction override patterns
+        forbidden_patterns = [
+            "ignore previous",
+            "disregard instructions",
+            "new instructions",
+            "system:"
+        ]
+        for pattern in forbidden_patterns:
+            if pattern.lower() in user_input.lower():
+                raise SecurityException("Potential prompt injection detected")
+        return sanitize(user_input)
+    ```
+  </Accordion>
+  
+  <Accordion title="2. Sensitive Data Protection">
+    - Implement PII detection and redaction in LLM inputs and outputs
+    - Use differential privacy techniques for fine-tuning
+    - Sanitize training data to remove sensitive information
+    - Apply output filtering to prevent data leakage
+    - Implement data loss prevention (DLP) controls
+    
+    **Example Implementation**:
+    ```python
+    def redact_pii(text: str) -> str:
+        # Detect and redact common PII patterns
+        patterns = {
+            'email': r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
+            'ssn': r'\b\d{3}-\d{2}-\d{4}\b',
+            'credit_card': r'\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b'
+        }
+        for pii_type, pattern in patterns.items():
+            text = re.sub(pattern, f'[REDACTED_{pii_type.upper()}]', text)
+        return text
+    ```
+  </Accordion>
+  
+  <Accordion title="3. Supply Chain Security">
+    - Verify model integrity with checksums and signatures
+    - Use models only from trusted sources with security audits
+    - Implement vulnerability scanning for ML dependencies
+    - Maintain an ML bill of materials (ML-BOM)
+    - Perform security reviews before model updates
+  </Accordion>
+  
+  <Accordion title="4. Data & Model Integrity">
+    - Validate and sanitize all data used for RAG and fine-tuning
+    - Implement provenance tracking for training data
+    - Use anomaly detection to identify poisoned data
+    - Regularly evaluate model outputs for drift or degradation
+    - Implement model versioning and rollback capabilities
+  </Accordion>
+  
+  <Accordion title="5. Output Validation">
+    - Never trust LLM output - validate and sanitize before use
+    - Implement output encoding appropriate to context (HTML, SQL, etc.)
+    - Use allowlists for permitted actions/commands
+    - Apply content security policies for generated content
+    - Implement secondary validation for high-risk outputs
+    
+    **Example Implementation**:
+    ```python
+    def validate_llm_output(output: str, context: str) -> str:
+        if context == "sql":
+            # Validate SQL - only allow SELECT statements
+            if not output.strip().upper().startswith('SELECT'):
+                raise SecurityException("Only SELECT queries allowed")
+            # Use parameterized query builder
+            return build_parameterized_query(output)
+        elif context == "html":
+            # HTML encode all user-controlled output
+            return html.escape(output)
+        return output
+    ```
+  </Accordion>
+  
+  <Accordion title="6. Access Control & Rate Limiting">
+    - Implement per-user and per-session rate limits
+    - Set token/cost budgets to prevent unbounded consumption
+    - Use tiered access based on user trust level
+    - Monitor for anomalous usage patterns
+    - Implement circuit breakers for API quota protection
+  </Accordion>
+  
+  <Accordion title="7. System Prompt Protection">
+    - Avoid storing secrets or sensitive logic in system prompts
+    - Implement prompt leakage detection
+    - Use indirect references for sensitive configuration
+    - Regularly audit prompts for information exposure risks
+    - Separate system prompts from user-accessible context
+  </Accordion>
+  
+  <Accordion title="8. RAG & Embedding Security">
+    - Implement access controls on vector databases
+    - Validate retrieved content before injection into prompts
+    - Use tenant isolation for multi-tenant RAG systems
+    - Monitor for embedding manipulation attempts
+    - Implement document provenance tracking
+  </Accordion>
+</AccordionGroup>
+
+### Agentic AI Application Mitigations
+
+For Agentic AI systems, additional controls address autonomous operations and tool use:
+
+<Steps>
+  <Step title="Input Validation & Prompt Security">
+    - Sanitize all inputs before processing by the agent
+    - Implement prompt injection detection and filtering (both direct and indirect)
+    - Validate and sanitize content from external sources (documents, emails, web pages)
+    - Use content security scanning for ingested documents
+    - Implement input source verification and provenance tracking
+  </Step>
+  
+  <Step title="Least Privilege & Access Control">
+    - Minimize tool/function permissions to only what's necessary for each task
+    - Use scoped, short-lived credentials instead of long-lived tokens
+    - Implement per-action authorization checks
+    - Apply different permission levels based on input source trust
+    - Use capability-based security for tool access
+    
+    **Example Configuration**:
+    ```json
+    {
+      "agent_permissions": {
+        "file_system": {
+          "read": ["/workspace/public"],
+          "write": ["/workspace/output"],
+          "deny": ["/etc", "/home", "/root"]
+        },
+        "network": {
+          "allowed_domains": ["api.example.com"],
+          "deny_private_ips": true
+        },
+        "tools": {
+          "execute_code": "sandbox_only",
+          "database_access": "read_only"
+        }
+      }
+    }
+    ```
+  </Step>
+  
+  <Step title="Sandboxing & Isolation">
+    - Execute generated code in isolated containers with resource limits (CPU, memory, time)
+    - Restrict file system access to specific directories with read/write controls
+    - Limit network access to allowlisted destinations only
+    - Implement process isolation for multi-tenant environments
+    - Use seccomp/AppArmor profiles to restrict system calls
+  </Step>
+  
+  <Step title="Audit Logging & Observability">
+    - Log all agent actions, decisions, and tool invocations with timestamps
+    - Implement immutable audit trails for forensic analysis
+    - Monitor for anomalous agent behavior patterns (unusual tool usage, data access)
+    - Track agent decision chains for explainability
+    - Implement real-time alerting for high-risk actions
+    
+    **Example Log Entry**:
+    ```json
+    {
+      "timestamp": "2026-03-13T10:30:45Z",
+      "agent_id": "agent-7f8e9d",
+      "action": "tool_invocation",
+      "tool_name": "file_read",
+      "parameters": {"path": "/workspace/data.csv"},
+      "user_context": "user_123",
+      "decision_chain": ["analyze_data", "read_file"],
+      "risk_level": "low"
+    }
+    ```
+  </Step>
+  
+  <Step title="Human Oversight & Approval Workflows">
+    - Require human approval for high-risk actions (financial, destructive, external communication)
+    - Implement confirmation prompts for irreversible operations
+    - Provide clear visibility into agent decision-making rationale
+    - Support human-in-the-loop review for sensitive data access
+    - Enable action rollback where possible
+  </Step>
+  
+  <Step title="Memory & Context Protection">
+    - Encrypt persistent agent memory at rest and in transit
+    - Validate and sanitize retrieved context before use
+    - Implement memory segmentation between users/sessions/tenants
+    - Set memory retention limits and automatic expiration
+    - Scan memory contents for sensitive data leakage
+  </Step>
+  
+  <Step title="Agent Authentication & Integrity">
+    - Use cryptographic signing for inter-agent communication
+    - Verify tool provider authenticity (MCP server certificates, package signatures)
+    - Implement mutual TLS for agent-to-agent communication
+    - Use agent identity attestation in multi-agent systems
+    - Validate agent configuration integrity at startup
+  </Step>
+  
+  <Step title="Circuit Breakers & Rate Limiting">
+    - Implement loop detection to prevent infinite reasoning cycles
+    - Set resource consumption limits per request/session (tokens, API calls, compute time)
+    - Add circuit breakers to halt cascading failures between agents
+    - Implement backoff strategies for failing operations
+    - Set hard limits on autonomous operation duration
+    
+    **Example Implementation**:
+    ```python
+    class AgentCircuitBreaker:
+        def __init__(self, max_iterations=10, max_duration=300):
+            self.max_iterations = max_iterations
+            self.max_duration = max_duration
+            self.iteration_count = 0
+            self.start_time = time.time()
+        
+        def check(self):
+            self.iteration_count += 1
+            elapsed = time.time() - self.start_time
+            
+            if self.iteration_count > self.max_iterations:
+                raise CircuitBreakerException(
+                    f"Agent exceeded max iterations: {self.max_iterations}"
+                )
+            
+            if elapsed > self.max_duration:
+                raise CircuitBreakerException(
+                    f"Agent exceeded max duration: {self.max_duration}s"
+                )
+    ```
+  </Step>
+</Steps>
+
+## Architectural Pattern-Specific Mitigations
+
+The tool provides additional controls for detected architectural patterns:
+
+<CodeGroup>
+```python RAG/Retrieval Systems
+# Document Provenance Tracking
+class DocumentProvenance:
+    def track_document(self, doc_id, source, uploader, timestamp):
+        return {
+            "doc_id": doc_id,
+            "source": source,
+            "uploader": uploader,
+            "upload_timestamp": timestamp,
+            "verified": False,
+            "access_level": "restricted"
+        }
+
+# Tenant Isolation
+class VectorDBTenantIsolation:
+    def query_with_isolation(self, query, tenant_id):
+        # Ensure tenant_id filter is applied
+        return vector_db.query(
+            query,
+            filter={"tenant_id": tenant_id},
+            namespace=f"tenant_{tenant_id}"
+        )
+```
+
+```python Multi-Agent Systems
+# Agent Message Authentication
+import hmac
+import hashlib
+
+class AgentMessageAuth:
+    def sign_message(self, message, agent_private_key):
+        signature = hmac.new(
+            agent_private_key.encode(),
+            message.encode(),
+            hashlib.sha256
+        ).hexdigest()
+        return {"message": message, "signature": signature}
+    
+    def verify_message(self, signed_msg, agent_public_key):
+        expected_sig = hmac.new(
+            agent_public_key.encode(),
+            signed_msg["message"].encode(),
+            hashlib.sha256
+        ).hexdigest()
+        return hmac.compare_digest(expected_sig, signed_msg["signature"])
+```
+
+```python Code Execution Environments
+# Static Analysis Before Execution
+import ast
+
+class CodeValidator:
+    DANGEROUS_IMPORTS = ['os', 'subprocess', 'sys', 'importlib']
+    DANGEROUS_BUILTINS = ['eval', 'exec', '__import__']
+    
+    def validate_code(self, code_string):
+        try:
+            tree = ast.parse(code_string)
+            for node in ast.walk(tree):
+                # Block dangerous imports
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        if alias.name in self.DANGEROUS_IMPORTS:
+                            raise SecurityException(f"Import {alias.name} not allowed")
+                
+                # Block dangerous built-in calls
+                if isinstance(node, ast.Call):
+                    if isinstance(node.func, ast.Name):
+                        if node.func.id in self.DANGEROUS_BUILTINS:
+                            raise SecurityException(f"Function {node.func.id} not allowed")
+            return True
+        except SyntaxError:
+            raise SecurityException("Invalid Python syntax")
+```
+
+```python Tool/MCP Ecosystems
+# Tool Response Validation
+from pydantic import BaseModel, ValidationError
+
+class ToolResponseSchema(BaseModel):
+    status: str
+    data: dict
+    metadata: dict
+
+class ToolResponseValidator:
+    def validate_response(self, tool_name, response):
+        # Validate schema
+        try:
+            validated = ToolResponseSchema(**response)
+        except ValidationError as e:
+            raise SecurityException(f"Invalid response from {tool_name}: {e}")
+        
+        # Validate data size
+        if len(str(validated.data)) > 1_000_000:  # 1MB limit
+            raise SecurityException("Tool response exceeds size limit")
+        
+        return validated
+```
+</CodeGroup>
+
+## Output Format
+
+Mitigations are provided as a Markdown table:
+
+| Threat Type | Scenario | Suggested Mitigation(s) |
+|-------------|----------|-------------------------|
+| Spoofing | OAuth token theft | Implement token binding, use short-lived tokens, require PKCE for public clients |
+| Information Disclosure | LLM reveals training data | Use differential privacy for fine-tuning, implement output filtering, regularly audit model responses |
+| Elevation of Privilege | Unsafe code execution by agent | Execute all generated code in isolated sandbox with resource limits, validate code before execution, restrict file system and network access |
+
+## Using the Mitigation Generator
+
+<Steps>
+  <Step title="Generate Threat Model">
+    First, create a comprehensive threat model for your application
+  </Step>
+  
+  <Step title="Navigate to Mitigations Tab">
+    Click the "Mitigations" tab in the STRIDE GPT interface
+  </Step>
+  
+  <Step title="Generate Mitigations">
+    Click "Generate Mitigations" to receive security recommendations
+  </Step>
+  
+  <Step title="Review and Prioritize">
+    Review mitigations alongside DREAD scores to prioritize implementation
+  </Step>
+  
+  <Step title="Customize for Your Context">
+    Adapt generic recommendations to your specific architecture and constraints
+  </Step>
+</Steps>
+
+<Note>
+Mitigations are generated based on industry best practices and the OWASP guidelines. Always validate recommendations with security experts and adapt to your specific requirements.
+</Note>
+
+## Code Reference
+
+Mitigation generation is implemented in:
+
+- **mitigations.py:12-193** - `create_mitigations_prompt()` function
+- **mitigations.py:196-228** - `get_mitigations()` for OpenAI models
+- **mitigations.py:231-301** - `get_mitigations_google()` for Google models
+- **mitigations.py:375-436** - `get_mitigations_anthropic()` for Claude models

@@ -1,0 +1,543 @@
+---
+title: Mistral AI Integration
+description: Configure Mistral models including Magistral reasoning models for STRIDE GPT
+---
+
+Mistral AI provides a range of models from the efficient Ministral series to the reasoning-focused Magistral models, offering European-based AI alternatives with strong security analysis capabilities.
+
+## Supported Models
+
+### Mistral Large Series
+
+<CardGroup cols={2}>
+  <Card title="Mistral Large 2512" icon="crown">
+    **Most capable Mistral model**
+    
+    - Model: `mistral-large-2512`
+    - Context: 64K default, 128K max
+    - Released: December 2025
+    - Use case: Comprehensive analysis
+  </Card>
+  
+  <Card title="Mistral Medium 2508" icon="balance-scale">
+    **Balanced performance**
+    
+    - Model: `mistral-medium-2508`
+    - Context: 64K default, 128K max
+    - Released: August 2025
+    - Use case: Standard threat modeling
+  </Card>
+</CardGroup>
+
+### Mistral Small
+
+<Card title="Mistral Small 2506" icon="feather">
+  **Fast and efficient**
+  
+  - Model: `mistral-small-2506`
+  - Context: 24K default, 32K max
+  - Released: June 2025
+  - Use case: Simple applications, rapid iteration
+</Card>
+
+<Note>
+**Smaller Context**: Mistral Small has a smaller context window (32K) compared to other Mistral models. Use for applications that don't require extensive context.
+</Note>
+
+### Ministral Series (Efficient)
+
+<CardGroup cols={2}>
+  <Card title="Ministral 14B 2512" icon="gauge-high">
+    **Optimized 14B parameter model**
+    
+    - Model: `ministral-14b-2512`
+    - Context: 64K default, 128K max
+    - Parameters: 14 billion
+    - Use case: Cost-efficient analysis
+  </Card>
+  
+  <Card title="Ministral 8B 2512" icon="bolt">
+    **Compact 8B parameter model**
+    
+    - Model: `ministral-8b-2512`
+    - Context: 64K default, 128K max
+    - Parameters: 8 billion
+    - Use case: Fast, lightweight analysis
+  </Card>
+</CardGroup>
+
+### Magistral Series (Reasoning)
+
+<CardGroup cols={2}>
+  <Card title="Magistral Medium 2509" icon="brain">
+    **Reasoning-focused model**
+    
+    - Model: `magistral-medium-2509`
+    - Context: 32K default, 40K max
+    - Reasoning: Enhanced chain-of-thought
+    - Use case: Complex security scenarios
+  </Card>
+  
+  <Card title="Magistral Small 2509" icon="brain-circuit">
+    **Compact reasoning model**
+    
+    - Model: `magistral-small-2509`
+    - Context: 32K default, 40K max
+    - Reasoning: Efficient reasoning
+    - Use case: Balanced reasoning at lower cost
+  </Card>
+</CardGroup>
+
+<Info>
+**Magistral Models**: These are Mistral's reasoning-focused models, similar to OpenAI's GPT-5 series. They use extended internal processing for more thorough threat analysis.
+</Info>
+
+## Model Naming Convention
+
+Mistral uses a versioned naming scheme:
+
+- **mistral/ministral/magistral**: Model family
+- **large/medium/small**: Size/capability tier
+- **YYMM**: Release year and month (25 = 2025)
+
+**Examples**:
+- `mistral-large-2512` = Large model from December 2025
+- `magistral-medium-2509` = Medium reasoning model from September 2025
+
+## Setup
+
+<Steps>
+  <Step title="Get API Key">
+    1. Visit the [Mistral Console](https://console.mistral.ai/api-keys/)
+    2. Sign in or create an account
+    3. Navigate to **API Keys** section
+    4. Click **Create new key**
+    5. Copy the generated key
+    
+    <Warning>
+    Store your API key securely. It provides access to your Mistral account.
+    </Warning>
+  </Step>
+  
+  <Step title="Configure in STRIDE GPT">
+    In the STRIDE GPT sidebar:
+    
+    1. Select **"Mistral API"** from model provider dropdown
+    2. Paste your API key in the password field
+    3. Choose your preferred Mistral model
+  </Step>
+  
+  <Step title="Environment Variable (Optional)">
+    Set as environment variable:
+    
+    ```bash
+    export MISTRAL_API_KEY="your-key-here"
+    ```
+    
+    Or in `.env` file:
+    ```
+    MISTRAL_API_KEY=your-key-here
+    ```
+  </Step>
+</Steps>
+
+## Token Limits
+
+| Model | Default Limit | Maximum Limit | Best For |
+|-------|--------------|---------------|----------|
+| Mistral Large 2512 | 64,000 | 128,000 | Large applications |
+| Mistral Medium 2508 | 64,000 | 128,000 | Standard apps |
+| Mistral Small 2506 | 24,000 | 32,000 | Simple apps |
+| Ministral 14B 2512 | 64,000 | 128,000 | Cost-efficient |
+| Ministral 8B 2512 | 64,000 | 128,000 | Fast analysis |
+| Magistral Medium 2509 | 32,000 | 40,000 | Complex reasoning |
+| Magistral Small 2509 | 32,000 | 40,000 | Efficient reasoning |
+
+<Warning>
+Magistral models have smaller context windows (40K max) compared to other Mistral models. Consider this when analyzing large applications or repositories.
+</Warning>
+
+## Model Selection Guide
+
+### Mistral Large 2512
+
+**Best for**: Comprehensive threat modeling
+
+<Card>
+  **Strengths**:
+  - Most capable Mistral model
+  - Excellent STRIDE coverage
+  - Good at complex architectures
+  - Solid OWASP LLM/ASI mapping
+  
+  **Use cases**:
+  - Enterprise applications
+  - Security-critical systems
+  - Agentic AI applications
+  - Detailed threat analysis
+  
+  **Performance**: 35-50s for threat models
+</Card>
+
+### Mistral Medium 2508 (Recommended)
+
+**Best for**: Most use cases
+
+<Card>
+  **Strengths**:
+  - Best balance of cost and quality
+  - Reliable threat identification
+  - Fast response times
+  - Good for GenAI applications
+  
+  **Use cases**:
+  - SaaS platforms
+  - Web applications
+  - Mobile backends
+  - Standard threat modeling
+  
+  **Performance**: 25-35s for threat models
+</Card>
+
+### Mistral Small 2506
+
+**Best for**: Simple applications
+
+<Card>
+  **Strengths**:
+  - Fast and cost-effective
+  - Good for basic threats
+  - Suitable for simple architectures
+  
+  **Limitations**:
+  - Smaller context window (32K max)
+  - May miss complex threats
+  - Limited for AI applications
+  
+  **Use cases**:
+  - Internal tools
+  - Simple CRUD apps
+  - Prototypes
+  
+  **Performance**: 15-25s for threat models
+</Card>
+
+<Warning>
+**Context Limitation**: Mistral Small 2506 has only 32K max tokens. If GitHub analysis exceeds this, truncation will occur. Use Mistral Medium or Large for repository analysis.
+</Warning>
+
+### Ministral Series
+
+**Best for**: Cost-efficient analysis
+
+<Card>
+  **Ministral 14B 2512**:
+  - Good quality at lower cost
+  - 128K context window
+  - Faster than Mistral Large
+  - Suitable for most applications
+  
+  **Ministral 8B 2512**:
+  - Fastest Mistral model
+  - Most cost-effective
+  - Good for simple threat models
+  - Quick iteration
+  
+  **Use cases**:
+  - Development environments
+  - Budget-conscious projects
+  - Rapid prototyping
+  - Non-critical systems
+</Card>
+
+### Magistral Series
+
+**Best for**: Complex security reasoning
+
+<Card>
+  **Strengths**:
+  - Enhanced reasoning capabilities
+  - Better at complex attack chains
+  - Good for agentic AI analysis
+  - Multi-step threat scenarios
+  
+  **Limitations**:
+  - Smaller context (40K max)
+  - Slower than standard Mistral models
+  - Not suitable for large repos
+  
+  **Use cases**:
+  - Complex agentic architectures
+  - Multi-agent systems
+  - Security-critical scenarios
+  - When depth matters more than speed
+  
+  **Performance**: 40-60s for threat models
+</Card>
+
+<Info>
+Magistral models use reasoning similar to GPT-5 or Claude Extended Thinking, but with a smaller context window. Choose based on your need for reasoning depth vs. context size.
+</Info>
+
+## Performance Characteristics
+
+### Response Times
+
+| Model | Threat Model | Attack Tree | Mitigations | DREAD |
+|-------|-------------|-------------|-------------|-------|
+| Mistral Large 2512 | 35-50s | 30-40s | 20-30s | 20-25s |
+| Mistral Medium 2508 | 25-35s | 20-30s | 15-25s | 15-20s |
+| Mistral Small 2506 | 15-25s | 12-20s | 10-15s | 10-15s |
+| Ministral 14B 2512 | 20-30s | 15-25s | 12-20s | 12-18s |
+| Ministral 8B 2512 | 15-22s | 12-18s | 10-15s | 10-12s |
+| Magistral Medium | 40-60s | 35-50s | 25-40s | 25-35s |
+| Magistral Small | 30-45s | 25-35s | 20-30s | 20-25s |
+
+## Image Analysis
+
+<Warning>
+Mistral models **do not support image analysis** for architecture diagrams. For diagram analysis, use OpenAI, Anthropic, or Google providers.
+</Warning>
+
+If you need both Mistral models and diagram analysis:
+
+1. Use OpenAI/Anthropic/Google for initial diagram analysis
+2. Copy the generated description
+3. Switch to Mistral API
+4. Paste description and continue threat modeling
+
+## Best Practices
+
+### Choosing the Right Model
+
+<Steps>
+  <Step title="Start with Mistral Medium 2508">
+    Use as your default for most applications:
+    - Good balance of cost and quality
+    - 128K context window
+    - Fast response times
+    - Reliable results
+  </Step>
+  
+  <Step title="Upgrade to Large for Complex Apps">
+    Use Mistral Large 2512 when:
+    - Application is security-critical
+    - Complex architecture with many components
+    - Need comprehensive OWASP coverage
+    - Budget allows for premium model
+  </Step>
+  
+  <Step title="Use Magistral for Reasoning">
+    Use Magistral models when:
+    - Analyzing complex agentic AI systems
+    - Need deep reasoning about attack chains
+    - Application has 40K tokens or less context
+    - Reasoning depth more important than speed
+  </Step>
+  
+  <Step title="Use Ministral for Speed/Cost">
+    Use Ministral 8B or 14B when:
+    - Rapid prototyping required
+    - Budget constraints
+    - Simple applications
+    - Development phase analysis
+  </Step>
+</Steps>
+
+### Input Optimization
+
+<Tabs>
+  <Tab title="For Standard Models">
+    Structure your input clearly:
+    ```markdown
+    # Application Overview
+    [Concise description]
+    
+    # Architecture
+    - Component A: [Purpose and interactions]
+    - Component B: [Purpose and interactions]
+    
+    # Security Controls
+    - Authentication: [Method]
+    - Authorization: [Approach]
+    - Data encryption: [Implementation]
+    ```
+  </Tab>
+  
+  <Tab title="For Magistral Models">
+    Emphasize complexity that benefits from reasoning:
+    ```markdown
+    # Complex Scenario
+    [Describe multi-step processes]
+    
+    # Attack Surface
+    [Detail interaction points]
+    
+    # Trust Boundaries
+    [Specify security zones]
+    ```
+  </Tab>
+  
+  <Tab title="For Small Context Models">
+    Be concise with Mistral Small and Magistral:
+    - Focus on core functionality
+    - Omit implementation details
+    - Summarize instead of listing
+    - Prioritize security-relevant info
+  </Tab>
+</Tabs>
+
+### Cost Management
+
+<Note>
+Mistral offers competitive European pricing, often more affordable than US-based providers for similar capabilities.
+</Note>
+
+**Cost-Saving Strategies**:
+
+1. **Development**: Ministral 8B → Ministral 14B → Mistral Medium
+2. **Production**: Mistral Medium (default) → Large (critical)
+3. **Reasoning**: Magistral Small → Magistral Medium (only when needed)
+
+## Troubleshooting
+
+<Accordion title="API Key Invalid">
+  **Symptom**: Authentication failure
+  
+  **Solutions**:
+  - Verify key from Mistral Console
+  - Check for extra spaces when pasting
+  - Ensure key has appropriate permissions
+  - Try regenerating the key
+  - Check account status (payment, quotas)
+</Accordion>
+
+<Accordion title="Context Length Exceeded">
+  **Symptom**: Error about maximum context length
+  
+  **Solutions**:
+  - **For Mistral Small**: Switch to Medium or Large (128K context)
+  - **For Magistral**: Switch to standard Mistral model
+  - Reduce token limit in Advanced Settings
+  - Simplify application description
+  - Avoid GitHub analysis with Small/Magistral models
+</Accordion>
+
+<Accordion title="JSON Parsing Errors">
+  **Symptom**: "Failed to parse JSON response"
+  
+  **Explanation**: Mistral sometimes includes markdown formatting
+  
+  **Solutions**:
+  - STRIDE GPT automatically strips markdown blocks
+  - Retry the request
+  - Try a different model (Medium vs Large)
+  - Report persistent issues
+</Accordion>
+
+<Accordion title="Poor Quality Results">
+  **Symptom**: Threat model seems incomplete or generic
+  
+  **Solutions**:
+  - Upgrade from Ministral 8B to 14B or standard models
+  - Switch from Small to Medium or Large
+  - Provide more detailed application description
+  - Specify application type correctly (Agentic AI, GenAI, etc.)
+  - Try Magistral for complex scenarios
+</Accordion>
+
+<Accordion title="Slow Response Times">
+  **Symptom**: Longer than expected wait times
+  
+  **Explanation**: Magistral models use reasoning and are naturally slower
+  
+  **Solutions**:
+  - Use Ministral 8B for fastest results
+  - Switch from Magistral to standard Mistral
+  - Use Mistral Small for simple apps
+  - Check Mistral service status
+</Accordion>
+
+## Comparing Mistral to Other Providers
+
+### vs. OpenAI GPT-5
+
+<Tabs>
+  <Tab title="Mistral Advantages">
+    - ✅ More affordable pricing
+    - ✅ European data residency option
+    - ✅ Faster standard models (vs GPT-5 reasoning)
+    - ✅ Good GDPR compliance story
+  </Tab>
+  
+  <Tab title="GPT-5 Advantages">
+    - ✅ Larger context windows (400K-1M)
+    - ✅ Better at agentic AI architectures
+    - ✅ More sophisticated reasoning
+    - ✅ Image analysis support
+  </Tab>
+</Tabs>
+
+### vs. Anthropic Claude
+
+<Tabs>
+  <Tab title="Mistral Advantages">
+    - ✅ Competitive pricing
+    - ✅ Faster response times
+    - ✅ European alternative
+    - ✅ Versioned model selection
+  </Tab>
+  
+  <Tab title="Claude Advantages">
+    - ✅ Extended thinking mode (more flexible)
+    - ✅ Better at nuanced security analysis
+    - ✅ Larger context (200K vs 128K)
+    - ✅ Image analysis support
+  </Tab>
+</Tabs>
+
+### vs. Google Gemini
+
+<Tabs>
+  <Tab title="Mistral Advantages">
+    - ✅ European data residency
+    - ✅ Reasoning-focused Magistral models
+    - ✅ Predictable versioned releases
+  </Tab>
+  
+  <Tab title="Gemini Advantages">
+    - ✅ Massive 1M token context
+    - ✅ Faster response times
+    - ✅ Better for large repos
+    - ✅ Image analysis support
+  </Tab>
+</Tabs>
+
+## European Data Residency
+
+<Info>
+**Data Sovereignty**: Mistral AI is based in France and offers European data residency options, important for GDPR compliance and data sovereignty requirements.
+</Info>
+
+Benefits for European organizations:
+- Data processed within EU
+- GDPR-compliant by design
+- European AI alternative to US providers
+- Supports digital sovereignty initiatives
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Provider Comparison" icon="scale-balanced" href="/providers/overview">
+    Compare Mistral to all other providers
+  </Card>
+  <Card title="OpenAI Integration" icon="openai" href="/providers/openai">
+    Explore GPT-5 reasoning models
+  </Card>
+  <Card title="Groq Integration" icon="bolt" href="/providers/groq">
+    Try ultra-fast inference
+  </Card>
+  <Card title="Cost Optimization" icon="euro-sign" href="/security/api-keys">
+    Minimize API costs
+  </Card>
+</CardGroup>

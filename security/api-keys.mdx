@@ -1,0 +1,492 @@
+---
+title: 'API Key Security'
+description: 'How to protect your LLM provider API keys and manage spending limits'
+icon: 'key'
+---
+
+## Overview
+
+STRIDE GPT requires API keys to access LLM providers like OpenAI, Anthropic, Google AI, Mistral, and Groq. Your API keys are sensitive credentials that can incur charges on your account if compromised.
+
+<Warning>
+  **Your API keys are billing credentials.** Unauthorized access can result in unexpected charges or account abuse.
+</Warning>
+
+## Supported API Keys
+
+STRIDE GPT supports the following LLM provider API keys:
+
+- **OPENAI_API_KEY** - OpenAI GPT models (GPT-5 series, GPT-4.1, etc.)
+- **ANTHROPIC_API_KEY** - Anthropic Claude models (Claude 4.5, Opus, Sonnet, Haiku)
+- **GOOGLE_API_KEY** - Google AI models (Gemini 3, Gemini 2.5)
+- **MISTRAL_API_KEY** - Mistral models (Magistral, Large, Medium, Small)
+- **GROQ_API_KEY** - Groq-hosted models (Llama, DeepSeek R1, etc.)
+- **GITHUB_API_KEY** - GitHub repository analysis (optional)
+
+<Info>
+  Local models via Ollama and LM Studio Server do not require API keys.
+</Info>
+
+## API Key Storage Methods
+
+STRIDE GPT offers three methods for providing API keys, each with different security implications:
+
+### Method 1: UI Input (Most Secure for Shared Systems)
+
+**How it works:**
+- Enter API keys through the Streamlit sidebar
+- Keys stored in browser session memory only
+- Not persisted to disk
+- Cleared when browser tab is closed
+
+**When to use:**
+- Using STRIDE GPT on a shared or public computer
+- Want maximum control over key lifecycle
+- Testing different API keys temporarily
+
+<Note>
+  Keys entered via UI are never written to disk and only exist in browser memory.
+</Note>
+
+**Steps:**
+1. Launch STRIDE GPT
+2. Navigate to sidebar
+3. Expand "API Configuration" section
+4. Enter your API key(s)
+5. Select your model provider
+
+### Method 2: .env File (Most Convenient for Personal Systems)
+
+**How it works:**
+- Store API keys in `.env` file in project root
+- Automatically loaded when application starts
+- Keys pre-filled in the UI
+- File excluded from git via `.gitignore`
+
+**When to use:**
+- Running STRIDE GPT on your personal workstation
+- Frequent local development usage
+- Single-user local deployment
+
+<Warning>
+  Only use `.env` files on systems you fully control. Never commit `.env` to version control.
+</Warning>
+
+**Setup:**
+
+1. Copy the example file:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit `.env` with your API keys:
+   ```bash
+   # .env
+   OPENAI_API_KEY=sk-proj-abc123...
+   ANTHROPIC_API_KEY=sk-ant-api03-xyz789...
+   GOOGLE_API_KEY=AIza...
+   MISTRAL_API_KEY=...
+   GROQ_API_KEY=gsk_...
+   GITHUB_API_KEY=ghp_...
+   ```
+
+3. Verify `.env` is in `.gitignore`:
+   ```bash
+   grep ".env" .gitignore
+   # Should output: .env
+   ```
+
+4. Set appropriate file permissions:
+   ```bash
+   chmod 600 .env  # Owner read/write only
+   ```
+
+### Method 3: Environment Variables (Best for Production)
+
+**How it works:**
+- Set API keys as system environment variables
+- Application reads from environment
+- No files or UI input required
+
+**When to use:**
+- Docker/container deployments
+- CI/CD pipelines
+- Cloud platform deployments (Streamlit Cloud, AWS, Azure, GCP)
+- Team deployments with secrets management
+
+**Docker Deployment:**
+
+```bash
+# Using docker run with env-file
+docker run -p 8501:8501 --env-file .env mrwadams/stridegpt
+
+# Using docker-compose (recommended)
+docker-compose up
+```
+
+The `docker-compose.yml` automatically loads `.env`:
+```yaml
+services:
+  stride-gpt:
+    env_file:
+      - .env
+```
+
+**Cloud Deployments:**
+
+<Accordion title="Streamlit Community Cloud">
+  1. Navigate to app settings
+  2. Go to "Secrets" section
+  3. Add secrets in TOML format:
+     ```toml
+     OPENAI_API_KEY = "sk-proj-..."
+     ANTHROPIC_API_KEY = "sk-ant-api03-..."
+     ```
+  4. Save and restart app
+</Accordion>
+
+<Accordion title="AWS (ECS/Fargate)">
+  Use AWS Secrets Manager or Parameter Store:
+  ```bash
+  aws secretsmanager create-secret \
+    --name stride-gpt/openai-key \
+    --secret-string "sk-proj-..."
+  ```
+  
+  Reference in task definition:
+  ```json
+  {
+    "secrets": [
+      {
+        "name": "OPENAI_API_KEY",
+        "valueFrom": "arn:aws:secretsmanager:...:secret:stride-gpt/openai-key"
+      }
+    ]
+  }
+  ```
+</Accordion>
+
+<Accordion title="Azure Container Instances">
+  Use Azure Key Vault:
+  ```bash
+  az keyvault secret set \
+    --vault-name stride-gpt-vault \
+    --name openai-api-key \
+    --value "sk-proj-..."
+  ```
+</Accordion>
+
+<Accordion title="Docker Swarm Secrets">
+  ```bash
+  echo "sk-proj-..." | docker secret create openai_api_key -
+  
+  docker service create \
+    --name stride-gpt \
+    --secret openai_api_key \
+    --env OPENAI_API_KEY_FILE=/run/secrets/openai_api_key \
+    mrwadams/stridegpt
+  ```
+</Accordion>
+
+## API Key Security Best Practices
+
+### DO: Protect Your Keys
+
+<Accordion title="✅ Use .env files for local development">
+  - Already included in `.gitignore`
+  - Convenient for personal workstations
+  - Set file permissions: `chmod 600 .env`
+</Accordion>
+
+<Accordion title="✅ Set spending limits in provider dashboards">
+  **OpenAI:**
+  - Go to [Usage Limits](https://platform.openai.com/account/limits)
+  - Set monthly budget limits
+  - Configure email alerts
+  
+  **Anthropic:**
+  - Visit [Console Settings](https://console.anthropic.com/settings/limits)
+  - Set usage limits
+  
+  **Google AI:**
+  - Use [Cloud Quotas](https://console.cloud.google.com/iam-admin/quotas)
+  - Set daily request limits
+</Accordion>
+
+<Accordion title="✅ Rotate keys regularly">
+  - Change keys every 90 days minimum
+  - Rotate immediately after suspected compromise
+  - Use separate keys for development and production
+  - Document rotation schedule
+</Accordion>
+
+<Accordion title="✅ Monitor API usage">
+  - Review usage dashboards weekly
+  - Set up billing alerts
+  - Investigate unexpected spikes
+  - Track cost per threat model
+</Accordion>
+
+<Accordion title="✅ Use environment variables in production">
+  - Never hardcode keys in source code
+  - Use secrets management services
+  - Encrypt secrets at rest
+  - Audit access to secrets
+</Accordion>
+
+<Accordion title="✅ Clear session on shared computers">
+  - Close browser tab after use
+  - Clear browser cache if needed
+  - Don't save keys in browser password managers
+  - Use private/incognito mode
+</Accordion>
+
+### DON'T: Common Mistakes
+
+<Warning>
+  Avoid these common API key security mistakes:
+</Warning>
+
+<Accordion title="❌ Commit .env files to version control">
+  **Why it's dangerous:**
+  - Keys exposed in git history permanently
+  - Public repositories expose keys to internet
+  - GitHub actively scans for leaked credentials
+  
+  **If this happens:**
+  1. Immediately revoke the exposed key
+  2. Generate a new key
+  3. Remove from git history: `git filter-branch` or BFG Repo-Cleaner
+  4. Force push (if private repo): `git push --force`
+  5. Notify your security team
+</Accordion>
+
+<Accordion title="❌ Share screenshots with visible API keys">
+  **Common scenarios:**
+  - Bug reports with full sidebar visible
+  - Demo videos showing configuration
+  - Documentation screenshots
+  
+  **Prevention:**
+  - Blur or redact keys before sharing
+  - Use fake/example keys in documentation
+  - Close sidebar before screenshots
+</Accordion>
+
+<Accordion title="❌ Run STRIDE GPT on untrusted systems">
+  **Risk factors:**
+  - Keyloggers capturing API keys
+  - Malware accessing `.env` files
+  - Network sniffing on public WiFi
+  
+  **Safe practices:**
+  - Only run on systems you control
+  - Use VPN on public networks
+  - Regularly scan for malware
+</Accordion>
+
+<Accordion title="❌ Share API keys with others">
+  **Instead:**
+  - Each user should have their own API key
+  - Use sub-accounts or team features where available
+  - Implement proper access controls for team deployments
+  - Track usage per user for accountability
+</Accordion>
+
+<Accordion title="❌ Ignore unexpected API charges">
+  **Warning signs:**
+  - Sudden spike in usage
+  - Charges when you weren't using STRIDE GPT
+  - Unfamiliar API calls in logs
+  
+  **Response:**
+  1. Immediately revoke the API key
+  2. Review provider access logs
+  3. Generate new key
+  4. Report to provider if abuse detected
+  5. Enable 2FA on provider account
+</Accordion>
+
+<Accordion title="❌ Use production keys for development">
+  **Best practice:**
+  - Separate keys for dev/staging/production
+  - Lower spending limits on development keys
+  - Different key permissions per environment
+  - Track which keys are used where
+</Accordion>
+
+## Spending Limits and Cost Management
+
+### Setting Provider Spending Limits
+
+<Info>
+  Always configure spending limits before using STRIDE GPT in production.
+</Info>
+
+**OpenAI:**
+```
+1. Visit https://platform.openai.com/account/limits
+2. Set "Monthly budget" (e.g., $50)
+3. Set "Email notification threshold" (e.g., 80%)
+4. Save settings
+```
+
+**Anthropic:**
+```
+1. Visit https://console.anthropic.com/settings/limits
+2. Configure "Monthly spend limit"
+3. Enable email alerts
+```
+
+**Google AI:**
+```
+1. Go to Google Cloud Console
+2. Navigate to "IAM & Admin" → "Quotas"
+3. Set quotas for Gemini API
+4. Configure budget alerts
+```
+
+### Cost Estimation
+
+Approximate costs per threat model (varies by model and complexity):
+
+| Provider | Model | Cost per Threat Model |
+|----------|-------|---------------------|
+| OpenAI | GPT-5-mini | $0.02 - $0.10 |
+| OpenAI | GPT-5 | $0.15 - $0.50 |
+| Anthropic | Claude Haiku 4.5 | $0.01 - $0.05 |
+| Anthropic | Claude Sonnet 4.5 | $0.10 - $0.30 |
+| Google | Gemini 3 Flash | $0.005 - $0.02 |
+| Mistral | Mistral Small | $0.01 - $0.05 |
+| Ollama | (Local) | $0.00 |
+
+<Note>
+  Costs vary based on application complexity, threat detail level, and whether generating attack trees and mitigations.
+</Note>
+
+### Cost Optimization Tips
+
+- Use smaller models (GPT-5-mini, Claude Haiku, Gemini Flash) for initial threat models
+- Use larger models (GPT-5, Claude Opus) for critical systems
+- Consider local models (Ollama, LM Studio) for cost-free operation
+- Reuse threat models for similar applications
+- Start with basic threat models, then enhance iteratively
+
+## Local Models (No API Keys Required)
+
+For cost-free and privacy-focused threat modeling:
+
+### Ollama
+
+**Setup:**
+```bash
+# Install Ollama
+curl -fsSL https://ollama.ai/install.sh | sh
+
+# Pull a model
+ollama pull llama3.3:70b
+
+# Start Ollama (runs on localhost:11434)
+ollama serve
+```
+
+**Configure in STRIDE GPT:**
+1. Select "Ollama" as model provider
+2. Ensure endpoint is `http://localhost:11434`
+3. Select your downloaded model
+
+### LM Studio Server
+
+**Setup:**
+1. Download [LM Studio](https://lmstudio.ai/)
+2. Download a compatible model
+3. Start local server (default: `localhost:1234`)
+4. Select "LM Studio Server" in STRIDE GPT
+
+<Info>
+  Local models require no API keys, have zero API costs, and keep all data on your machine.
+</Info>
+
+## API Key Compromise Response
+
+If you suspect your API key has been compromised:
+
+### Immediate Actions
+
+1. **Revoke the key immediately**
+   - OpenAI: [API Keys](https://platform.openai.com/api-keys) → Delete
+   - Anthropic: [Console Keys](https://console.anthropic.com/settings/keys) → Revoke
+   - Google: [Credentials](https://console.cloud.google.com/apis/credentials) → Delete
+
+2. **Generate a new key**
+   - Create new key with different name
+   - Update `.env` or secrets management
+   - Restart STRIDE GPT
+
+3. **Review usage logs**
+   - Check for unauthorized API calls
+   - Review timestamps and request patterns
+   - Document suspicious activity
+
+4. **Check billing**
+   - Review recent charges
+   - Dispute fraudulent charges with provider
+   - Set lower spending limits on new key
+
+5. **Investigate source**
+   - Scan system for malware
+   - Review git history for accidental commits
+   - Check for leaked credentials on GitHub
+   - Review access logs
+
+### Prevention for Future
+
+- Enable 2FA on provider accounts
+- Use secrets management tools
+- Implement key rotation schedule
+- Monitor usage with alerts
+- Regular security audits
+
+## Team Deployment Considerations
+
+For organizations deploying STRIDE GPT for teams:
+
+<Warning>
+  Team deployments require centralized API key management and access controls.
+</Warning>
+
+### Centralized API Key Management
+
+**Options:**
+- **HashiCorp Vault** - Enterprise secrets management
+- **AWS Secrets Manager** - Cloud-native AWS solution
+- **Azure Key Vault** - Azure-native secrets management
+- **Google Secret Manager** - GCP-native solution
+- **CyberArk** - Enterprise privileged access management
+
+### Access Control
+
+- Implement RBAC for API key access
+- Audit all API key retrievals
+- Rotate keys on employee offboarding
+- Use service accounts, not personal keys
+- Implement principle of least privilege
+
+### Usage Tracking
+
+- Tag API calls by user/team
+- Monitor per-user costs
+- Set per-team spending limits
+- Generate monthly usage reports
+- Chargeback to departments if needed
+
+## Related Documentation
+
+<CardGroup cols={2}>
+  <Card title="Best Practices" icon="shield-check" href="/security/best-practices">
+    Comprehensive security best practices for STRIDE GPT
+  </Card>
+  <Card title="Data Privacy" icon="lock" href="/security/data-privacy">
+    Understanding data flows and privacy implications
+  </Card>
+</CardGroup>

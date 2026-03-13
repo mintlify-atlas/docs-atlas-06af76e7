@@ -1,0 +1,1157 @@
+---
+title: 'Deploying STRIDE GPT'
+description: 'Production-ready deployment with Docker, Kubernetes, cloud platforms, and enterprise security hardening'
+icon: 'rocket'
+---
+
+## Overview
+
+This guide covers deploying STRIDE GPT for enterprise use with Docker containers, Kubernetes orchestration, cloud platforms, and comprehensive security hardening.
+
+<Info>
+STRIDE GPT is a Streamlit application built with Python 3.12+. It supports multiple LLM providers and requires proper secrets management for production deployments.
+</Info>
+
+## Deployment Options
+
+<CardGroup cols={2}>
+  <Card title="Local Development" icon="laptop-code">
+    **Use Case**: Testing locally, PoC, development  
+    **Complexity**: Low  
+    **Users**: 1
+  </Card>
+  
+  <Card title="Internal Server" icon="server">
+    **Use Case**: Small team, internal network  
+    **Complexity**: Medium  
+    **Users**: < 10
+  </Card>
+  
+  <Card title="Docker Container" icon="docker">
+    **Use Case**: Production, reproducible builds  
+    **Complexity**: Medium  
+    **Users**: 10-50
+  </Card>
+  
+  <Card title="Kubernetes" icon="dharmachakra">
+    **Use Case**: Enterprise, high availability, auto-scaling  
+    **Complexity**: High  
+    **Users**: 50+
+  </Card>
+</CardGroup>
+
+## Prerequisites
+
+- Python 3.12 or higher
+- Docker 24+ (for containerized deployments)
+- Kubernetes 1.28+ (for K8s deployments)
+- LLM provider API keys (OpenAI, Anthropic, Google, Mistral, etc.)
+- GitHub token (optional, for repository analysis)
+
+## Option 1: Local Development
+
+<Steps>
+  <Step title="Clone the Repository">
+    ```bash
+    git clone https://github.com/mrwadams/stride-gpt.git
+    cd stride-gpt
+    ```
+  </Step>
+  
+  <Step title="Create Virtual Environment">
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    ```
+  </Step>
+  
+  <Step title="Install Dependencies">
+    ```bash
+    pip install -r requirements.txt
+    ```
+    
+    **Dependencies:**
+    - `streamlit>=1.40` - Web application framework
+    - `openai` - OpenAI API client
+    - `anthropic` - Anthropic Claude API client
+    - `google-genai` - Google Gemini API client
+    - `mistralai>=1.0.0` - Mistral AI API client
+    - `groq` - Groq API client
+    - `pyGithub` - GitHub repository analysis
+    - `python-dotenv` - Environment variable management
+    - `tiktoken` - Token counting for OpenAI models
+  </Step>
+  
+  <Step title="Configure Environment Variables">
+    ```bash
+    cp .env.example .env
+    nano .env
+    ```
+    
+    **Required variables:**
+    ```bash
+    # LLM Provider API Keys
+    OPENAI_API_KEY=sk-proj-...
+    ANTHROPIC_API_KEY=sk-ant-...
+    GOOGLE_API_KEY=AIza...
+    MISTRAL_API_KEY=...
+    GROQ_API_KEY=gsk_...
+    
+    # GitHub (optional)
+    GITHUB_API_KEY=ghp_...
+    
+    # Local LLM Endpoints (optional)
+    OLLAMA_ENDPOINT=http://localhost:11434
+    LM_STUDIO_ENDPOINT=http://localhost:1234
+    ```
+  </Step>
+  
+  <Step title="Run the Application">
+    ```bash
+    streamlit run main.py
+    ```
+    
+    Access at `http://localhost:8501`
+  </Step>
+</Steps>
+
+<Warning>
+**Local development is NOT suitable for production use:**
+- No authentication/authorization
+- API keys exposed in `.env` file
+- No HTTPS/TLS encryption
+- Single-user only
+</Warning>
+
+## Option 2: Internal Server Deployment
+
+For small teams (< 10 users) on internal networks.
+
+<Steps>
+  <Step title="Provision a Server">
+    Minimum specifications:
+    - **CPU**: 2 vCPUs
+    - **RAM**: 4GB (8GB recommended)
+    - **Storage**: 20GB
+    - **OS**: Ubuntu 22.04 LTS or RHEL 9
+  </Step>
+  
+  <Step title="Install Dependencies">
+    ```bash
+    # Update system
+    sudo apt update && sudo apt upgrade -y
+    
+    # Install Python 3.12
+    sudo apt install python3.12 python3.12-venv python3-pip -y
+    
+    # Install git
+    sudo apt install git -y
+    ```
+  </Step>
+  
+  <Step title="Deploy Application">
+    ```bash
+    # Clone repository
+    cd /opt
+    sudo git clone https://github.com/mrwadams/stride-gpt.git
+    cd stride-gpt
+    
+    # Create virtual environment
+    sudo python3.12 -m venv venv
+    sudo ./venv/bin/pip install -r requirements.txt
+    
+    # Configure environment
+    sudo cp .env.example .env
+    sudo nano .env  # Add API keys
+    ```
+  </Step>
+  
+  <Step title="Create Systemd Service">
+    ```bash
+    sudo nano /etc/systemd/system/stridegpt.service
+    ```
+    
+    Add:
+    ```ini
+    [Unit]
+    Description=STRIDE GPT Threat Modeling Tool
+    After=network.target
+    
+    [Service]
+    Type=simple
+    User=www-data
+    WorkingDirectory=/opt/stride-gpt
+    Environment="PATH=/opt/stride-gpt/venv/bin"
+    ExecStart=/opt/stride-gpt/venv/bin/streamlit run main.py \
+        --server.port=8501 \
+        --server.address=0.0.0.0 \
+        --server.enableXsrfProtection=true
+    Restart=always
+    RestartSec=10
+    
+    [Install]
+    WantedBy=multi-user.target
+    ```
+    
+    Enable and start:
+    ```bash
+    sudo systemctl daemon-reload
+    sudo systemctl enable stridegpt
+    sudo systemctl start stridegpt
+    sudo systemctl status stridegpt
+    ```
+  </Step>
+  
+  <Step title="Configure Reverse Proxy (Nginx)">
+    ```bash
+    sudo apt install nginx -y
+    sudo nano /etc/nginx/sites-available/stridegpt
+    ```
+    
+    Add:
+    ```nginx
+    server {
+        listen 80;
+        server_name stride-gpt.internal.company.com;
+        
+        # Redirect to HTTPS
+        return 301 https://$server_name$request_uri;
+    }
+    
+    server {
+        listen 443 ssl http2;
+        server_name stride-gpt.internal.company.com;
+        
+        # SSL configuration
+        ssl_certificate /etc/ssl/certs/stride-gpt.crt;
+        ssl_certificate_key /etc/ssl/private/stride-gpt.key;
+        ssl_protocols TLSv1.3 TLSv1.2;
+        ssl_ciphers HIGH:!aNULL:!MD5;
+        
+        # Security headers
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+        
+        location / {
+            proxy_pass http://localhost:8501;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            
+            # WebSocket support for Streamlit
+            proxy_read_timeout 86400;
+        }
+    }
+    ```
+    
+    Enable site:
+    ```bash
+    sudo ln -s /etc/nginx/sites-available/stridegpt /etc/nginx/sites-enabled/
+    sudo nginx -t
+    sudo systemctl restart nginx
+    ```
+  </Step>
+</Steps>
+
+<Note>
+**Authentication**: Streamlit doesn't include built-in authentication. For internal deployments:
+- Deploy behind VPN
+- Use nginx basic auth
+- Integrate with SSO (requires custom authentication wrapper)
+</Note>
+
+## Option 3: Docker Container Deployment
+
+Recommended for production deployments with 10-50 users.
+
+### Understanding the Dockerfile
+
+STRIDE GPT includes a security-hardened Dockerfile:
+
+```dockerfile
+# Pinned base image with SHA256 for reproducibility
+FROM python:3.12-slim@sha256:d86b4c74b936c438cd4cc3a9f7256b9a7c27ad68c7caf8c205e18d9845af0164
+
+ENV PYTHONUNBUFFERED=1
+ENV PIP_ROOT_USER_ACTION=ignore
+
+# Create non-root user
+RUN groupadd --gid 1000 appuser && \
+    useradd --uid 1000 --gid 1000 -ms /bin/bash appuser && \
+    pip install --no-cache-dir --upgrade pip
+
+EXPOSE 8501
+WORKDIR /home/appuser
+
+# Copy application files
+COPY --chown=appuser:appuser . /home/appuser
+
+USER appuser
+
+# Create virtual environment and install dependencies
+RUN python -m venv /home/appuser/venv
+RUN /home/appuser/venv/bin/pip install --no-cache-dir -r requirements.txt && \
+    /home/appuser/venv/bin/pip check
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD curl --fail http://localhost:8501/_stcore/health
+
+# Run Streamlit with security enhancements
+ENTRYPOINT ["streamlit", "run", "main.py", \
+            "--server.port=8501", \
+            "--server.address=0.0.0.0", \
+            "--server.enableXsrfProtection=true"]
+```
+
+**Security Features:**
+- Pinned base image with SHA256 digest (immutable)
+- Non-root user (UID/GID 1000)
+- Virtual environment isolation
+- Dependency validation (`pip check`)
+- Health check endpoint
+- XSRF protection enabled
+
+### Building the Docker Image
+
+<Steps>
+  <Step title="Build Image">
+    ```bash
+    # Build from source
+    docker build -t my-org/stride-gpt:1.0.0 .
+    
+    # Or pull official image
+    docker pull mrwadams/stridegpt:latest
+    ```
+  </Step>
+  
+  <Step title="Test Locally (Development Only)">
+    ```bash
+    # ⚠️ NEVER use this in production
+    docker run -p 8501:8501 --env-file .env my-org/stride-gpt:1.0.0
+    ```
+  </Step>
+</Steps>
+
+### Docker Compose (Development)
+
+The included `docker-compose.yml` provides a secure configuration:
+
+```yaml
+services:
+  stride-gpt:
+    build: .
+    ports:
+      - "8501:8501"
+    
+    # Security settings
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    
+    # Writable temporary filesystems
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+      - /home/appuser/.streamlit:noexec,nosuid,size=50m
+      - /home/appuser/.cache:noexec,nosuid,size=100m
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    
+    environment:
+      - STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION=true
+    env_file:
+      - .env
+    
+    user: "1000:1000"
+    
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    
+    restart: unless-stopped
+```
+
+**Security hardening:**
+- `no-new-privileges` prevents privilege escalation
+- Dropped all capabilities, added only `NET_BIND_SERVICE`
+- Writable tmpfs with `noexec,nosuid` flags
+- Resource limits (CPU, memory)
+- Non-root user (1000:1000)
+- Health checks for container orchestration
+
+<Warning>
+**Production Deployment**: Do NOT use `env_file: .env` in production. Use proper secrets management (see below).
+</Warning>
+
+### Production Secrets Management
+
+<Tabs>
+  <Tab title="Docker Swarm Secrets">
+    Store API keys as Docker secrets:
+    
+    ```bash
+    # Create secrets
+    echo "sk-proj-..." | docker secret create openai_api_key -
+    echo "sk-ant-..." | docker secret create anthropic_api_key -
+    echo "AIza..." | docker secret create google_api_key -
+    
+    # Deploy service
+    docker service create \
+      --name stride-gpt \
+      --secret openai_api_key \
+      --secret anthropic_api_key \
+      --secret google_api_key \
+      --publish 8501:8501 \
+      --replicas 3 \
+      my-org/stride-gpt:1.0.0
+    ```
+    
+    **Access secrets in code:**
+    ```python
+    # Read from /run/secrets/
+    with open('/run/secrets/openai_api_key', 'r') as f:
+        openai_api_key = f.read().strip()
+    ```
+  </Tab>
+  
+  <Tab title="AWS Secrets Manager">
+    Retrieve secrets from AWS Secrets Manager:
+    
+    ```bash
+    # Run container with IAM role
+    docker run -p 8501:8501 \
+      -e OPENAI_API_KEY=$(aws secretsmanager get-secret-value \
+          --secret-id prod/stride-gpt/openai-key \
+          --query SecretString --output text) \
+      -e ANTHROPIC_API_KEY=$(aws secretsmanager get-secret-value \
+          --secret-id prod/stride-gpt/anthropic-key \
+          --query SecretString --output text) \
+      my-org/stride-gpt:1.0.0
+    ```
+    
+    **For ECS Fargate:**
+    ```json
+    {
+      "secrets": [
+        {
+          "name": "OPENAI_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789:secret:stride-gpt/openai"
+        },
+        {
+          "name": "ANTHROPIC_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789:secret:stride-gpt/anthropic"
+        }
+      ]
+    }
+    ```
+  </Tab>
+  
+  <Tab title="HashiCorp Vault">
+    Inject secrets from Vault:
+    
+    ```bash
+    # Using Vault agent
+    docker run -p 8501:8501 \
+      -e VAULT_ADDR=https://vault.company.com \
+      -e VAULT_TOKEN=$(vault token create -field=token) \
+      -e OPENAI_API_KEY=$(vault kv get -field=key secret/stride-gpt/openai) \
+      my-org/stride-gpt:1.0.0
+    ```
+  </Tab>
+  
+  <Tab title="Azure Key Vault">
+    Retrieve secrets from Azure Key Vault:
+    
+    ```bash
+    # Using Azure CLI
+    docker run -p 8501:8501 \
+      -e OPENAI_API_KEY=$(az keyvault secret show \
+          --vault-name stride-gpt-vault \
+          --name openai-api-key \
+          --query value -o tsv) \
+      my-org/stride-gpt:1.0.0
+    ```
+  </Tab>
+</Tabs>
+
+<Info>
+**Best Practice**: Use your cloud provider's native secrets management (AWS Secrets Manager, Azure Key Vault, GCP Secret Manager) integrated with IAM/RBAC for automatic credential rotation.
+</Info>
+
+## Option 4: Kubernetes Deployment
+
+For enterprise deployments with high availability, auto-scaling, and 50+ users.
+
+### Kubernetes Manifests
+
+<Steps>
+  <Step title="Create Namespace">
+    ```yaml
+    # namespace.yaml
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: stride-gpt
+      labels:
+        name: stride-gpt
+        environment: production
+    ```
+  </Step>
+  
+  <Step title="Create Secrets">
+    ```bash
+    # Create Kubernetes secrets
+    kubectl create secret generic stride-gpt-secrets \
+      --from-literal=openai-api-key='sk-proj-...' \
+      --from-literal=anthropic-api-key='sk-ant-...' \
+      --from-literal=google-api-key='AIza...' \
+      --from-literal=mistral-api-key='...' \
+      --from-literal=groq-api-key='gsk_...' \
+      --from-literal=github-api-key='ghp_...' \
+      -n stride-gpt
+    ```
+    
+    Or use external secrets operator (recommended):
+    ```yaml
+    # external-secret.yaml
+    apiVersion: external-secrets.io/v1beta1
+    kind: ExternalSecret
+    metadata:
+      name: stride-gpt-secrets
+      namespace: stride-gpt
+    spec:
+      refreshInterval: 1h
+      secretStoreRef:
+        name: aws-secrets-manager
+        kind: SecretStore
+      target:
+        name: stride-gpt-secrets
+      data:
+      - secretKey: openai-api-key
+        remoteRef:
+          key: prod/stride-gpt/openai
+      - secretKey: anthropic-api-key
+        remoteRef:
+          key: prod/stride-gpt/anthropic
+    ```
+  </Step>
+  
+  <Step title="Create Deployment">
+    ```yaml
+    # deployment.yaml
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: stride-gpt
+      namespace: stride-gpt
+      labels:
+        app: stride-gpt
+    spec:
+      replicas: 3
+      selector:
+        matchLabels:
+          app: stride-gpt
+      template:
+        metadata:
+          labels:
+            app: stride-gpt
+        spec:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          
+          containers:
+          - name: stride-gpt
+            image: my-org/stride-gpt:1.0.0
+            imagePullPolicy: IfNotPresent
+            
+            ports:
+            - containerPort: 8501
+              name: http
+              protocol: TCP
+            
+            env:
+            - name: STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION
+              value: "true"
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: stride-gpt-secrets
+                  key: openai-api-key
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: stride-gpt-secrets
+                  key: anthropic-api-key
+            - name: GOOGLE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: stride-gpt-secrets
+                  key: google-api-key
+            - name: MISTRAL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: stride-gpt-secrets
+                  key: mistral-api-key
+            - name: GROQ_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: stride-gpt-secrets
+                  key: groq-api-key
+            - name: GITHUB_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: stride-gpt-secrets
+                  key: github-api-key
+            
+            resources:
+              requests:
+                cpu: 500m
+                memory: 512Mi
+              limits:
+                cpu: 2000m
+                memory: 2Gi
+            
+            livenessProbe:
+              httpGet:
+                path: /_stcore/health
+                port: 8501
+              initialDelaySeconds: 30
+              periodSeconds: 30
+              timeoutSeconds: 5
+              failureThreshold: 3
+            
+            readinessProbe:
+              httpGet:
+                path: /_stcore/health
+                port: 8501
+              initialDelaySeconds: 10
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 3
+            
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false  # Streamlit needs write access to temp dirs
+              capabilities:
+                drop:
+                - ALL
+                add:
+                - NET_BIND_SERVICE
+          
+          # Pod anti-affinity for high availability
+          affinity:
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                      - stride-gpt
+                  topologyKey: kubernetes.io/hostname
+    ```
+  </Step>
+  
+  <Step title="Create Service">
+    ```yaml
+    # service.yaml
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: stride-gpt
+      namespace: stride-gpt
+      labels:
+        app: stride-gpt
+    spec:
+      type: ClusterIP
+      ports:
+      - port: 80
+        targetPort: 8501
+        protocol: TCP
+        name: http
+      selector:
+        app: stride-gpt
+    ```
+  </Step>
+  
+  <Step title="Create Ingress">
+    ```yaml
+    # ingress.yaml
+    apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: stride-gpt
+      namespace: stride-gpt
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/proxy-read-timeout: "86400"
+        nginx.ingress.kubernetes.io/proxy-send-timeout: "86400"
+    spec:
+      ingressClassName: nginx
+      tls:
+      - hosts:
+        - stride-gpt.company.com
+        secretName: stride-gpt-tls
+      rules:
+      - host: stride-gpt.company.com
+        http:
+          paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: stride-gpt
+                port:
+                  number: 80
+    ```
+  </Step>
+  
+  <Step title="Create HorizontalPodAutoscaler">
+    ```yaml
+    # hpa.yaml
+    apiVersion: autoscaling/v2
+    kind: HorizontalPodAutoscaler
+    metadata:
+      name: stride-gpt
+      namespace: stride-gpt
+    spec:
+      scaleTargetRef:
+        apiVersion: apps/v1
+        kind: Deployment
+        name: stride-gpt
+      minReplicas: 3
+      maxReplicas: 10
+      metrics:
+      - type: Resource
+        resource:
+          name: cpu
+          target:
+            type: Utilization
+            averageUtilization: 70
+      - type: Resource
+        resource:
+          name: memory
+          target:
+            type: Utilization
+            averageUtilization: 80
+    ```
+  </Step>
+  
+  <Step title="Deploy">
+    ```bash
+    # Apply all manifests
+    kubectl apply -f namespace.yaml
+    kubectl apply -f external-secret.yaml  # or create secrets manually
+    kubectl apply -f deployment.yaml
+    kubectl apply -f service.yaml
+    kubectl apply -f ingress.yaml
+    kubectl apply -f hpa.yaml
+    
+    # Verify deployment
+    kubectl get pods -n stride-gpt
+    kubectl get svc -n stride-gpt
+    kubectl get ingress -n stride-gpt
+    ```
+  </Step>
+</Steps>
+
+<Note>
+**Resource Sizing:**
+- **CPU**: 500m request, 2000m limit
+- **Memory**: 512Mi request, 2Gi limit
+- **Replicas**: 3 minimum (HA), 10 maximum (auto-scaling)
+
+Adjust based on usage patterns and LLM API response times.
+</Note>
+
+## Security Hardening
+
+### Automated Security Scanning
+
+STRIDE GPT implements comprehensive automated security scanning:
+
+<CardGroup cols={2}>
+  <Card title="Bandit" icon="shield-check">
+    Identifies common Python security issues (SQL injection, hardcoded credentials, etc.)
+  </Card>
+  
+  <Card title="CodeQL" icon="code">
+    GitHub's advanced semantic analysis for security vulnerabilities
+  </Card>
+  
+  <Card title="pip-audit" icon="package">
+    Scans Python dependencies against OSV vulnerability database
+  </Card>
+  
+  <Card title="Safety" icon="lock">
+    Checks dependencies using PyUp's vulnerability database
+  </Card>
+  
+  <Card title="Gitleaks" icon="key">
+    Scans git history for accidentally committed secrets and API keys
+  </Card>
+  
+  <Card title="Trivy" icon="docker">
+    Scans Docker images for vulnerabilities in OS packages and dependencies
+  </Card>
+</CardGroup>
+
+**Running scans locally:**
+```bash
+# Install security tools
+pip install bandit pip-audit safety
+
+# Run Bandit
+bandit -r . -f txt
+
+# Run pip-audit
+pip-audit --desc
+
+# Run Safety
+safety check --json
+
+# Scan Docker image with Trivy
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+  aquasec/trivy image my-org/stride-gpt:1.0.0
+```
+
+### Network Security
+
+<Steps>
+  <Step title="TLS/HTTPS Enforcement">
+    Always use HTTPS in production:
+    
+    ```nginx
+    # Nginx configuration
+    ssl_protocols TLSv1.3 TLSv1.2;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    ```
+  </Step>
+  
+  <Step title="Firewall Rules">
+    Restrict access to authorized networks:
+    
+    ```bash
+    # AWS Security Group
+    aws ec2 authorize-security-group-ingress \
+      --group-id sg-xxxxxxxx \
+      --protocol tcp \
+      --port 8501 \
+      --cidr 10.0.0.0/8  # Internal network only
+    ```
+  </Step>
+  
+  <Step title="Rate Limiting">
+    Prevent API abuse:
+    
+    ```nginx
+    # Nginx rate limiting
+    limit_req_zone $binary_remote_addr zone=stride_gpt:10m rate=10r/m;
+    
+    location / {
+        limit_req zone=stride_gpt burst=5 nodelay;
+        proxy_pass http://localhost:8501;
+    }
+    ```
+  </Step>
+</Steps>
+
+### Container Security Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Image Scanning" icon="magnifying-glass">
+    Scan images for vulnerabilities before deployment using Trivy, Snyk, or Clair
+  </Card>
+  
+  <Card title="Minimal Base Images" icon="box">
+    Use `python:3.12-slim` (227MB) instead of `python:3.12` (1.01GB) to reduce attack surface
+  </Card>
+  
+  <Card title="Non-Root User" icon="user">
+    Run containers as non-root user (UID/GID 1000) to limit privilege escalation
+  </Card>
+  
+  <Card title="Immutable Tags" icon="tag">
+    Pin base images with SHA256 digest for reproducible builds: `python:3.12-slim@sha256:...`
+  </Card>
+</CardGroup>
+
+### Monitoring and Logging
+
+<Tabs>
+  <Tab title="Prometheus Metrics">
+    Expose Streamlit metrics for Prometheus:
+    
+    ```yaml
+    # ServiceMonitor for Prometheus Operator
+    apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      name: stride-gpt
+      namespace: stride-gpt
+    spec:
+      selector:
+        matchLabels:
+          app: stride-gpt
+      endpoints:
+      - port: http
+        path: /_stcore/metrics
+        interval: 30s
+    ```
+  </Tab>
+  
+  <Tab title="CloudWatch Logs">
+    Ship logs to CloudWatch:
+    
+    ```bash
+    # Using awslogs Docker driver
+    docker run -p 8501:8501 \
+      --log-driver=awslogs \
+      --log-opt awslogs-group=/ecs/stride-gpt \
+      --log-opt awslogs-region=us-east-1 \
+      --log-opt awslogs-stream-prefix=stride-gpt \
+      my-org/stride-gpt:1.0.0
+    ```
+  </Tab>
+  
+  <Tab title="ELK Stack">
+    Forward logs to Elasticsearch:
+    
+    ```yaml
+    # Fluentd DaemonSet
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: fluentd-config
+      namespace: kube-system
+    data:
+      fluent.conf: |
+        <source>
+          @type tail
+          path /var/log/containers/stride-gpt-*.log
+          pos_file /var/log/fluentd-stride-gpt.pos
+          tag kubernetes.*
+          format json
+        </source>
+        
+        <match kubernetes.**stride-gpt**>
+          @type elasticsearch
+          host elasticsearch.logging.svc.cluster.local
+          port 9200
+          index_name stride-gpt
+        </match>
+    ```
+  </Tab>
+</Tabs>
+
+## Cloud Platform Deployments
+
+<Tabs>
+  <Tab title="AWS ECS Fargate">
+    Deploy on AWS ECS Fargate:
+    
+    ```json
+    {
+      "family": "stride-gpt",
+      "networkMode": "awsvpc",
+      "requiresCompatibilities": ["FARGATE"],
+      "cpu": "1024",
+      "memory": "2048",
+      "containerDefinitions": [
+        {
+          "name": "stride-gpt",
+          "image": "my-org/stride-gpt:1.0.0",
+          "portMappings": [
+            {
+              "containerPort": 8501,
+              "protocol": "tcp"
+            }
+          ],
+          "secrets": [
+            {
+              "name": "OPENAI_API_KEY",
+              "valueFrom": "arn:aws:secretsmanager:us-east-1:123456789:secret:stride-gpt/openai"
+            }
+          ],
+          "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+              "awslogs-group": "/ecs/stride-gpt",
+              "awslogs-region": "us-east-1",
+              "awslogs-stream-prefix": "ecs"
+            }
+          },
+          "healthCheck": {
+            "command": ["CMD-SHELL", "curl -f http://localhost:8501/_stcore/health || exit 1"],
+            "interval": 30,
+            "timeout": 5,
+            "retries": 3,
+            "startPeriod": 60
+          }
+        }
+      ]
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Azure Container Apps">
+    Deploy on Azure Container Apps:
+    
+    ```bash
+    # Create container app
+    az containerapp create \
+      --name stride-gpt \
+      --resource-group stride-gpt-rg \
+      --environment stride-gpt-env \
+      --image my-org/stride-gpt:1.0.0 \
+      --target-port 8501 \
+      --ingress external \
+      --cpu 1.0 \
+      --memory 2.0Gi \
+      --min-replicas 3 \
+      --max-replicas 10 \
+      --secrets \
+        openai-key="$OPENAI_API_KEY" \
+        anthropic-key="$ANTHROPIC_API_KEY" \
+      --env-vars \
+        OPENAI_API_KEY=secretref:openai-key \
+        ANTHROPIC_API_KEY=secretref:anthropic-key
+    ```
+  </Tab>
+  
+  <Tab title="GCP Cloud Run">
+    Deploy on GCP Cloud Run:
+    
+    ```bash
+    # Deploy container
+    gcloud run deploy stride-gpt \
+      --image my-org/stride-gpt:1.0.0 \
+      --platform managed \
+      --region us-central1 \
+      --port 8501 \
+      --cpu 2 \
+      --memory 2Gi \
+      --min-instances 3 \
+      --max-instances 10 \
+      --set-secrets \
+        OPENAI_API_KEY=stride-gpt-openai:latest,\
+        ANTHROPIC_API_KEY=stride-gpt-anthropic:latest \
+      --allow-unauthenticated
+    ```
+  </Tab>
+</Tabs>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Container Fails to Start">
+    **Check logs:**
+    ```bash
+    # Docker
+    docker logs <container-id>
+    
+    # Kubernetes
+    kubectl logs -n stride-gpt <pod-name>
+    ```
+    
+    **Common issues:**
+    - Missing API keys → Check environment variables/secrets
+    - Port already in use → Change port mapping
+    - Insufficient resources → Increase CPU/memory limits
+    - Permission errors → Verify non-root user (UID 1000)
+  </Accordion>
+  
+  <Accordion title="Health Check Failures">
+    **Test health endpoint:**
+    ```bash
+    curl -f http://localhost:8501/_stcore/health
+    ```
+    
+    **Causes:**
+    - Streamlit not fully started → Increase `initialDelaySeconds`
+    - Port not accessible → Check firewall rules
+    - Application crashed → Check logs for errors
+  </Accordion>
+  
+  <Accordion title="WebSocket Connection Issues">
+    **Symptoms**: UI loads but doesn't update, infinite loading spinners
+    
+    **Solutions:**
+    - Enable WebSocket support in reverse proxy:
+      ```nginx
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+      proxy_read_timeout 86400;
+      ```
+    - Check firewall allows WebSocket connections
+    - Verify Kubernetes ingress annotations for WebSocket support
+  </Accordion>
+  
+  <Accordion title="API Key Not Working">
+    **Verify secrets:**
+    ```bash
+    # Docker
+    docker exec <container-id> env | grep API_KEY
+    
+    # Kubernetes
+    kubectl exec -n stride-gpt <pod-name> -- env | grep API_KEY
+    ```
+    
+    **Common issues:**
+    - Typo in secret name/key
+    - Secret not created in correct namespace
+    - IAM permissions missing for secrets access (cloud deployments)
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Operationalization Guide" icon="building" href="/enterprise/operationalization">
+    Inject organizational security controls and compliance requirements
+  </Card>
+  
+  <Card title="Customization Guide" icon="sliders" href="/enterprise/customization">
+    Modify prompts, threat categories, and LLM providers
+  </Card>
+</CardGroup>
+
+## Resources
+
+- [STRIDE GPT Repository](https://github.com/mrwadams/stride-gpt)
+- [Docker Hub Image](https://hub.docker.com/repository/docker/mrwadams/stridegpt)
+- [Security Policy (SECURITY.md)](https://github.com/mrwadams/stride-gpt/blob/main/SECURITY.md)
+- [Docker Security Best Practices](https://docs.docker.com/develop/security-best-practices/)
+- [Kubernetes Security Best Practices](https://kubernetes.io/docs/concepts/security/)

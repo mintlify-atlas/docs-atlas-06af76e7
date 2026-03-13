@@ -1,0 +1,307 @@
+---
+title: DREAD Risk Assessment
+description: Understanding the DREAD risk scoring framework in STRIDE GPT
+---
+
+## Overview
+
+DREAD is a risk assessment methodology that provides quantitative scoring for security threats identified through STRIDE analysis. STRIDE GPT uses DREAD to prioritize threats based on their potential impact and likelihood.
+
+The acronym DREAD represents five risk dimensions:
+
+<CardGroup cols={2}>
+  <Card title="Damage Potential" icon="explosion">
+    How severe is the harm if the threat is exploited?
+  </Card>
+  <Card title="Reproducibility" icon="arrows-rotate">
+    How easily can the attack be reproduced?
+  </Card>
+  <Card title="Exploitability" icon="screwdriver-wrench">
+    How much effort is required to exploit the vulnerability?
+  </Card>
+  <Card title="Affected Users" icon="users">
+    How many users would be impacted?
+  </Card>
+  <Card title="Discoverability" icon="magnifying-glass">
+    How easily can the vulnerability be discovered?
+  </Card>
+</CardGroup>
+
+## Scoring Scale
+
+Each DREAD dimension is scored on a scale of **1 to 10**:
+
+<Accordion title="Scoring Guidelines">
+- **1-3 (Low)**: Minimal risk or impact
+- **4-6 (Medium)**: Moderate risk requiring attention
+- **7-10 (High)**: Critical risk demanding immediate action
+</Accordion>
+
+### Risk Score Calculation
+
+The overall risk score is calculated as the **average of all five DREAD dimensions**:
+
+```
+Risk Score = (D + R + E + A + D) / 5
+```
+
+Where:
+- D = Damage Potential (1-10)
+- R = Reproducibility (1-10)
+- E = Exploitability (1-10)
+- A = Affected Users (1-10)
+- D = Discoverability (1-10)
+
+## DREAD Dimensions in Detail
+
+### Damage Potential
+
+**Definition**: The magnitude of harm if the threat is successfully exploited.
+
+**Traditional applications:**
+- Financial losses
+- Reputational damage
+- Operational disruption
+- Data loss or corruption
+
+**LLM/GenAI applications:**
+- **Prompt injection**: Complete system compromise or data exfiltration
+- **Training data poisoning**: Affects all users, persists across updates
+- **Sensitive data disclosure**: PII, credentials, or proprietary information exposure
+- **Malicious output**: Reputational damage and legal liability
+
+**Agentic applications:**
+- **Cascading effects**: Impact across agent chains and downstream systems
+- **Memory poisoning**: Affects all future sessions and users
+- **Credential exfiltration**: Persistent access to multiple systems
+- **Autonomous actions**: Irreversible damage before detection
+- **Multi-agent compromise**: Exponential blast radius
+- **Infrastructure attacks**: Sandbox escape enables lateral movement
+
+<Info>
+For agentic systems with RAG serving multiple users, add +1-2 to Damage Potential scores.
+</Info>
+
+### Reproducibility
+
+**Definition**: The consistency with which the attack can be successfully repeated.
+
+**Traditional applications:**
+- Reliability of exploit execution
+- Required conditions and timing
+- Environmental dependencies
+
+**LLM/GenAI applications:**
+- **Prompt injection**: Success varies with model, temperature, and context
+- **Attack phrasing**: May require specific wording or multi-turn conversations
+- **RAG poisoning**: Time needed for embeddings to propagate
+- **Non-determinism**: Model behavior makes exact reproduction difficult
+
+**Agentic applications:**
+- **Probabilistic behavior**: Agent actions are context-dependent
+- **State dependencies**: Prompt injection success depends on model state
+- **Memory effects**: Poisoning manifests inconsistently across sessions
+- **Multi-step attacks**: Agent chains harder to reproduce exactly
+- **RAG variability**: Depends on embedding similarity and retrieval ranking
+- **Tool parameters**: May require specific combinations
+
+<Note>
+For non-deterministic retrieval systems, subtract -1 from Reproducibility scores.
+</Note>
+
+### Exploitability
+
+**Definition**: The technical skill and resources required to exploit the vulnerability.
+
+**Traditional applications:**
+- Technical complexity
+- Required tools and knowledge
+- Access requirements
+
+**LLM/GenAI applications:**
+- **Prompt injection**: Requires minimal technical skill
+- **Supply chain attacks**: Need access to trusted sources
+- **Training data poisoning**: Requires access to fine-tuning pipelines
+- **Simple attacks**: Often as easy as crafting malicious user input
+
+**Agentic applications:**
+- **Prompt injection**: Low skill but requires knowledge of agent behavior
+- **Tool misuse**: Often exploits configuration gaps vs. code vulnerabilities
+- **Supply chain**: Requires access to trusted repositories (malicious MCP servers)
+- **Context poisoning**: Requires patience but little technical sophistication
+- **Code execution**: Ranges from simple prompts to advanced sandbox escapes
+- **Multi-agent attacks**: May require understanding of communication protocols
+
+<Accordion title="Exploitability Adjustments">
+- Strong sandboxing: -2 to Exploitability
+- Weak isolation: +2 to Exploitability
+- Unvalidated tool parameters: +2 to Exploitability
+- Enumerable tool capabilities: +2 to Discoverability
+</Accordion>
+
+### Affected Users
+
+**Definition**: The number and scope of users impacted by successful exploitation.
+
+**Traditional applications:**
+- User base size
+- Scope of access
+- Data exposure range
+
+**LLM/GenAI applications:**
+- **Model-level vulnerabilities**: Affect all users of that model instance
+- **RAG poisoning**: Impacts everyone querying that data
+- **Context isolation failures**: Cross-user data exposure
+- **Shared prompts**: Multiply the blast radius
+
+**Agentic applications:**
+- **Multi-agent systems**: Amplify impact across all connected agents
+- **Shared memory/RAG**: Affects all users of that knowledge base
+- **Credential abuse**: All systems accessible with those credentials
+- **Agent-to-agent propagation**: Cascades across entire ecosystems
+- **Foundation model compromise**: Every application using that model
+- **Infrastructure attacks**: All tenants in shared environments
+
+<Info>
+For shared knowledge bases or multi-tenant RAG systems, add +2-3 to Affected Users scores.
+</Info>
+
+### Discoverability
+
+**Definition**: The ease with which the vulnerability can be identified by attackers.
+
+**Traditional applications:**
+- Visibility of vulnerability
+- Detection methods required
+- Public disclosure status
+
+**LLM/GenAI applications:**
+- **Prompt injection**: Easily discoverable through experimentation
+- **System prompt extraction**: Often trivial with creative prompting
+- **Training data extraction**: Possible through careful probing
+- **Model capabilities**: Often documented or enumerable
+
+**Agentic applications:**
+- **Prompt injection**: Easily discoverable through normal interaction
+- **Decision logs**: May reveal exploitable patterns and permissions
+- **Tool permissions**: Often documented or easily enumerated
+- **Memory leakage**: Through carefully crafted queries
+- **Framework vulnerabilities**: Published in CVE databases
+- **Behavior patterns**: Can be profiled through systematic probing
+
+<Note>
+If document upload is user-accessible, add +1 to Discoverability for RAG poisoning threats.
+</Note>
+
+## Architectural Pattern-Specific Scoring
+
+STRIDE GPT adjusts DREAD scores based on detected architectural patterns:
+
+### RAG / Retrieval Systems
+
+- **Damage Potential**: +1-2 if RAG serves multiple users
+- **Reproducibility**: -1 if retrieval is non-deterministic
+- **Affected Users**: +2-3 if shared knowledge base
+- **Discoverability**: +1 if document upload is user-accessible
+
+### Multi-Agent Systems
+
+- **Damage Potential**: +2-3 for cascading effects across agent chains
+- **Reproducibility**: -1-2 for complex interactions
+- **Affected Users**: +2 for ecosystem-wide attacks
+- **Discoverability**: +1 if communication patterns are observable
+
+### Code Execution Environments
+
+- **Damage Potential**: +3 if sandbox escape is possible
+- **Exploitability**: -2 for strong isolation, +2 for weak isolation
+- **Affected Users**: +2-3 if shared infrastructure
+- **Discoverability**: -1 for sophisticated sandbox escapes
+
+### Tool/MCP Ecosystems
+
+- **Damage Potential**: +1-2 based on tool permissions
+- **Reproducibility**: +1 if tool behavior is deterministic
+- **Exploitability**: +2 if tools accept unvalidated parameters
+- **Discoverability**: +2 if tool capabilities are enumerable
+
+### Persistent Memory Systems
+
+- **Damage Potential**: +2 if memory affects future sessions
+- **Reproducibility**: -1 if retrieval is similarity-based
+- **Affected Users**: +2-3 if memory is shared across users
+- **Discoverability**: +1 if memory contents can be queried
+
+### Autonomous Operations
+
+- **Damage Potential**: +2-3 if actions are irreversible
+- **Exploitability**: +1 if human oversight is minimal
+- **Discoverability**: -1 if attacks occur during low-monitoring periods
+
+## Cross-Layer Threat Scoring
+
+For threats spanning multiple architectural components:
+
+<Accordion title="Multi-Component Considerations">
+- **Damage Potential**: Score for the full attack chain, not individual steps
+- **Reproducibility**: Adjust based on complexity of multi-step exploitation
+- **Affected Users**: Consider propagation to shared infrastructure
+- **Exploitability**: Account for cumulative difficulty across layers
+</Accordion>
+
+## Example DREAD Assessment
+
+<Accordion title="Prompt Injection in RAG System">
+**Threat**: An attacker injects malicious instructions into documents processed by the RAG system.
+
+- **Damage Potential**: 8/10 (manipulates all users querying poisoned data)
+- **Reproducibility**: 6/10 (requires embedding propagation, some variability)
+- **Exploitability**: 5/10 (low technical skill, but needs upload access)
+- **Affected Users**: 9/10 (all users querying the knowledge base)
+- **Discoverability**: 7/10 (easily testable with document upload)
+
+**Risk Score**: (8 + 6 + 5 + 9 + 7) / 5 = **7.0/10** (High Risk)
+</Accordion>
+
+<Accordion title="Sandbox Escape in Code Execution Agent">
+**Threat**: Generated code exploits weak containerization to escape sandbox.
+
+- **Damage Potential**: 10/10 (full system compromise)
+- **Reproducibility**: 7/10 (requires specific container configuration)
+- **Exploitability**: 6/10 (needs exploit development skills)
+- **Affected Users**: 8/10 (all users in shared infrastructure)
+- **Discoverability**: 4/10 (requires security expertise to discover)
+
+**Risk Score**: (10 + 7 + 6 + 8 + 4) / 5 = **7.0/10** (High Risk)
+</Accordion>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Consistent Scoring" icon="scale-balanced">
+    Apply the same criteria across all threats for comparable results
+  </Card>
+  <Card title="Context Matters" icon="compass">
+    Adjust scores based on specific application architecture and controls
+  </Card>
+  <Card title="Document Rationale" icon="file-lines">
+    Explain the reasoning behind each score for future reference
+  </Card>
+  <Card title="Prioritize Actions" icon="list-check">
+    Focus remediation on highest-scoring threats first
+  </Card>
+</CardGroup>
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="STRIDE Methodology" href="/reference/stride-methodology">
+    Learn about threat identification using STRIDE
+  </Card>
+  <Card title="OWASP LLM Top 10" href="/reference/owasp-llm-top-10">
+    Understand LLM-specific vulnerabilities
+  </Card>
+  <Card title="OWASP ASI Top 10" href="/reference/owasp-asi-top-10">
+    Explore agentic system security risks
+  </Card>
+</CardGroup>

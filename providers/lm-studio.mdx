@@ -1,0 +1,582 @@
+---
+title: LM Studio Integration
+description: Run local AI models with LM Studio's desktop application for STRIDE GPT
+---
+
+LM Studio provides a user-friendly desktop application for running large language models locally, offering an accessible alternative to cloud APIs for threat modeling with STRIDE GPT.
+
+## What is LM Studio?
+
+LM Studio is a desktop application that simplifies local AI model hosting:
+
+<Card>
+  **Key Features**:
+  
+  - ✅ **Graphical Interface**: No command-line knowledge required
+  - ✅ **Model Browser**: Browse and download models with one click
+  - ✅ **Automatic GPU Detection**: Optimizes for your hardware
+  - ✅ **Built-in Server**: Compatible with OpenAI API format
+  - ✅ **Chat Interface**: Test models before using with STRIDE GPT
+  - ✅ **Privacy**: All processing happens locally
+  - ✅ **No API Costs**: Free after initial hardware investment
+  
+  **Trade-offs**:
+  
+  - ❌ Requires powerful hardware (GPU recommended)
+  - ❌ Desktop application only (macOS, Windows, Linux)
+  - ❌ Slower than cloud APIs
+  - ❌ Manual model management
+</Card>
+
+## System Requirements
+
+### Minimum Hardware
+
+<Tabs>
+  <Tab title="For Basic Models (7-8B)">
+    - **RAM**: 16 GB
+    - **GPU**: 8 GB VRAM (NVIDIA/AMD/Apple Silicon)
+    - **Disk**: 20 GB free space
+    - **OS**: macOS 11+, Windows 10+, Linux
+    
+    **Performance**: Basic threat modeling
+    **Quality**: Limited, suitable for learning
+  </Tab>
+  
+  <Tab title="For Good Models (13-32B)">
+    - **RAM**: 32 GB
+    - **GPU**: 16-24 GB VRAM
+    - **Disk**: 50 GB free space
+    - **OS**: macOS 11+, Windows 10+, Linux
+    
+    **Performance**: Solid threat modeling
+    **Quality**: Comparable to cloud APIs
+  </Tab>
+  
+  <Tab title="For Best Models (70B+)">
+    - **RAM**: 64 GB
+    - **GPU**: 48 GB VRAM (or multiple GPUs)
+    - **Disk**: 100 GB free space
+    - **OS**: macOS 11+, Windows 10+, Linux
+    
+    **Performance**: Comprehensive analysis
+    **Quality**: Matches cloud API quality
+  </Tab>
+</Tabs>
+
+### Supported GPUs
+
+<CardGroup cols={3}>
+  <Card title="NVIDIA" icon="n">
+    - GeForce RTX series
+    - Quadro/Tesla series
+    - CUDA required
+    - Best performance
+  </Card>
+  
+  <Card title="Apple Silicon" icon="apple">
+    - M1, M2, M3 series
+    - Unified memory
+    - Metal acceleration
+    - Good efficiency
+  </Card>
+  
+  <Card title="AMD" icon="a">
+    - Radeon RX series
+    - ROCm support (Linux)
+    - Limited Windows support
+    - Improving performance
+  </Card>
+</CardGroup>
+
+<Warning>
+Without a GPU, model inference will be extremely slow (3-10 tokens/second). A GPU is highly recommended for practical threat modeling.
+</Warning>
+
+## Installation & Setup
+
+<Steps>
+  <Step title="Download LM Studio">
+    Visit [lmstudio.ai](https://lmstudio.ai) and download for your platform:
+    
+    - **macOS**: .dmg installer (Intel and Apple Silicon)
+    - **Windows**: .exe installer
+    - **Linux**: .AppImage
+    
+    <Info>
+    LM Studio is free for personal and commercial use.
+    </Info>
+  </Step>
+  
+  <Step title="Install and Launch">
+    1. Run the installer
+    2. Launch LM Studio
+    3. Complete initial setup wizard
+    4. LM Studio detects your GPU automatically
+  </Step>
+  
+  <Step title="Download Models">
+    In LM Studio:
+    
+    1. Click **"Search"** or **"Discover"** tab
+    2. Browse or search for models:
+       - "llama 3.1 13b" for balanced performance
+       - "qwen 2.5 32b" for better quality
+       - "llama 3.3 70b" for best quality (if hardware allows)
+    3. Click **"Download"** on chosen model
+    4. Wait for download to complete (5-40 GB depending on model)
+    
+    <Note>
+    LM Studio automatically selects quantization level based on your hardware.
+    </Note>
+  </Step>
+  
+  <Step title="Start Local Server">
+    In LM Studio:
+    
+    1. Go to **"Local Server"** or **"Developer"** tab
+    2. Select your downloaded model from dropdown
+    3. Click **"Start Server"**
+    4. Server starts on `http://localhost:1234`
+    5. Keep LM Studio running while using STRIDE GPT
+    
+    <Info>
+    LM Studio provides an OpenAI-compatible API, making integration seamless.
+    </Info>
+  </Step>
+  
+  <Step title="Configure STRIDE GPT">
+    In STRIDE GPT sidebar:
+    
+    1. Select **"LM Studio Server"** from provider dropdown
+    2. Enter endpoint: `http://localhost:1234` (default)
+    3. Optional: Enter API key if you configured authentication
+    4. Select model from dropdown (auto-discovered from LM Studio)
+  </Step>
+</Steps>
+
+## Recommended Models
+
+### Best Quality (Large)
+
+<CardGroup cols={2}>
+  <Card title="Llama 3.3 70B" icon="crown">
+    **Best for comprehensive threat modeling**
+    
+    - Search: "llama-3.3-70b"
+    - Size: ~40 GB
+    - VRAM: 48 GB recommended
+    - Quality: Excellent STRIDE coverage
+  </Card>
+  
+  <Card title="Qwen 2.5 72B" icon="star">
+    **Strong alternative to Llama**
+    
+    - Search: "qwen-2.5-72b"
+    - Size: ~42 GB
+    - VRAM: 48 GB recommended
+    - Quality: Very good reasoning
+  </Card>
+</CardGroup>
+
+### Balanced (Medium)
+
+<CardGroup cols={3}>
+  <Card title="Llama 3.1 13B">
+    **Most popular choice**
+    
+    - Search: "llama-3.1-13b"
+    - Size: ~7.4 GB
+    - VRAM: 16 GB
+  </Card>
+  
+  <Card title="Qwen 2.5 32B">
+    **Better quality**
+    
+    - Search: "qwen-2.5-32b"
+    - Size: ~19 GB
+    - VRAM: 24 GB
+  </Card>
+  
+  <Card title="Mistral 7B v0.3">
+    **Efficient option**
+    
+    - Search: "mistral-7b-v0.3"
+    - Size: ~4.4 GB
+    - VRAM: 8 GB
+  </Card>
+</CardGroup>
+
+### Fast (Small)
+
+<CardGroup cols={2}>
+  <Card title="Llama 3.1 8B" icon="bolt">
+    - Search: "llama-3.1-8b"
+    - Size: ~4.7 GB
+    - VRAM: 8 GB
+    - Good for quick iterations
+  </Card>
+  
+  <Card title="Phi-3 Medium" icon="feather">
+    - Search: "phi-3-medium-14b"
+    - Size: ~7.9 GB
+    - VRAM: 8 GB
+    - Microsoft's efficient model
+  </Card>
+</CardGroup>
+
+<Warning>
+For production threat modeling, use models with 13B+ parameters. Smaller models may miss important threats or provide incomplete analysis.
+</Warning>
+
+## Dynamic Model Selection
+
+LM Studio's key advantage: **switch models without restarting**
+
+<Steps>
+  <Step title="Keep LM Studio Open">
+    Run LM Studio alongside STRIDE GPT
+  </Step>
+  
+  <Step title="Switch Models as Needed">
+    In LM Studio:
+    1. Stop current server (if running)
+    2. Select different model from dropdown
+    3. Start server again
+    4. Model instantly available in STRIDE GPT
+  </Step>
+  
+  <Step title="Workflow Example">
+    ```
+    1. Start with Llama 3.1 8B for quick draft
+    2. Switch to Llama 3.1 13B for refinement
+    3. Switch to Qwen 2.5 32B for final analysis
+    ```
+    
+    All without restarting STRIDE GPT!
+  </Step>
+</Steps>
+
+<Info>
+STRIDE GPT automatically detects available models from LM Studio's server. The dropdown updates when you change models.
+</Info>
+
+## Configuration Options
+
+### Endpoint Configuration
+
+<Tabs>
+  <Tab title="Default (Local)">
+    Standard local setup:
+    ```
+    http://localhost:1234
+    ```
+  </Tab>
+  
+  <Tab title="Custom Port">
+    If you changed LM Studio's port:
+    ```
+    http://localhost:8080
+    ```
+    
+    Configure in LM Studio: Settings → Server → Port
+  </Tab>
+  
+  <Tab title="Remote Server">
+    LM Studio on another machine:
+    ```
+    http://192.168.1.100:1234
+    http://lm-studio.local:1234
+    ```
+    
+    <Warning>
+    Enable "Allow remote connections" in LM Studio settings.
+    </Warning>
+  </Tab>
+  
+  <Tab title="Environment Variable">
+    Set in `.env`:
+    ```
+    LM_STUDIO_ENDPOINT=http://localhost:1234
+    ```
+  </Tab>
+</Tabs>
+
+### Authentication (Optional)
+
+LM Studio supports optional API key authentication:
+
+<Steps>
+  <Step title="Enable in LM Studio">
+    Settings → Server → Enable Authentication
+  </Step>
+  
+  <Step title="Generate Key">
+    Create and copy API key in LM Studio
+  </Step>
+  
+  <Step title="Configure STRIDE GPT">
+    Enter key in STRIDE GPT sidebar (optional field)
+  </Step>
+</Steps>
+
+<Note>
+Authentication is only needed if you:
+- Exposed LM Studio to your network
+- Want to restrict access
+- Have compliance requirements
+
+For local-only use, authentication is optional.
+</Note>
+
+## Performance Optimization
+
+### In LM Studio
+
+<Tabs>
+  <Tab title="GPU Settings">
+    Settings → GPU:
+    
+    - **GPU Offload**: Max (move all layers to GPU)
+    - **GPU Type**: Auto-detected (CUDA/Metal/ROCm)
+    - **Context Length**: 8192-32768 (based on VRAM)
+    - **Threads**: Auto (or match CPU cores)
+  </Tab>
+  
+  <Tab title="Model Settings">
+    When loading model:
+    
+    - **Quantization**: Auto-selected for your hardware
+      - Q4_K_M: Fastest, smallest (4-bit)
+      - Q5_K_M: Balanced
+      - Q8_0: Highest quality (8-bit)
+    - **Context Window**: 8192 (standard) or 32768 (large)
+    - **Batch Size**: Auto
+  </Tab>
+  
+  <Tab title="Server Settings">
+    Settings → Server:
+    
+    - **Timeout**: 120 seconds (for large threat models)
+    - **Keep Alive**: 5 minutes (model stays loaded)
+    - **Max Request Size**: Default
+  </Tab>
+</Tabs>
+
+### In STRIDE GPT
+
+No special configuration needed - STRIDE GPT automatically:
+- Detects available models
+- Uses structured output schemas
+- Handles timeouts appropriately
+
+## Best Practices
+
+### Choosing the Right Model
+
+<Steps>
+  <Step title="Check Available VRAM">
+    In LM Studio or system monitor:
+    - NVIDIA: `nvidia-smi`
+    - Apple: Activity Monitor → GPU
+    - AMD: `rocm-smi` or system monitor
+  </Step>
+  
+  <Step title="Match Model to Hardware">
+    | VRAM Available | Recommended Model |
+    |---------------|------------------|
+    | 8 GB | Llama 3.1 8B, Mistral 7B |
+    | 16 GB | Llama 3.1 13B, Phi-3 14B |
+    | 24 GB | Qwen 2.5 32B |
+    | 48+ GB | Llama 3.3 70B, Qwen 2.5 72B |
+  </Step>
+  
+  <Step title="Test Performance">
+    In LM Studio's chat:
+    - Ask: "Generate STRIDE threats for a web application"
+    - Should complete in under 2 minutes
+    - If too slow, try smaller model or lower quantization
+  </Step>
+</Steps>
+
+### Workflow Optimization
+
+<Card>
+  **Efficient Threat Modeling Workflow**:
+  
+  1. **Load model once**: Keep LM Studio running throughout session
+  2. **Batch operations**: Generate threat model, then attack tree, then mitigations in sequence
+  3. **Model warm-up**: First request slower (model loading), subsequent faster
+  4. **Switch strategically**: Use smaller model for drafts, larger for final
+</Card>
+
+### Privacy & Security
+
+<Note>
+**Privacy Advantages**:
+
+- All data stays on your computer
+- No cloud API calls
+- No telemetry (can be disabled in settings)
+- Ideal for:
+  - Sensitive applications
+  - Proprietary systems
+  - Compliance requirements (HIPAA, GDPR)
+  - Air-gapped environments
+</Note>
+
+## Troubleshooting
+
+<Accordion title="LM Studio Server Not Detected">
+  **Symptom**: STRIDE GPT shows "Unable to connect"
+  
+  **Solutions**:
+  - Verify LM Studio server is running (green indicator)
+  - Check endpoint URL matches (default: http://localhost:1234)
+  - Test endpoint: `curl http://localhost:1234/v1/models`
+  - Disable firewall temporarily to test
+  - Restart LM Studio server
+</Accordion>
+
+<Accordion title="No Models in Dropdown">
+  **Symptom**: STRIDE GPT shows "local-model" only
+  
+  **Solutions**:
+  - Ensure model is loaded in LM Studio (not just downloaded)
+  - Click "Start Server" in LM Studio
+  - Wait for model to fully load (progress bar completes)
+  - Refresh STRIDE GPT page
+  - Check LM Studio server logs for errors
+</Accordion>
+
+<Accordion title="Out of Memory Errors">
+  **Symptom**: Model fails to load or crashes
+  
+  **Solutions**:
+  - Use smaller model (13B → 8B)
+  - Reduce context length in LM Studio (32k → 8k)
+  - Lower quantization (Q8 → Q4)
+  - Close other applications
+  - Increase system swap/page file
+  - Check GPU memory: `nvidia-smi` or Activity Monitor
+</Accordion>
+
+<Accordion title="Very Slow Generation">
+  **Symptom**: Threat model takes >5 minutes
+  
+  **Solutions**:
+  - Verify GPU acceleration enabled in LM Studio settings
+  - Check GPU offload set to max
+  - Use smaller model
+  - Reduce context length
+  - Lower quantization for faster inference
+  - Check system isn't thermal throttling
+  - Close background applications
+</Accordion>
+
+<Accordion title="Poor Quality Results">
+  **Symptom**: Incomplete or generic threat models
+  
+  **Solutions**:
+  - Upgrade to 13B+ parameter model
+  - Use higher quantization (Q4 → Q8)
+  - Try different model (Llama vs Qwen vs Mistral)
+  - Provide more detailed application description
+  - Set higher temperature in LM Studio (0.7-0.9)
+  - Increase max tokens in LM Studio settings
+</Accordion>
+
+<Accordion title="JSON Parsing Errors">
+  **Symptom**: "Failed to parse JSON response"
+  
+  **Explanation**: LM Studio models may struggle with structured output
+  
+  **Solutions**:
+  - Enable "Grammar" or "JSON Mode" in LM Studio if available
+  - Use newer models with better instruction following
+  - Try Llama 3.1+ or Qwen 2.5+ (better at JSON)
+  - Retry the request (sometimes succeeds second time)
+  - Report persistent issues
+</Accordion>
+
+## Comparing LM Studio to Other Options
+
+### vs. Ollama
+
+<Tabs>
+  <Tab title="LM Studio Advantages">
+    - ✅ **Graphical interface** (easier for beginners)
+    - ✅ **Model browser** (discover and download in-app)
+    - ✅ **Built-in chat** (test models before use)
+    - ✅ **Auto GPU detection** (no manual config)
+    - ✅ **Dynamic model switching** (change without restart)
+  </Tab>
+  
+  <Tab title="Ollama Advantages">
+    - ✅ **Command-line efficiency** (for advanced users)
+    - ✅ **Lightweight** (no GUI overhead)
+    - ✅ **System service** (runs in background)
+    - ✅ **Docker support** (containerized deployment)
+    - ✅ **Better for servers** (headless operation)
+  </Tab>
+</Tabs>
+
+### vs. Cloud APIs
+
+<Tabs>
+  <Tab title="LM Studio Advantages">
+    - ✅ **Privacy** (all local processing)
+    - ✅ **No recurring costs** (free after hardware)
+    - ✅ **Offline capable** (no internet needed)
+    - ✅ **No rate limits** (use unlimited)
+    - ✅ **User-friendly** (GUI vs API keys)
+  </Tab>
+  
+  <Tab title="Cloud API Advantages">
+    - ✅ **Better quality** (GPT-5, Claude 4.5, Gemini 3)
+    - ✅ **Faster inference** (optimized infrastructure)
+    - ✅ **No hardware needed** (works on any device)
+    - ✅ **Reasoning models** (advanced analysis)
+    - ✅ **Image analysis** (architecture diagrams)
+    - ✅ **Always updated** (latest models)
+  </Tab>
+</Tabs>
+
+## When to Use LM Studio
+
+<Card>
+  **Choose LM Studio When**:
+  
+  - ✅ Privacy is paramount (sensitive applications)
+  - ✅ You have suitable hardware (16+ GB VRAM)
+  - ✅ You prefer GUIs over command-line
+  - ✅ You want to avoid API costs
+  - ✅ You need offline capability
+  - ✅ You want to experiment with different models easily
+  
+  **Choose Cloud APIs When**:
+  
+  - Application is security-critical (need best quality)
+  - Analyzing complex agentic AI systems
+  - Need architecture diagram analysis
+  - Want fastest response times
+  - Don't have powerful hardware
+  - Prefer not to manage local models
+</Card>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Ollama" icon="server" href="/providers/ollama">
+    Try Ollama for command-line local hosting
+  </Card>
+  <Card title="Groq" icon="bolt" href="/providers/groq">
+    Experience fast cloud inference
+  </Card>
+  <Card title="Provider Comparison" icon="scale-balanced" href="/providers/overview">
+    Compare all provider options
+  </Card>
+  <Card title="Hardware Guide" icon="microchip" href="/installation/configuration">
+    Choose the right hardware for local AI
+  </Card>
+</CardGroup>

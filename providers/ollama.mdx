@@ -1,0 +1,586 @@
+---
+title: Ollama Integration
+description: Run threat modeling locally with self-hosted Ollama models in STRIDE GPT
+---
+
+Ollama enables you to run large language models locally on your own hardware, providing complete privacy and offline capability for threat modeling with STRIDE GPT.
+
+## What is Ollama?
+
+Ollama is an open-source tool that makes it easy to run large language models on your local machine:
+
+<Card>
+  **Key Benefits**:
+  
+  - ✅ **Complete Privacy**: No data sent to external APIs
+  - ✅ **Offline Operation**: Works without internet connection
+  - ✅ **No API Costs**: Free after initial hardware investment
+  - ✅ **Model Library**: Access to 100+ open-source models
+  - ✅ **Full Control**: Choose exactly which models to use
+  - ✅ **Data Sovereignty**: Sensitive application data stays local
+  
+  **Trade-offs**:
+  
+  - ❌ Requires powerful hardware (GPU recommended)
+  - ❌ Slower inference than cloud APIs
+  - ❌ You manage model downloads and updates
+  - ❌ Variable quality depending on model choice
+</Card>
+
+## System Requirements
+
+### Minimum Requirements
+
+<Tabs>
+  <Tab title="CPU Only">
+    **Warning**: CPU inference is very slow
+    
+    - 16 GB RAM minimum
+    - 64 GB RAM recommended for 13B+ models
+    - Recent multi-core processor
+    - 50+ GB disk space for models
+    
+    **Performance**: 3-10 tokens/second
+    **Viable for**: Small models (7B parameters or less)
+  </Tab>
+  
+  <Tab title="With GPU (Recommended)">
+    **NVIDIA GPU** (CUDA support):
+    - 8 GB VRAM: 7B-13B parameter models
+    - 16 GB VRAM: 13B-34B parameter models
+    - 24 GB VRAM: 34B-70B parameter models
+    - 48+ GB VRAM: 70B+ parameter models
+    
+    **Apple Silicon** (M1/M2/M3):
+    - 16 GB unified memory: 7B-13B models
+    - 32 GB unified memory: 13B-34B models
+    - 64+ GB unified memory: 34B-70B models
+    
+    **Performance**: 20-100+ tokens/second
+    **Viable for**: Most threat modeling use cases
+  </Tab>
+  
+  <Tab title="AMD GPU">
+    **ROCm support** (AMD GPUs):
+    - Linux only (official support)
+    - 8+ GB VRAM recommended
+    - Check Ollama docs for supported cards
+    
+    **Performance**: Similar to NVIDIA but less optimized
+  </Tab>
+</Tabs>
+
+<Warning>
+**Hardware Investment**: Quality threat modeling requires at least a 13B parameter model, which needs 16+ GB VRAM (GPU) or 32+ GB RAM (CPU). Budget accordingly.
+</Warning>
+
+## Installation
+
+<Steps>
+  <Step title="Install Ollama">
+    <Tabs>
+      <Tab title="macOS">
+        Download from [ollama.com](https://ollama.com):
+        
+        ```bash
+        # Or via Homebrew
+        brew install ollama
+        ```
+        
+        Start Ollama:
+        ```bash
+        ollama serve
+        ```
+      </Tab>
+      
+      <Tab title="Linux">
+        Install via curl:
+        
+        ```bash
+        curl -fsSL https://ollama.com/install.sh | sh
+        ```
+        
+        Start Ollama service:
+        ```bash
+        systemctl start ollama
+        ```
+      </Tab>
+      
+      <Tab title="Windows">
+        Download installer from [ollama.com](https://ollama.com) or use WSL2:
+        
+        ```bash
+        # In WSL2
+        curl -fsSL https://ollama.com/install.sh | sh
+        ollama serve
+        ```
+      </Tab>
+      
+      <Tab title="Docker">
+        Run Ollama in container:
+        
+        ```bash
+        docker run -d -v ollama:/root/.ollama \
+          -p 11434:11434 --name ollama ollama/ollama
+        ```
+        
+        With GPU:
+        ```bash
+        docker run -d --gpus=all -v ollama:/root/.ollama \
+          -p 11434:11434 --name ollama ollama/ollama
+        ```
+      </Tab>
+    </Tabs>
+  </Step>
+  
+  <Step title="Pull Models">
+    Download models for threat modeling:
+    
+    ```bash
+    # Recommended models for threat modeling
+    ollama pull llama3.3:70b      # Best quality (40 GB)
+    ollama pull llama3.1:13b      # Balanced (7.4 GB)
+    ollama pull qwen2.5:32b       # Good alternative (19 GB)
+    ollama pull deepseek-r1:70b   # Reasoning model (43 GB)
+    
+    # Faster/smaller options
+    ollama pull llama3.1:8b       # Fast (4.7 GB)
+    ollama pull phi3:14b          # Efficient (7.9 GB)
+    ```
+    
+    <Info>
+    Model sizes shown are approximate. Actual disk usage varies by quantization.
+    </Info>
+  </Step>
+  
+  <Step title="Verify Installation">
+    Test Ollama is running:
+    
+    ```bash
+    curl http://localhost:11434/api/tags
+    ```
+    
+    Should return list of installed models.
+  </Step>
+  
+  <Step title="Configure STRIDE GPT">
+    In STRIDE GPT sidebar:
+    
+    1. Select **"Ollama"** from model provider dropdown
+    2. Enter endpoint: `http://localhost:11434` (default)
+    3. Select model from dropdown (auto-discovered)
+    4. Adjust timeout if needed (default: 60 seconds)
+  </Step>
+</Steps>
+
+## Recommended Models for Threat Modeling
+
+### Best Quality (Large)
+
+<CardGroup cols={2}>
+  <Card title="Llama 3.3 70B" icon="crown">
+    **Best open-source model for threat analysis**
+    
+    - Pull: `ollama pull llama3.3:70b`
+    - Size: ~40 GB
+    - VRAM: 48 GB (or 24 GB with quantization)
+    - Quality: Excellent STRIDE coverage
+    - Speed: 20-40 tokens/sec (GPU)
+  </Card>
+  
+  <Card title="DeepSeek R1 70B" icon="brain">
+    **Reasoning-focused model**
+    
+    - Pull: `ollama pull deepseek-r1:70b`
+    - Size: ~43 GB
+    - VRAM: 48 GB
+    - Quality: Deep security reasoning
+    - Speed: 15-30 tokens/sec (GPU)
+  </Card>
+</CardGroup>
+
+### Balanced (Medium)
+
+<CardGroup cols={3}>
+  <Card title="Qwen 2.5 32B">
+    - Pull: `ollama pull qwen2.5:32b`
+    - Size: ~19 GB
+    - VRAM: 24 GB
+    - Great alternative to Llama
+  </Card>
+  
+  <Card title="Llama 3.1 13B">
+    - Pull: `ollama pull llama3.1:13b`
+    - Size: ~7.4 GB
+    - VRAM: 16 GB
+    - Good balance for most use cases
+  </Card>
+  
+  <Card title="Phi-3 14B">
+    - Pull: `ollama pull phi3:14b`
+    - Size: ~7.9 GB
+    - VRAM: 16 GB
+    - Efficient Microsoft model
+  </Card>
+</CardGroup>
+
+### Fast/Lightweight (Small)
+
+<CardGroup cols={2}>
+  <Card title="Llama 3.1 8B" icon="bolt">
+    - Pull: `ollama pull llama3.1:8b`
+    - Size: ~4.7 GB
+    - VRAM: 8 GB
+    - Fastest option, basic threats
+  </Card>
+  
+  <Card title="Phi-3 3.8B" icon="feather">
+    - Pull: `ollama pull phi3:3.8b`
+    - Size: ~2.2 GB
+    - VRAM: 4 GB
+    - Minimal hardware requirements
+  </Card>
+</CardGroup>
+
+<Warning>
+Models smaller than 13B parameters may produce incomplete or inaccurate threat models. Use 13B+ models for production threat modeling.
+</Warning>
+
+## Configuration
+
+### Endpoint Configuration
+
+**Default**: `http://localhost:11434`
+
+<Tabs>
+  <Tab title="Local Installation">
+    Standard local Ollama:
+    ```
+    http://localhost:11434
+    ```
+  </Tab>
+  
+  <Tab title="Remote Server">
+    Ollama on another machine:
+    ```
+    http://192.168.1.100:11434
+    http://ollama.internal:11434
+    ```
+    
+    <Warning>
+    Ensure firewall allows port 11434.
+    </Warning>
+  </Tab>
+  
+  <Tab title="Docker">
+    Ollama in Docker container:
+    ```
+    http://localhost:11434
+    ```
+    
+    Or with custom port mapping:
+    ```
+    http://localhost:8080
+    ```
+  </Tab>
+  
+  <Tab title="Environment Variable">
+    Set in `.env`:
+    ```
+    OLLAMA_ENDPOINT=http://localhost:11434
+    ```
+  </Tab>
+</Tabs>
+
+### Timeout Configuration
+
+**Default**: 60 seconds
+
+<Note>
+Larger models or CPU inference may require longer timeouts. STRIDE GPT allows 60-600 second timeouts.
+</Note>
+
+Adjust in sidebar:
+- **60s**: Fast models (8B) with GPU
+- **120s**: Medium models (13B-32B) with GPU
+- **300s**: Large models (70B) with GPU
+- **600s**: CPU inference or slow hardware
+
+### Model Discovery
+
+STRIDE GPT automatically discovers Ollama models:
+
+```python
+# STRIDE GPT queries Ollama API
+GET http://localhost:11434/api/tags
+
+# Response includes installed models:
+{
+  "models": [
+    {"name": "llama3.3:70b", ...},
+    {"name": "llama3.1:13b", ...}
+  ]
+}
+```
+
+If no models appear:
+1. Check Ollama is running: `curl http://localhost:11434/api/tags`
+2. Verify models installed: `ollama list`
+3. Check firewall/network settings
+
+## Performance Optimization
+
+### GPU Acceleration
+
+<Steps>
+  <Step title="Verify GPU Detection">
+    Check Ollama sees your GPU:
+    ```bash
+    ollama run llama3.1:8b "test"
+    # Should show GPU memory usage
+    ```
+  </Step>
+  
+  <Step title="NVIDIA: Install CUDA">
+    Ensure CUDA toolkit installed:
+    ```bash
+    nvidia-smi  # Check GPU
+    nvcc --version  # Check CUDA
+    ```
+  </Step>
+  
+  <Step title="Apple Silicon: Use Metal">
+    Ollama automatically uses Metal on M1/M2/M3:
+    ```bash
+    # No additional configuration needed
+    ollama run llama3.1:13b
+    ```
+  </Step>
+  
+  <Step title="AMD: Configure ROCm">
+    Linux with AMD GPUs:
+    ```bash
+    # Install ROCm (AMD's CUDA equivalent)
+    # See Ollama docs for specific instructions
+    ```
+  </Step>
+</Steps>
+
+### Memory Management
+
+<Tabs>
+  <Tab title="Reduce VRAM Usage">
+    Use quantized models:
+    ```bash
+    # 4-bit quantization (smaller, faster, slight quality loss)
+    ollama pull llama3.3:70b-q4_0
+    
+    # 8-bit quantization (balanced)
+    ollama pull llama3.3:70b-q8_0
+    
+    # Full precision (largest, highest quality)
+    ollama pull llama3.3:70b
+    ```
+  </Tab>
+  
+  <Tab title="Offload to RAM">
+    Split between GPU and CPU:
+    ```bash
+    # Configure in Modelfile
+    # Use when VRAM insufficient for full model
+    PARAMETER num_gpu 32  # Layers on GPU
+    ```
+  </Tab>
+  
+  <Tab title="Free Memory">
+    Unload models when not in use:
+    ```bash
+    # Ollama keeps models in memory
+    # They auto-unload after 5 minutes idle
+    
+    # Or manually stop Ollama
+    pkill ollama
+    ```
+  </Tab>
+</Tabs>
+
+### Concurrent Requests
+
+<Note>
+Ollama handles one request at a time by default. For STRIDE GPT, this means:
+- Generating threat model: Model fully loaded
+- Generating attack tree: Same model, quick start
+- Multiple tabs: Sequential processing
+</Note>
+
+## Best Practices
+
+### Choosing the Right Model
+
+<Steps>
+  <Step title="Assess Your Hardware">
+    Match model to available resources:
+    
+    | Available VRAM | Recommended Model | Expected Quality |
+    |---------------|-------------------|------------------|
+    | 8 GB | llama3.1:8b | Basic |
+    | 16 GB | llama3.1:13b | Good |
+    | 24 GB | qwen2.5:32b | Very Good |
+    | 48+ GB | llama3.3:70b | Excellent |
+  </Step>
+  
+  <Step title="Test Performance">
+    Benchmark before committing:
+    ```bash
+    # Time a simple threat model
+    time ollama run llama3.1:13b \
+      "Generate STRIDE threats for a web app"
+    ```
+    
+    Acceptable: under 2 minutes for simple apps
+  </Step>
+  
+  <Step title="Balance Quality vs Speed">
+    Development vs Production:
+    - **Development**: Use 8B-13B for fast iteration
+    - **Production**: Use 32B-70B for comprehensive analysis
+    - **Critical Systems**: Consider cloud APIs for best quality
+  </Step>
+</Steps>
+
+### Privacy-Focused Workflow
+
+<Card>
+  **For Maximum Privacy**:
+  
+  1. **Air-gapped setup**: No internet connection
+  2. **Local Ollama**: No external API calls
+  3. **Disk encryption**: Protect model files and outputs
+  4. **Secure disposal**: Wipe threat models after use
+  
+  **Use Cases**:
+  - Government/defense applications
+  - Financial services
+  - Healthcare (HIPAA)
+  - Proprietary systems
+  - Compliance-driven industries
+</Card>
+
+## Troubleshooting
+
+<Accordion title="Ollama Not Running">
+  **Symptom**: "Unable to connect to Ollama"
+  
+  **Solutions**:
+  - Check Ollama is running: `ps aux | grep ollama`
+  - Start Ollama: `ollama serve` (or `systemctl start ollama`)
+  - Verify endpoint: `curl http://localhost:11434/api/tags`
+  - Check firewall: Allow port 11434
+</Accordion>
+
+<Accordion title="No Models Found">
+  **Symptom**: Dropdown shows "local-model" or empty
+  
+  **Solutions**:
+  - List models: `ollama list`
+  - Pull a model: `ollama pull llama3.1:13b`
+  - Check Ollama version: `ollama --version`
+  - Verify API response: `curl http://localhost:11434/api/tags`
+</Accordion>
+
+<Accordion title="Out of Memory Errors">
+  **Symptom**: Model fails to load or crashes
+  
+  **Solutions**:
+  - Use smaller model (8B instead of 13B)
+  - Use quantized version (q4_0, q5_0)
+  - Close other applications
+  - Increase swap space (Linux)
+  - Check: `nvidia-smi` (GPU memory) or `free -h` (RAM)
+</Accordion>
+
+<Accordion title="Very Slow Generation">
+  **Symptom**: Threat model takes >5 minutes
+  
+  **Solutions**:
+  - Verify GPU acceleration: `nvidia-smi` shows usage
+  - Use smaller model if on CPU
+  - Check model quantization (q4 faster than q8)
+  - Increase timeout in STRIDE GPT settings
+  - Consider cloud API for this use case
+</Accordion>
+
+<Accordion title="Poor Quality Results">
+  **Symptom**: Threat model incomplete or inaccurate
+  
+  **Solutions**:
+  - Upgrade to 13B+ parameter model
+  - Try different model: Qwen, Llama, or DeepSeek
+  - Use full precision instead of quantized
+  - Provide more detailed application description
+  - Consider that Ollama models may not match cloud API quality
+</Accordion>
+
+<Accordion title="Timeout Errors">
+  **Symptom**: "Request to Ollama timed out"
+  
+  **Solutions**:
+  - Increase timeout in STRIDE GPT sidebar (60s → 300s)
+  - Use smaller model
+  - Check system resources (CPU/GPU/RAM usage)
+  - Ensure model fully loaded (first request slower)
+</Accordion>
+
+## Comparing Ollama to Cloud Providers
+
+### vs. OpenAI/Anthropic/Google
+
+<Tabs>
+  <Tab title="Ollama Advantages">
+    - ✅ **Complete privacy** (no data sent externally)
+    - ✅ **No recurring costs** (free after hardware)
+    - ✅ **Offline operation** (no internet required)
+    - ✅ **Data sovereignty** (you control everything)
+    - ✅ **No rate limits** (use as much as you want)
+  </Tab>
+  
+  <Tab title="Cloud API Advantages">
+    - ✅ **Better quality** (larger, more sophisticated models)
+    - ✅ **Faster inference** (optimized infrastructure)
+    - ✅ **No hardware needed** (works on any computer)
+    - ✅ **Always latest models** (automatic updates)
+    - ✅ **Reasoning models** (GPT-5, Claude, Gemini)
+    - ✅ **Image analysis** (architecture diagrams)
+  </Tab>
+</Tabs>
+
+### Hybrid Approach
+
+<Card>
+  **Best of Both Worlds**:
+  
+  - **Ollama**: For non-sensitive applications, development, learning
+  - **Cloud APIs**: For critical systems, complex AI apps, production
+  
+  **Example Workflow**:
+  1. Prototype with Ollama (Llama 3.1 13B)
+  2. Refine with Groq (fast cloud inference)
+  3. Final analysis with GPT-5.2-pro (comprehensive)
+</Card>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="LM Studio" icon="desktop" href="/providers/lm-studio">
+    Try LM Studio for user-friendly local hosting
+  </Card>
+  <Card title="Groq" icon="bolt" href="/providers/groq">
+    Experience fast cloud inference with Llama models
+  </Card>
+  <Card title="Model Comparison" icon="scale-balanced" href="/providers/overview">
+    Compare all provider options
+  </Card>
+  <Card title="Advanced Ollama Setup" icon="gear" href="/installation/configuration">
+    Optimize Ollama for production use
+  </Card>
+</CardGroup>

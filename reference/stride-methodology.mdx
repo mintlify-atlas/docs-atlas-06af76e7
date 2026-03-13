@@ -1,0 +1,217 @@
+---
+title: STRIDE Methodology
+description: Understanding the STRIDE threat modeling framework in STRIDE GPT
+---
+
+## Overview
+
+STRIDE is a threat modeling methodology developed by Microsoft that helps identify security threats in software systems. STRIDE GPT uses this framework as the foundation for analyzing security risks in traditional, generative AI, and agentic AI applications.
+
+The acronym STRIDE represents six threat categories:
+
+<CardGroup cols={2}>
+  <Card title="Spoofing" icon="mask">
+    Identity spoofing, credential theft, and authentication bypass
+  </Card>
+  <Card title="Tampering" icon="wrench">
+    Data modification, code injection, and unauthorized changes
+  </Card>
+  <Card title="Repudiation" icon="clock-rotate-left">
+    Denial of actions, log manipulation, and accountability issues
+  </Card>
+  <Card title="Information Disclosure" icon="eye">
+    Data leaks, unauthorized access, and privacy violations
+  </Card>
+  <Card title="Denial of Service" icon="ban">
+    Resource exhaustion, service disruption, and availability attacks
+  </Card>
+  <Card title="Elevation of Privilege" icon="arrow-up">
+    Privilege escalation, unauthorized access, and permission abuse
+  </Card>
+</CardGroup>
+
+## STRIDE Categories in Detail
+
+### Spoofing Identity
+
+**Traditional threats:**
+- Identity spoofing through fake credentials
+- Session hijacking and token theft
+- Impersonation attacks
+
+**LLM-specific threats:**
+- **LLM01 (Prompt Injection)**: Crafted inputs that override system prompts to impersonate other entities
+- **LLM07 (System Prompt Leakage)**: Extraction of system prompts reveals intended identity/behavior
+
+**Agentic-specific threats:**
+- **ASI07 (Insecure Inter-Agent Communication)**: Spoofed agent identities in multi-agent systems
+- **ASI04 (Agentic Supply Chain)**: Malicious MCP servers impersonating legitimate ones
+
+<Accordion title="Example Scenario">
+An attacker injects malicious instructions into a document processed by an agent, causing it to impersonate a legitimate service when responding to users.
+</Accordion>
+
+### Tampering with Data
+
+**Traditional threats:**
+- Data modification in transit or at rest
+- Code injection attacks
+- Configuration tampering
+
+**LLM-specific threats:**
+- **LLM01 (Prompt Injection)**: Direct or indirect injection manipulating LLM behavior
+- **LLM04 (Data and Model Poisoning)**: Malicious modification of training data or embeddings
+- **LLM08 (Vector and Embedding Weaknesses)**: Manipulation of RAG data
+
+**Agentic-specific threats:**
+- **ASI06 (Memory and Context Poisoning)**: RAG poisoning, manipulated agent memory
+- **ASI01 (Agent Goal Hijack)**: Prompt injection via poisoned documents altering agent objectives
+- **ASI07**: Message tampering in inter-agent communication
+
+<Note>
+In agentic systems, tampering can cascade across agent chains, affecting multiple components.
+</Note>
+
+### Repudiation
+
+**Traditional threats:**
+- Denial of actions performed
+- Log file manipulation or deletion
+- Lack of audit trails
+
+**LLM-specific threats:**
+- **LLM09 (Misinformation)**: LLM generates false information with difficult attribution
+- Insufficient logging of LLM decision-making processes
+
+**Agentic-specific threats:**
+- **ASI09 (Human-Agent Trust Exploitation)**: Agent actions circumventing audit trails
+- Untraceable autonomous decisions due to logging gaps
+
+### Information Disclosure
+
+**Traditional threats:**
+- Unauthorized data access
+- Insecure data storage
+- Information leakage through error messages
+
+**LLM-specific threats:**
+- **LLM02 (Sensitive Information Disclosure)**: LLM reveals training data, PII, or credentials
+- **LLM07 (System Prompt Leakage)**: Exposure of confidential system instructions
+- **LLM08 (Vector and Embedding Weaknesses)**: Cross-tenant RAG data leakage
+
+**Agentic-specific threats:**
+- **ASI06**: Context window leakage exposing sensitive data from previous sessions
+- **ASI01**: Prompt injection leading to data exfiltration
+
+<Info>
+Information disclosure is particularly critical in multi-tenant environments where data isolation is essential.
+</Info>
+
+### Denial of Service
+
+**Traditional threats:**
+- Network flooding
+- Resource exhaustion
+- Service disruption
+
+**LLM-specific threats:**
+- **LLM10 (Unbounded Consumption)**: Resource exhaustion through expensive queries or long contexts
+- **LLM04 (Data and Model Poisoning)**: Model performance degradation
+
+**Agentic-specific threats:**
+- **ASI08 (Cascading Failures)**: Error propagation across agent chains
+- Agent loop attacks causing infinite reasoning cycles
+- Runaway code execution consuming resources
+
+### Elevation of Privilege
+
+**Traditional threats:**
+- Privilege escalation
+- Unauthorized access to protected resources
+- Permission bypasses
+
+**LLM-specific threats:**
+- **LLM05 (Improper Output Handling)**: LLM output enables command injection, XSS, or SSRF
+- **LLM06 (Excessive Agency)**: LLM granted excessive permissions
+- **LLM03 (Supply Chain)**: Compromised models introducing backdoors
+
+**Agentic-specific threats:**
+- **ASI02 (Tool Misuse and Exploitation)**: Over-privileged tools executing destructive commands
+- **ASI03 (Identity and Privilege Abuse)**: Cached credential misuse, confused deputy attacks
+- **ASI05 (Unexpected Code Execution)**: Unsafe eval/exec, sandbox escape
+- **ASI10 (Rogue Agents)**: Agents persisting beyond intended lifecycle
+
+<Note>
+Elevation of privilege in agentic systems can lead to full system compromise through tool misuse or code execution.
+</Note>
+
+## Application Type Differences
+
+### Traditional Applications
+
+For traditional applications, STRIDE GPT focuses on conventional security threats:
+- Standard authentication and authorization issues
+- Network security vulnerabilities
+- Data protection concerns
+
+### Generative AI Applications
+
+Adds LLM-specific considerations:
+- Prompt injection vulnerabilities (LLM01)
+- Training data exposure (LLM02)
+- Output handling risks (LLM05)
+- System prompt leakage (LLM07)
+
+### Agentic AI Applications
+
+Includes both LLM and agentic-specific threats:
+- Multi-agent system vulnerabilities (ASI07)
+- Tool and action misuse (ASI02)
+- Memory poisoning (ASI06)
+- Autonomous operation risks (ASI09, ASI10)
+- Cross-layer attack chains
+
+<Info>
+STRIDE GPT automatically adjusts its analysis based on the selected application type to provide relevant threat scenarios.
+</Info>
+
+## Cross-Layer Threat Analysis
+
+For agentic applications, STRIDE GPT analyzes how threats cascade across system boundaries:
+
+- **Data Layer → Agent Layer**: How RAG poisoning affects agent decisions
+- **Tool Layer → Infrastructure**: How compromised tools affect foundation models
+- **Agent Ecosystem → Infrastructure**: Multi-agent attacks leading to system compromise
+- **Observability Gaps**: How monitoring failures hide attack progression
+
+## Best Practices
+
+<Accordion title="Conducting STRIDE Analysis">
+1. **Identify Components**: Map all system components and data flows
+2. **Apply STRIDE Categories**: Systematically evaluate each category
+3. **Consider Context**: Account for application type (traditional, GenAI, agentic)
+4. **Document Scenarios**: Create specific, actionable threat scenarios
+5. **Assess Impact**: Evaluate potential damage for each identified threat
+</Accordion>
+
+<Accordion title="Using STRIDE GPT Effectively">
+- Provide detailed application descriptions including architecture details
+- Specify authentication methods and data sensitivity
+- Include information about agent frameworks, RAG systems, or tool integrations
+- Mention sandboxing, isolation, and security controls
+- Iterate on threat models with additional context
+</Accordion>
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="DREAD Framework" href="/reference/dread-framework">
+    Learn about risk scoring for identified threats
+  </Card>
+  <Card title="OWASP LLM Top 10" href="/reference/owasp-llm-top-10">
+    Explore LLM-specific security risks
+  </Card>
+  <Card title="OWASP ASI Top 10" href="/reference/owasp-asi-top-10">
+    Understand agentic system vulnerabilities
+  </Card>
+</CardGroup>

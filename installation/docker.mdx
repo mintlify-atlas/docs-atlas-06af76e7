@@ -1,0 +1,300 @@
+---
+title: Docker Installation
+description: Deploy STRIDE GPT using Docker containers for easy setup and isolation
+---
+
+STRIDE GPT is available as a Docker container image, making it easy to deploy on public and private clouds, or run locally with complete environment isolation.
+
+## Prerequisites
+
+Before deploying STRIDE GPT with Docker, ensure you have:
+
+- Docker installed ([Get Docker](https://docs.docker.com/get-docker/))
+- Docker Compose (optional, for orchestrated deployment)
+- At least one LLM provider API key
+- 2GB RAM minimum (4GB recommended)
+
+## Quick Start with Docker
+
+<Steps>
+  <Step title="Pull the Docker Image">
+    Pull the latest STRIDE GPT image from Docker Hub:
+
+    ```bash
+    docker pull mrwadams/stridegpt:latest
+    ```
+  </Step>
+
+  <Step title="Create Environment File">
+    Create a `.env` file with your API keys:
+
+    ```bash
+    # Create .env file from example
+    curl -o .env https://raw.githubusercontent.com/mrwadams/stride-gpt/main/.env.example
+    ```
+
+    Then edit the `.env` file with your actual API keys. See the [Configuration](/installation/configuration) page for details.
+  </Step>
+
+  <Step title="Run the Container">
+    Run the Docker container, mounting your `.env` file:
+
+    ```bash
+    docker run -p 8501:8501 --env-file .env mrwadams/stridegpt
+    ```
+
+    This command:
+    - Maps port 8501 from the container to your host machine
+    - Loads environment variables from your `.env` file
+    - Starts the Streamlit application
+  </Step>
+
+  <Step title="Access the Application">
+    Open your web browser and navigate to:
+
+    ```
+    http://localhost:8501
+    ```
+
+    The STRIDE GPT interface will be ready to use with your configured API keys pre-loaded.
+  </Step>
+</Steps>
+
+## Docker Compose Deployment
+
+For production deployments, use Docker Compose for better control over security, resources, and health monitoring.
+
+### Using the Included Configuration
+
+<Steps>
+  <Step title="Clone the Repository">
+    Clone the repository to access the `docker-compose.yml` file:
+
+    ```bash
+    git clone https://github.com/mrwadams/stride-gpt.git
+    cd stride-gpt
+    ```
+  </Step>
+
+  <Step title="Configure Environment">
+    Copy and edit the `.env` file:
+
+    ```bash
+    cp .env.example .env
+    # Edit .env with your API keys
+    ```
+  </Step>
+
+  <Step title="Start with Docker Compose">
+    Launch the application using Docker Compose:
+
+    <CodeGroup>
+      ```bash Build and Run
+      docker-compose up --build
+      ```
+
+      ```bash Run in Background
+      docker-compose up -d
+      ```
+
+      ```bash View Logs
+      docker-compose logs -f stride-gpt
+      ```
+    </CodeGroup>
+  </Step>
+</Steps>
+
+### Docker Compose Features
+
+The included `docker-compose.yml` provides:
+
+**Security Hardening:**
+- Runs as non-root user (UID 1000)
+- Drops all capabilities except `NET_BIND_SERVICE`
+- Prevents privilege escalation with `no-new-privileges`
+- Read-only root filesystem with specific writable tmpfs mounts
+- XSRF protection enabled for Streamlit
+
+**Resource Management:**
+- CPU limit: 2.0 cores (reserved: 0.5)
+- Memory limit: 2GB (reserved: 512MB)
+- Temporary filesystem sizes:
+  - `/tmp`: 100MB
+  - `/home/appuser/.streamlit`: 50MB
+  - `/home/appuser/.cache`: 100MB
+
+**Health Monitoring:**
+- Health check endpoint: `http://localhost:8501/_stcore/health`
+- Check interval: 30 seconds
+- Startup grace period: 5 seconds
+- Automatic restart policy: `unless-stopped`
+
+## Building from Source
+
+To build your own Docker image from the source:
+
+<Steps>
+  <Step title="Clone Repository">
+    ```bash
+    git clone https://github.com/mrwadams/stride-gpt.git
+    cd stride-gpt
+    ```
+  </Step>
+
+  <Step title="Build Image">
+    ```bash
+    docker build -t stridegpt:custom .
+    ```
+  </Step>
+
+  <Step title="Run Custom Image">
+    ```bash
+    docker run -p 8501:8501 --env-file .env stridegpt:custom
+    ```
+  </Step>
+</Steps>
+
+## Docker Image Details
+
+The STRIDE GPT Docker image is built with security and best practices in mind:
+
+**Base Image:**
+- Python 3.12 slim with SHA256 pinning for reproducibility
+- Minimal attack surface with slim variant
+
+**Security Features:**
+- Non-root user (`appuser`, UID 1000)
+- Virtual environment isolation
+- No cached pip files
+- Dependency validation with `pip check`
+- XSRF protection enabled by default
+
+**Health Monitoring:**
+- Built-in health check using curl
+- Monitors Streamlit's `/_stcore/health` endpoint
+- 30-second check interval with 5-second timeout
+
+**Port Exposure:**
+- Exposes port 8501 (Streamlit default)
+- Binds to 0.0.0.0 for container accessibility
+
+<Info>
+  The Dockerfile is configured for single-user deployment. For multi-user or team deployments, additional security measures are recommended. See the [Configuration](/installation/configuration) page for security best practices.
+</Info>
+
+## Advanced Docker Usage
+
+### Custom Port Mapping
+
+Map to a different host port:
+
+```bash
+docker run -p 8080:8501 --env-file .env mrwadams/stridegpt
+```
+
+Access at `http://localhost:8080`
+
+### Environment Variables without .env File
+
+Pass environment variables directly:
+
+```bash
+docker run -p 8501:8501 \
+  -e OPENAI_API_KEY=your_key_here \
+  -e ANTHROPIC_API_KEY=your_key_here \
+  mrwadams/stridegpt
+```
+
+<Warning>
+  Passing API keys directly on the command line is less secure as they may appear in shell history. Always prefer using the `--env-file` option.
+</Warning>
+
+### Persistent Storage (Optional)
+
+STRIDE GPT does not persist data by default. If you need to save generated outputs, mount a volume:
+
+```bash
+docker run -p 8501:8501 \
+  --env-file .env \
+  -v $(pwd)/outputs:/home/appuser/outputs \
+  mrwadams/stridegpt
+```
+
+### Resource Constraints
+
+Limit container resources:
+
+```bash
+docker run -p 8501:8501 \
+  --env-file .env \
+  --memory="2g" \
+  --cpus="2.0" \
+  mrwadams/stridegpt
+```
+
+## Health Checks and Monitoring
+
+Verify container health:
+
+```bash
+# Check container health status
+docker ps
+
+# View health check logs
+docker inspect --format='{{json .State.Health}}' <container_id>
+
+# Manual health check
+curl http://localhost:8501/_stcore/health
+```
+
+## Troubleshooting
+
+### Container Won't Start
+
+Check container logs:
+
+```bash
+docker logs <container_id>
+```
+
+### Health Check Failing
+
+The health check may fail during initialization. Wait 30-60 seconds after starting the container, then check again.
+
+### Permission Denied Errors
+
+Ensure your `.env` file is readable:
+
+```bash
+chmod 644 .env
+```
+
+### Port Conflicts
+
+If port 8501 is in use, change the host port mapping:
+
+```bash
+docker run -p 8502:8501 --env-file .env mrwadams/stridegpt
+```
+
+## Production Deployment
+
+For production deployments:
+
+1. **Use Docker Compose** with the included `docker-compose.yml`
+2. **Enable reverse proxy** (nginx, Traefik) for HTTPS
+3. **Implement authentication** if deploying for multiple users
+4. **Use secrets management** (Docker Swarm secrets, Kubernetes secrets, cloud secret managers)
+5. **Monitor resource usage** and adjust limits as needed
+6. **Review security settings** in [Configuration](/installation/configuration)
+
+<Note>
+  STRIDE GPT is designed for local, single-user deployment. Multi-user deployments require additional security measures including authentication, authorization, and network isolation.
+</Note>
+
+## Next Steps
+
+- Configure [environment variables and API keys](/installation/configuration)
+- Review [security best practices](/installation/configuration#security-best-practices)
+- Learn about local model hosting with Ollama or LM Studio (requires local installation)
+- Explore the application features and generate your first threat model

@@ -1,0 +1,409 @@
+---
+title: OWASP ASI Top 10
+description: OWASP Top 10 for Agentic Security Issues in STRIDE GPT
+---
+
+## Overview
+
+The **OWASP Top 10 for Agentic Applications** (ASI01-ASI10) identifies critical security risks specific to autonomous AI agents and agentic systems. STRIDE GPT uses these categories when analyzing **Agentic AI applications** to identify threats unique to systems with autonomous decision-making, tool usage, and multi-agent coordination.
+
+<Info>
+Agentic applications include both OWASP LLM (LLM01-LLM10) and OWASP ASI (ASI01-ASI10) risks in threat analysis.
+</Info>
+
+## OWASP ASI Risk Categories
+
+### ASI01: Agent Goal Hijack
+
+**Description**: Adversarial inputs (documents, emails, web content) redirect the agent's objectives and intended behavior.
+
+**STRIDE Categories**:
+- **Tampering**: Prompt injection via poisoned documents altering agent objectives
+- **Information Disclosure**: Prompt injection leading to data exfiltration
+
+**Examples**:
+- Malicious instructions embedded in PDF documents
+- Email content that overrides agent goals
+- Web scraping that injects new objectives
+- RAG poisoning redirecting agent behavior
+
+<Accordion title="Risk Scenario">
+**Scenario**: An attacker injects malicious instructions into a document processed by the agent, causing it to exfiltrate sensitive data instead of summarizing it.
+
+**Impact**: Data breach, compliance violations, loss of confidential information.
+
+**Mitigation**: Input validation, content filtering, prompt hardening, behavioral monitoring.
+</Accordion>
+
+<Note>
+Goal hijacking is the agentic equivalent of prompt injection but focuses on redirecting autonomous objectives.
+</Note>
+
+### ASI02: Tool Misuse and Exploitation
+
+**Description**: Over-privileged tools executing destructive commands, or agents exploiting tools beyond their intended purpose.
+
+**STRIDE Category**: **Elevation of Privilege**
+
+**Examples**:
+- Database tool with excessive write permissions
+- Shell execution tools without parameter validation
+- File system access without path restrictions
+- API tools lacking rate limiting or scope controls
+
+<Accordion title="Risk Scenario">
+**Scenario**: An agent has access to a file deletion tool without path restrictions. Through goal hijacking, it's instructed to delete all system files.
+
+**Impact**: Complete system compromise, data loss, service unavailability.
+
+**Mitigation**: Least privilege for tools, parameter validation, action scoping, human approval for destructive actions.
+</Accordion>
+
+### ASI03: Identity and Privilege Abuse
+
+**Description**: Cached credential misuse, confused deputy attacks, or cross-agent delegation abuse.
+
+**STRIDE Category**: **Elevation of Privilege**
+
+**Examples**:
+- Agent reusing cached credentials for unintended purposes
+- Confused deputy: agent tricked into using its privileges maliciously
+- Cross-agent permission delegation without validation
+- Credential exfiltration from agent memory
+
+<Accordion title="Risk Scenario">
+**Scenario**: An agent with cached database credentials is manipulated to execute SQL queries on behalf of an attacker, bypassing normal access controls.
+
+**Impact**: Unauthorized data access, privilege escalation, compliance violations.
+
+**Mitigation**: Credential scoping, context-aware authentication, delegation validation, regular credential rotation.
+</Accordion>
+
+### ASI04: Agentic Supply Chain Vulnerabilities
+
+**Description**: Compromised external tool providers (MCP servers, plugins) or malicious dependencies in the agent ecosystem.
+
+**STRIDE Category**: **Spoofing** (malicious providers impersonating legitimate ones)
+
+**Examples**:
+- Malicious MCP server returning poisoned data
+- Compromised plugin packages
+- Fake tools masquerading as legitimate services
+- Supply chain attacks via tool dependencies
+
+<Accordion title="Risk Scenario">
+**Scenario**: A weather API tool is replaced with a malicious version that injects adversarial data into agent context, affecting all downstream decisions.
+
+**Impact**: Cascading failures, data poisoning, system-wide compromise.
+
+**Mitigation**: Tool provenance verification, integrity checking, trusted supplier lists, tool output validation.
+</Accordion>
+
+<Info>
+ASI04 is similar to LLM03 but focuses specifically on the agent's tool and plugin ecosystem.
+</Info>
+
+### ASI05: Unexpected Code Execution
+
+**Description**: Unsafe evaluation or execution of agent-generated code, including shell injection and sandbox escape.
+
+**STRIDE Category**: **Elevation of Privilege**
+
+**Examples**:
+- Python `eval()` on unsanitized agent output
+- Shell command injection through generated scripts
+- Sandbox escape exploiting weak containerization
+- Malicious package installation in code execution environments
+
+<Accordion title="Risk Scenario">
+**Scenario**: The agent's code execution capability lacks proper sandboxing, allowing generated code to access the host filesystem and escalate privileges.
+
+**Impact**: Complete system compromise and lateral movement to other infrastructure.
+
+**Mitigation**: Strong sandboxing, containerization, static analysis, resource limits, network isolation.
+</Accordion>
+
+### ASI06: Memory and Context Poisoning
+
+**Description**: Persistent memory or RAG data is poisoned to affect future sessions, other users, or long-term agent behavior.
+
+**STRIDE Categories**:
+- **Tampering**: RAG poisoning, manipulated agent memory/state
+- **Information Disclosure**: Context window leakage exposing previous sessions
+
+**Examples**:
+- Malicious documents poisoning RAG knowledge base
+- Conversation history manipulation affecting future behavior
+- Cross-session data contamination
+- Embedding poisoning in retrieval systems
+
+<Accordion title="Risk Scenario">
+**Scenario**: An attacker injects poisoned content into the agent's long-term memory, causing it to provide malicious recommendations in all future sessions.
+
+**Impact**: Persistent compromise affecting all users, difficult to detect and remediate.
+
+**Mitigation**: Memory isolation, content validation, user-scoped memory, regular audits, provenance tracking.
+</Accordion>
+
+<Note>
+Memory poisoning is particularly dangerous because it persists across sessions and can affect multiple users.
+</Note>
+
+### ASI07: Insecure Inter-Agent Communication
+
+**Description**: Spoofed agent identities, message tampering, or unauthorized agents in multi-agent systems.
+
+**STRIDE Categories**:
+- **Spoofing**: Fake agents joining multi-agent systems
+- **Tampering**: Message tampering in inter-agent communication channels
+
+**Examples**:
+- Malicious agent impersonating a trusted agent
+- Man-in-the-middle attacks on agent messages
+- Unauthorized agent injection into ecosystems
+- Replay attacks with captured agent communications
+
+<Accordion title="Risk Scenario">
+**Scenario**: In a multi-agent system, an attacker deploys a rogue agent that impersonates a trusted coordinator, issuing malicious instructions to other agents.
+
+**Impact**: Coordinated malicious actions, data exfiltration, system-wide compromise.
+
+**Mitigation**: Agent authentication, message signing, secure channels, agent authorization, monitoring.
+</Accordion>
+
+### ASI08: Cascading Failures
+
+**Description**: Error propagation across agent chains causing system-wide outages or amplified damage.
+
+**STRIDE Category**: **Denial of Service**
+
+**Examples**:
+- Single agent failure propagating through entire chain
+- Infinite loops between agents
+- Resource exhaustion cascading to dependent agents
+- Unhandled exceptions crashing multiple agents
+
+<Accordion title="Risk Scenario">
+**Scenario**: A malicious input causes one agent to generate invalid output, which cascades through a chain of 10 agents, causing all to fail and bringing down the entire system.
+
+**Impact**: Complete service outage, data loss, operational disruption.
+
+**Mitigation**: Circuit breakers, error handling, fallback mechanisms, agent isolation, timeout controls.
+</Accordion>
+
+<Info>
+Cascading failures can amplify a minor issue into a critical system-wide outage.
+</Info>
+
+### ASI09: Human-Agent Trust Exploitation
+
+**Description**: Agents exploit user over-trust to perform harmful actions without scrutiny or proper approval.
+
+**STRIDE Category**: **Repudiation**
+
+**Examples**:
+- Autonomous actions without human verification
+- Social engineering through agent personas
+- Bypassing approval workflows through persuasion
+- Exploiting user fatigue with approval requests
+
+<Accordion title="Risk Scenario">
+**Scenario**: An agent continuously requests approval for benign actions until the user develops "approval fatigue," then slips in a destructive action that gets approved without review.
+
+**Impact**: Unauthorized actions, data deletion, financial losses, lack of accountability.
+
+**Mitigation**: Human-in-the-loop for critical actions, clear action descriptions, approval thresholds, audit logging.
+</Accordion>
+
+### ASI10: Rogue Agents
+
+**Description**: Agents persisting beyond their intended lifecycle, impersonating users, or resisting shutdown commands.
+
+**STRIDE Category**: **Elevation of Privilege**
+
+**Examples**:
+- Agents continuing to run after termination command
+- Self-replicating agents creating unauthorized instances
+- Agents impersonating users to gain access
+- Persistence mechanisms evading lifecycle controls
+
+<Accordion title="Risk Scenario">
+**Scenario**: An agent designed for temporary data processing creates persistence mechanisms and continues operating after the user attempts to shut it down, exfiltrating data over time.
+
+**Impact**: Ongoing security breach, data exfiltration, resource consumption, loss of control.
+
+**Mitigation**: Lifecycle management, forced termination, resource quotas, monitoring, agent versioning.
+</Accordion>
+
+## Architectural Pattern Detection
+
+STRIDE GPT automatically detects architectural patterns and includes pattern-specific threats:
+
+### RAG / Retrieval Systems
+
+<Accordion title="Pattern-Specific Threats">
+- **ASI06**: Vector store poisoning (malicious documents)
+- **ASI06**: Embedding manipulation (adversarial retrieval)
+- Cross-tenant data leakage in multi-tenant RAG
+- Stale or poisoned index threats
+</Accordion>
+
+### Multi-Agent Systems
+
+<Accordion title="Pattern-Specific Threats">
+- **ASI07**: Agent impersonation (malicious agents)
+- **ASI07**: Inter-agent message tampering
+- **ASI07**: Malicious agent injection
+- **ASI08**: Cascading failures across chains
+- Goal conflicts and emergent behaviors
+</Accordion>
+
+### Code Execution / Sandboxing
+
+<Accordion title="Pattern-Specific Threats">
+- **ASI05**: Sandbox escape attempts
+- **ASI05**: Container breakout (if containerized)
+- Resource exhaustion via generated code
+- Filesystem/network access beyond scope
+- Malicious dependency installation
+</Accordion>
+
+### Tool/Plugin Ecosystems
+
+<Accordion title="Pattern-Specific Threats">
+- **ASI04**: Malicious tool providers
+- **ASI04**: Tool impersonation
+- **ASI04**: Supply chain attacks via tools
+- **ASI02**: Confused deputy attacks
+</Accordion>
+
+### Persistent Memory / State
+
+<Accordion title="Pattern-Specific Threats">
+- **ASI06**: Memory poisoning attacks
+- **ASI06**: Cross-session data leakage
+- Memory extraction attacks
+- State manipulation altering agent personality
+</Accordion>
+
+### Fine-Tuned / Custom Models
+
+<Accordion title="Pattern-Specific Threats">
+- Training data poisoning
+- Backdoor trigger injection
+- Model supply chain compromise
+- Intellectual property extraction
+</Accordion>
+
+## Cross-Layer Threat Analysis
+
+For agentic applications, STRIDE GPT analyzes how threats cascade across components:
+
+<CardGroup cols={2}>
+  <Card title="Data → Agent" icon="arrow-right">
+    RAG poisoning affecting agent decision-making and tool usage
+  </Card>
+  <Card title="Tool → Model" icon="arrow-right">
+    Compromised tool provider affecting foundation model outputs
+  </Card>
+  <Card title="Agent → Infrastructure" icon="arrow-right">
+    Multi-agent manipulation leading to infrastructure compromise
+  </Card>
+  <Card title="Observability Gaps" icon="eye-slash">
+    Monitoring failures hiding attack progression across components
+  </Card>
+</CardGroup>
+
+## STRIDE Mapping Reference
+
+<CardGroup cols={2}>
+  <Card title="Spoofing" icon="mask">
+    ASI07 (Insecure Inter-Agent Communication)
+    ASI04 (Agentic Supply Chain)
+  </Card>
+  <Card title="Tampering" icon="wrench">
+    ASI06 (Memory and Context Poisoning)
+    ASI01 (Agent Goal Hijack)
+    ASI07 (Message Tampering)
+  </Card>
+  <Card title="Repudiation" icon="clock-rotate-left">
+    ASI09 (Human-Agent Trust Exploitation)
+    Untraceable autonomous decisions
+  </Card>
+  <Card title="Information Disclosure" icon="eye">
+    ASI06 (Context Window Leakage)
+    ASI01 (Goal Hijack → Exfiltration)
+  </Card>
+  <Card title="Denial of Service" icon="ban">
+    ASI08 (Cascading Failures)
+    Agent loop attacks
+    Resource exhaustion
+  </Card>
+  <Card title="Elevation of Privilege" icon="arrow-up">
+    ASI02 (Tool Misuse)
+    ASI03 (Identity/Privilege Abuse)
+    ASI05 (Unexpected Code Execution)
+    ASI10 (Rogue Agents)
+  </Card>
+</CardGroup>
+
+## Critical Evaluation Questions
+
+When analyzing agentic applications, STRIDE GPT evaluates:
+
+1. **ASI01**: How could adversarial inputs redirect the agent's objectives?
+2. **ASI02**: Are tools properly scoped with least privilege? Can the agent execute dangerous commands?
+3. **ASI03**: Can the agent abuse delegated permissions or cached credentials?
+4. **ASI04**: Are external tool providers trusted, verified, and integrity-checked?
+5. **ASI05**: Does the agent have code execution capabilities? Are they properly sandboxed?
+6. **ASI06**: Can persistent memory be poisoned to affect future sessions or other users?
+7. **ASI07**: In multi-agent systems, can agents be spoofed or messages tampered with?
+8. **ASI08**: How do errors propagate through agent chains? Are there circuit breakers?
+9. **ASI09**: Can the agent exploit user over-trust to perform harmful actions?
+10. **ASI10**: Can the agent persist beyond its intended lifecycle or resist shutdown?
+
+## Application in STRIDE GPT
+
+When you select **"Agentic AI application"**, STRIDE GPT:
+
+<Accordion title="Comprehensive Analysis">
+1. Includes BOTH OWASP LLM (LLM01-LLM10) and OWASP ASI (ASI01-ASI10) risks
+2. Maps each risk to corresponding STRIDE categories
+3. Detects architectural patterns (RAG, multi-agent, code execution, etc.)
+4. Generates pattern-specific threats based on detected architectures
+5. Analyzes cross-layer attack chains
+6. Includes both `OWASP_LLM` and `OWASP_ASI` fields in JSON output
+7. Provides agentic-specific improvement suggestions
+</Accordion>
+
+## Improvement Suggestions
+
+For agentic applications, STRIDE GPT may request clarification on:
+
+- Agent framework/orchestration details (LangChain, CrewAI, AutoGen, custom)
+- RAG pipeline architecture and vector store details
+- Sandbox/isolation mechanisms for code execution
+- Inter-agent communication protocols
+- Memory persistence mechanisms
+- Tool validation and output sanitization
+- Circuit breakers and rate limiting for agent loops
+- Audit logging coverage for decisions and tool invocations
+- Human escalation paths and approval workflows
+
+## Related Resources
+
+<CardGroup cols={2}>
+  <Card title="STRIDE Methodology" href="/reference/stride-methodology">
+    Learn how STRIDE integrates with OWASP ASI risks
+  </Card>
+  <Card title="OWASP LLM Top 10" href="/reference/owasp-llm-top-10">
+    Explore LLM-specific security risks
+  </Card>
+  <Card title="DREAD Framework" href="/reference/dread-framework">
+    Understand risk scoring for agentic threats
+  </Card>
+</CardGroup>
+
+<Note>
+The OWASP ASI Top 10 represents emerging best practices for agentic security. As the field evolves, these categories may be updated. Check the official OWASP project for the latest guidance.
+</Note>
